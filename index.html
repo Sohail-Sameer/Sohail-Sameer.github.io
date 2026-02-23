@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shaik Sohail Sameer — Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #080c10;
+      --surface: #0e1318;
+      --card: #12181f;
+      --border: #1e2a35;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --glow: 0 0 30px rgba(0,229,255,0.15);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; overflow-x: hidden; cursor: none; }
+    .cursor { position: fixed; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; pointer-events: none; z-index: 9999; transition: transform 0.1s ease; mix-blend-mode: screen; }
+    .cursor-ring { position: fixed; width: 36px; height: 36px; border: 1.5px solid var(--accent); border-radius: 50%; pointer-events: none; z-index: 9998; transition: transform 0.15s ease, width 0.2s, height 0.2s, border-color 0.2s; opacity: 0.5; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; opacity: 0.4; }
+    body::after { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 6vw; background: rgba(8,12,16,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--accent); letter-spacing: 0.05em; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--muted); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.2s; position: relative; }
+    .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: var(--accent); transition: width 0.3s; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-links a:hover::after { width: 100%; }
+    #hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 8rem 6vw 4rem; z-index: 1; overflow: hidden; }
+    .hero-glow { position: absolute; top: 20%; left: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,229,255,0.07) 0%, transparent 70%); pointer-events: none; }
+    .hero-glow2 { position: absolute; bottom: 0; right: -5%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%); pointer-events: none; }
+    .hero-tag { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); border: 1px solid rgba(0,229,255,0.3); padding: 0.4rem 1rem; border-radius: 100px; margin-bottom: 1.5rem; animation: fadeUp 0.6s ease both; }
+    .hero-tag::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.8); } }
+    h1.hero-name { font-size: clamp(2.8rem, 7vw, 6rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; animation: fadeUp 0.6s 0.1s ease both; }
+    .hero-name .accent { color: var(--accent); }
+    .hero-title { font-family: 'Space Mono', monospace; font-size: clamp(0.85rem, 2vw, 1rem); color: var(--muted); margin: 1.2rem 0 2rem; animation: fadeUp 0.6s 0.2s ease both; }
+    .hero-desc { font-size: clamp(1rem, 1.5vw, 1.15rem); color: #94a3b8; max-width: 560px; line-height: 1.75; margin-bottom: 2.5rem; animation: fadeUp 0.6s 0.3s ease both; }
+    .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; animation: fadeUp 0.6s 0.4s ease both; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.85rem 2rem; border-radius: 6px; font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700; text-decoration: none; letter-spacing: 0.05em; transition: all 0.25s; cursor: none; }
+    .btn-primary { background: var(--accent); color: #080c10; box-shadow: 0 0 20px rgba(0,229,255,0.3); }
+    .btn-primary:hover { box-shadow: 0 0 40px rgba(0,229,255,0.5); transform: translateY(-2px); }
+    .btn-outline { border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+    .hero-scroll { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; animation: fadeUp 1s 0.8s both; }
+    .scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--accent), transparent); animation: scrollLine 2s infinite; }
+    @keyframes scrollLine { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+    section { position: relative; z-index: 1; padding: 6rem 6vw; }
+    .section-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+    .section-title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 3rem; }
+    #about .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    .about-text p { color: #94a3b8; line-height: 1.8; margin-bottom: 1rem; font-size: 1.05rem; }
+    .info-list { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .info-item { display: flex; gap: 1rem; align-items: center; font-family: 'Space Mono', monospace; font-size: 0.8rem; }
+    .info-item .label { color: var(--muted); min-width: 80px; }
+    .info-item .value { color: var(--text); }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: border-color 0.3s, transform 0.3s; }
+    .stat-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--glow); }
+    .stat-number { font-size: 2.5rem; font-weight: 800; color: var(--accent); line-height: 1; font-family: 'Space Mono', monospace; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem; font-family: 'Space Mono', monospace; }
+    #skills { background: var(--surface); }
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+    .skill-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: all 0.3s; position: relative; overflow: hidden; }
+    .skill-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+    .skill-card:hover::before { transform: scaleX(1); }
+    .skill-card:hover { border-color: rgba(0,229,255,0.3); transform: translateY(-4px); box-shadow: var(--glow); }
+    .skill-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .skill-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; }
+    .skill-bar-bg { background: var(--border); height: 3px; border-radius: 2px; overflow: hidden; }
+    .skill-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; width: 0; transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .skill-level { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-top: 0.4rem; }
+    #project .project-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; position: relative; overflow: hidden; transition: all 0.3s; max-width: 800px; }
+    #project .project-card:hover { border-color: rgba(0,229,255,0.3); box-shadow: var(--glow); }
+    .project-tag { display: inline-block; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3); color: var(--accent); font-family: 'Space Mono', monospace; font-size: 0.7rem; padding: 0.3rem 0.8rem; border-radius: 4px; margin-bottom: 1rem; }
+    .project-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; }
+    .project-desc { color: #94a3b8; line-height: 1.75; margin-bottom: 1.5rem; }
+    .project-features { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+    .project-features li { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.9rem; color: #94a3b8; }
+    .project-features li::before { content: '›'; color: var(--accent); font-size: 1.1rem; line-height: 1.4; flex-shrink: 0; }
+    .project-tech { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .tech-tag { background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.7rem; padding: 0.3rem 0.8rem; border-radius: 4px; }
+    #achievements { background: var(--surface); }
+    .achieve-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .achieve-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; transition: all 0.3s; }
+    .achieve-card:hover { transform: translateY(-4px); box-shadow: var(--glow); border-color: rgba(0,229,255,0.3); }
+    .achieve-number { font-size: 3.5rem; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 0.5rem; font-family: 'Space Mono', monospace; }
+    .achieve-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .achieve-desc { color: var(--muted); font-size: 0.9rem; }
+    .edu-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; display: flex; gap: 2rem; align-items: flex-start; transition: all 0.3s; max-width: 700px; }
+    .edu-card:hover { border-color: rgba(0,229,255,0.3); box-shadow: var(--glow); }
+    .edu-year { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); white-space: nowrap; padding-top: 0.2rem; }
+    .edu-degree { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .edu-school { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.2rem; }
+    .edu-loc { color: var(--muted); font-size: 0.8rem; font-family: 'Space Mono', monospace; }
+    .lang-grid { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 1rem; }
+    .lang-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; transition: all 0.3s; }
+    .lang-card:hover { border-color: rgba(0,229,255,0.3); }
+    .lang-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+    .lang-level { color: var(--accent); font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+    #contact { text-align: center; }
+    .contact-email { font-size: clamp(1.2rem, 3vw, 2rem); font-weight: 800; color: var(--accent); text-decoration: none; border-bottom: 2px solid transparent; transition: border-color 0.3s; cursor: none; display: inline-block; }
+    .contact-email:hover { border-color: var(--accent); }
+    .contact-info { margin-top: 1rem; font-family: 'Space Mono', monospace; color: var(--muted); font-size: 0.85rem; }
+    footer { border-top: 1px solid var(--border); padding: 2rem 6vw; display: flex; justify-content: space-between; align-items: center; font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted); position: relative; z-index: 1; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: none; border: none; background: none; }
+    .hamburger span { width: 24px; height: 2px; background: var(--text); border-radius: 2px; display: block; transition: all 0.3s; }
+    @media (max-width: 768px) {
+      .hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(8,12,16,0.98); backdrop-filter: blur(16px); flex-direction: column; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); gap: 1.5rem; }
+      .nav-links.open { display: flex; }
+      #about .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .edu-card { flex-direction: column; gap: 0.5rem; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+      #hero { padding-top: 7rem; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .hero-cta { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <nav>
+    <div class="nav-logo">SSS.dev</div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#project">Project</a></li>
+      <li><a href="#achievements">Wins</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <section id="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-glow2"></div>
+    <div class="hero-content">
+      <div class="hero-tag">Available for Internships &amp; Opportunities</div>
+      <h1 class="hero-name">Shaik Sohail<br><span class="accent">Sameer.</span></h1>
+      <p class="hero-title">// CS Engineering Student &nbsp;·&nbsp; Python &nbsp;·&nbsp; SQL &nbsp;·&nbsp; AI &amp; Prompt Engineering</p>
+      <p class="hero-desc">A highly motivated Computer Science Engineering student with a strong foundation in Python, SQL, and AI — building real-world solutions and growing fast.</p>
+      <div class="hero-cta">
+        <a href="#project" class="btn btn-primary">View My Work ↓</a>
+        <a href="#contact" class="btn btn-outline">Get In Touch</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      SCROLL
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="section-label">01 — About</div>
+    <div class="section-title">Who I Am</div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>I'm <strong>Shaik Sohail Sameer</strong>, a Computer Science Engineering student at Andhra University, Visakhapatnam. I'm passionate about turning complex problems into elegant, efficient solutions.</p>
+        <p>My core strengths lie in Python programming, relational databases, and leveraging AI through prompt engineering. I thrive on learning fast and applying knowledge in practical, impactful ways.</p>
+        <div class="info-list">
+          <div class="info-item"><span class="label">📍 Location</span><span class="value">Visakhapatnam, AP, India</span></div>
+          <div class="info-item"><span class="label">📞 Phone</span><span class="value">+91 6364120768</span></div>
+          <div class="info-item"><span class="label">📧 Email</span><span class="value">sohailsameer2008@gmail.com</span></div>
+          <div class="info-item"><span class="label">🎓 Degree</span><span class="value">B.Sc Engineering (2025–2029)</span></div>
+        </div>
+      </div>
+      <div class="stats-grid reveal">
+        <div class="stat-card"><div class="stat-number" data-target="4">0</div><div class="stat-label">Years of Study</div></div>
+        <div class="stat-card"><div class="stat-number" data-target="4">0</div><div class="stat-label">Core Skills</div></div>
+        <div class="stat-card"><div class="stat-number" data-target="20">0</div><div class="stat-label">% Tasks Automated</div></div>
+        <div class="stat-card"><div class="stat-number" data-target="15">0</div><div class="stat-label">% Efficiency Gained</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="section-label">02 — Skills</div>
+    <div class="section-title">What I Work With</div>
+    <div class="skills-grid">
+      <div class="skill-card reveal"><div class="skill-icon">🐍</div><div class="skill-name">Python</div><div class="skill-bar-bg"><div class="skill-bar" data-width="85"></div></div><div class="skill-level">Advanced · 85%</div></div>
+      <div class="skill-card reveal"><div class="skill-icon">🗄️</div><div class="skill-name">MySQL / SQL</div><div class="skill-bar-bg"><div class="skill-bar" data-width="80"></div></div><div class="skill-level">Advanced · 80%</div></div>
+      <div class="skill-card reveal"><div class="skill-icon">⚙️</div><div class="skill-name">C Programming</div><div class="skill-bar-bg"><div class="skill-bar" data-width="65"></div></div><div class="skill-level">Intermediate · 65%</div></div>
+      <div class="skill-card reveal"><div class="skill-icon">🤖</div><div class="skill-name">Prompt Engineering</div><div class="skill-bar-bg"><div class="skill-bar" data-width="90"></div></div><div class="skill-level">Expert · 90%</div></div>
+    </div>
+    <div style="margin-top:3rem">
+      <div class="section-label" style="margin-bottom:1rem">Strengths</div>
+      <div class="achieve-grid">
+        <div class="achieve-card reveal"><div style="font-size:2rem;margin-bottom:0.5rem">🧩</div><div class="achieve-title">Problem Solving</div><div class="achieve-desc">Excellent at troubleshooting and remediation — finding elegant solutions under pressure.</div></div>
+        <div class="achieve-card reveal"><div style="font-size:2rem;margin-bottom:0.5rem">💻</div><div class="achieve-title">Technical Proficiency</div><div class="achieve-desc">Proficient in Python, SQL, and Prompt Engineering with hands-on project experience.</div></div>
+        <div class="achieve-card reveal"><div style="font-size:2rem;margin-bottom:0.5rem">⚡</div><div class="achieve-title">Fast Learner</div><div class="achieve-desc">Ability to pick up new technologies quickly and apply them to real-world challenges.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="project">
+    <div class="section-label">03 — Project</div>
+    <div class="section-title">Featured Work</div>
+    <div class="project-card reveal">
+      <div class="project-tag">DATABASE ENGINEERING</div>
+      <div class="project-title">Cinema Booking Platform Database</div>
+      <div class="project-desc">Designed and implemented a fully normalized relational database to model a real-world cinema booking platform — from schema design to complex analytical queries.</div>
+      <ul class="project-features">
+        <li>Fully normalized relational schema with core entities: films, customers, rooms, screenings, seats, and bookings</li>
+        <li>Implemented one-to-many and many-to-many relationships using foreign keys and junction tables</li>
+        <li>Generated large-scale realistic seed data to simulate multi-year booking activity</li>
+        <li>Handled edge cases including nullable attributes and high-volume transactional inserts</li>
+        <li>Complex SQL queries using JOINs, GROUP BY, subqueries, and aggregates to analyze seat occupancy and peak hours</li>
+        <li>Demonstrated schema integrity, data consistency, and performance-oriented database design</li>
+      </ul>
+      <div class="project-tech">
+        <span class="tech-tag">MySQL</span>
+        <span class="tech-tag">SQL</span>
+        <span class="tech-tag">Database Design</span>
+        <span class="tech-tag">Normalization</span>
+        <span class="tech-tag">Data Modeling</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="achievements">
+    <div class="section-label">04 — Achievements</div>
+    <div class="section-title">Key Wins</div>
+    <div class="achieve-grid">
+      <div class="achieve-card reveal"><div class="achieve-number">20%</div><div class="achieve-title">Automation Project</div><div class="achieve-desc">Reduced manual tasks by 20% through intelligent automation — saving time and improving reliability.</div></div>
+      <div class="achieve-card reveal"><div class="achieve-number">15%</div><div class="achieve-title">Design Project</div><div class="achieve-desc">Increased overall system efficiency by 15% through thoughtful design and optimization strategies.</div></div>
+    </div>
+    <div style="margin-top:3rem">
+      <div class="section-label" style="margin-bottom:1rem">Languages</div>
+      <div class="lang-grid">
+        <div class="lang-card reveal"><div class="lang-name">English</div><div class="lang-level">NATIVE</div></div>
+        <div class="lang-card reveal"><div class="lang-name">Hindi</div><div class="lang-level">PROFICIENT</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="education">
+    <div class="section-label">05 — Education</div>
+    <div class="section-title">Academic Background</div>
+    <div class="edu-card reveal">
+      <div class="edu-year">2025 — 2029</div>
+      <div>
+        <div class="edu-degree">Bachelor of Science in Engineering</div>
+        <div class="edu-school">Andhra University</div>
+        <div class="edu-loc">📍 Visakhapatnam, Andhra Pradesh</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="section-label" style="text-align:center">06 — Contact</div>
+    <div class="section-title" style="text-align:center">Let's Connect</div>
+    <p style="color:var(--muted);margin-bottom:2rem;font-size:1rem">Open to internships, collaborations, and exciting opportunities.</p>
+    <a href="mailto:sohailsameer2008@gmail.com" class="contact-email reveal">sohailsameer2008@gmail.com</a>
+    <div class="contact-info reveal">+91 6364120768 &nbsp;·&nbsp; Visakhapatnam, AP, India</div>
+  </section>
+
+  <footer>
+    <span>© 2025 Shaik Sohail Sameer</span>
+    <span>Built with HTML · CSS · JS</span>
+  </footer>
+
+  <script>
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx=0,my=0,rx=0,ry=0;
+    document.addEventListener('mousemove', e => {
+      mx=e.clientX; my=e.clientY;
+      cursor.style.left=mx-6+'px'; cursor.style.top=my-6+'px';
+    });
+    function animateRing() {
+      rx+=(mx-rx-18)*0.12; ry+=(my-ry-18)*0.12;
+      ring.style.left=rx+'px'; ring.style.top=ry+'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+    document.querySelectorAll('a,button,.skill-card,.stat-card,.achieve-card,.edu-card,.lang-card').forEach(el=>{
+      el.addEventListener('mouseenter',()=>{ cursor.style.transform='scale(2)'; ring.style.width='60px'; ring.style.height='60px'; ring.style.borderColor='var(--accent2)'; });
+      el.addEventListener('mouseleave',()=>{ cursor.style.transform='scale(1)'; ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='var(--accent)'; });
+    });
+
+    const hamburger=document.getElementById('hamburger');
+    const navLinks=document.getElementById('navLinks');
+    hamburger.addEventListener('click',()=>navLinks.classList.toggle('open'));
+    navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>navLinks.classList.remove('open')));
+
+    const reveals=document.querySelectorAll('.reveal');
+    const obs=new IntersectionObserver((entries)=>{
+      entries.forEach((entry,i)=>{
+        if(entry.isIntersecting){
+          setTimeout(()=>entry.target.classList.add('visible'),i*80);
+          entry.target.querySelectorAll('.skill-bar').forEach(bar=>{ setTimeout(()=>bar.style.width=bar.dataset.width+'%',300); });
+          entry.target.querySelectorAll('[data-target]').forEach(el=>animateCounter(el,parseInt(el.dataset.target)));
+          obs.unobserve(entry.target);
+        }
+      });
+    },{threshold:0.15});
+    reveals.forEach(r=>obs.observe(r));
+
+    function animateCounter(el,target){
+      let c=0; const step=target/50;
+      const t=setInterval(()=>{ c=Math.min(c+step,target); el.textContent=Math.floor(c); if(c>=target)clearInterval(t); },30);
+    }
+
+    const sections=document.querySelectorAll('section[id]');
+    window.addEventListener('scroll',()=>{
+      let current='';
+      sections.forEach(s=>{ if(window.scrollY>=s.offsetTop-120) current=s.id; });
+      document.querySelectorAll('.nav-links a').forEach(a=>{ a.style.color=a.getAttribute('href')==='#'+current?'var(--accent)':''; });
+    });
+  </script>
+</body>
+</html>
