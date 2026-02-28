@@ -6,150 +6,236 @@
   <title>Book Library</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <style>
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-    :root {
-      --bg:#06090d; --surface:#0c1017; --card:#111820; --border:#1a2535;
-      --accent:#00e5ff; --accent2:#6d28d9; --red:#ef4444;
-      --text:#dde6f0; --muted:#4d6278; --glow:0 0 40px rgba(0,229,255,0.12);
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --bg:#06090d;--surface:#0c1017;--card:#111820;--border:#1a2535;
+      --accent:#00e5ff;--accent2:#6d28d9;--red:#ef4444;--green:#10b981;
+      --text:#dde6f0;--muted:#4d6278;--glow:0 0 40px rgba(0,229,255,0.12);
     }
-    html { scroll-behavior:smooth; }
-    body { background:var(--bg); color:var(--text); font-family:'Syne',sans-serif; min-height:100vh; overflow-x:hidden; cursor:none; }
-    body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px); background-size:64px 64px; pointer-events:none; z-index:0; }
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;cursor:none;}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.022) 1px,transparent 1px);background-size:64px 64px;pointer-events:none;z-index:0;}
 
     /* CURSOR */
-    .cursor { position:fixed; width:10px; height:10px; background:var(--accent); border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode:screen; transition:transform 0.08s; }
-    .cursor-ring { position:fixed; width:34px; height:34px; border:1px solid var(--accent); border-radius:50%; pointer-events:none; z-index:9998; opacity:0.45; transition:width 0.18s,height 0.18s,border-color 0.18s; }
+    .cur{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:screen;transition:transform 0.08s;top:0;left:0;}
+    .curR{position:fixed;width:34px;height:34px;border:1px solid var(--accent);border-radius:50%;pointer-events:none;z-index:9998;opacity:0.45;transition:width 0.18s,height 0.18s,border-color 0.18s;top:0;left:0;}
 
     /* LOADER */
-    #loader { position:fixed; inset:0; z-index:500; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.2rem; }
-    .ld-logo { font-family:'Space Mono',monospace; color:var(--accent); font-size:clamp(0.85rem,2vw,1rem); letter-spacing:0.1em; }
-    .spinner { width:34px; height:34px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.75s linear infinite; }
+    #loader{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;}
+    .ld-logo{font-family:'Space Mono',monospace;color:var(--accent);font-size:clamp(0.85rem,2vw,1rem);letter-spacing:0.1em;}
+    .spinner{width:34px;height:34px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.75s linear infinite;}
+    .spinner.sm{width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:0.4rem;}
     @keyframes spin{to{transform:rotate(360deg)}}
 
+    /* VERIFIED BANNER */
+    #verifiedBanner{display:none;position:fixed;inset:0;z-index:600;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:1.5rem;text-align:center;padding:2rem;}
+    .verified-icon{font-size:4rem;}
+    .verified-title{font-size:clamp(1.4rem,4vw,2rem);font-weight:800;}
+    .verified-sub{color:var(--muted);font-size:clamp(0.84rem,2vw,0.96rem);max-width:400px;line-height:1.6;}
+
     /* AUTH */
-    #authWrap { position:fixed; inset:0; z-index:300; display:none; align-items:center; justify-content:center; background:var(--bg); padding:1rem; }
-    .auth-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:clamp(1.6rem,5vw,2.6rem); width:100%; max-width:440px; box-shadow:0 0 60px rgba(0,229,255,0.06); }
-    .auth-logo { font-family:'Space Mono',monospace; color:var(--accent); font-size:0.82rem; margin-bottom:1.4rem; letter-spacing:0.1em; }
-    .auth-h { font-size:clamp(1.4rem,4vw,1.8rem); font-weight:800; margin-bottom:0.4rem; }
-    .auth-sub { color:var(--muted); font-size:clamp(0.78rem,2vw,0.86rem); margin-bottom:1.8rem; line-height:1.55; }
-    .tabs { display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:1.8rem; }
-    .tab { flex:1; padding:0.62rem; text-align:center; font-family:'Space Mono',monospace; font-size:clamp(0.62rem,1.5vw,0.72rem); letter-spacing:0.06em; cursor:none; background:transparent; border:none; color:var(--muted); transition:all 0.2s; }
-    .tab.on { background:var(--accent); color:#06090d; font-weight:700; }
-    .fg { margin-bottom:1rem; }
-    .fg label { display:block; font-family:'Space Mono',monospace; font-size:clamp(0.6rem,1.4vw,0.67rem); letter-spacing:0.1em; color:var(--muted); margin-bottom:0.42rem; }
-    .fg input { width:100%; padding:clamp(0.62rem,2vw,0.78rem) 1rem; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'Syne',sans-serif; font-size:clamp(0.85rem,2vw,0.94rem); outline:none; transition:border-color 0.2s; cursor:none; }
-    .fg input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,229,255,0.07); }
-    .btn-main { width:100%; padding:0.88rem; background:var(--accent); color:#06090d; border:none; border-radius:8px; font-family:'Space Mono',monospace; font-size:clamp(0.72rem,1.8vw,0.82rem); font-weight:700; letter-spacing:0.05em; cursor:none; transition:all 0.22s; margin-top:0.4rem; }
-    .btn-main:hover { box-shadow:0 0 32px rgba(0,229,255,0.35); transform:translateY(-1px); }
-    .btn-main:disabled { opacity:0.45; transform:none; box-shadow:none; cursor:not-allowed; }
-    .amsg { padding:0.72rem 1rem; border-radius:8px; font-family:'Space Mono',monospace; font-size:clamp(0.7rem,1.7vw,0.78rem); margin-top:0.9rem; display:none; line-height:1.55; }
-    .amsg.err { background:rgba(239,68,68,0.09); border:1px solid rgba(239,68,68,0.28); color:#fca5a5; }
-    .amsg.ok  { background:rgba(16,185,129,0.09); border:1px solid rgba(16,185,129,0.28); color:#6ee7b7; }
+    #authWrap{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:var(--bg);padding:1rem;overflow-y:auto;}
+    .auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:clamp(1.5rem,5vw,2.5rem);width:100%;max-width:460px;box-shadow:0 0 60px rgba(0,229,255,0.06);position:relative;z-index:1;my:auto;}
+    .auth-logo{font-family:'Space Mono',monospace;color:var(--accent);font-size:0.82rem;margin-bottom:1.3rem;letter-spacing:0.1em;}
+    .auth-h{font-size:clamp(1.4rem,4vw,1.8rem);font-weight:800;margin-bottom:0.35rem;}
+    .auth-sub{color:var(--muted);font-size:clamp(0.76rem,2vw,0.84rem);margin-bottom:1.6rem;line-height:1.55;}
+    .atabs{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.6rem;}
+    .atab{flex:1;padding:0.62rem;text-align:center;font-family:'Space Mono',monospace;font-size:clamp(0.6rem,1.5vw,0.7rem);letter-spacing:0.06em;cursor:none;background:transparent;border:none;color:var(--muted);transition:all 0.2s;}
+    .atab.on{background:var(--accent);color:#06090d;font-weight:700;}
+    .fg{margin-bottom:0.95rem;}
+    .fg label{display:flex;align-items:center;gap:0.4rem;font-family:'Space Mono',monospace;font-size:clamp(0.58rem,1.4vw,0.66rem);letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;}
+    .fg input{width:100%;padding:clamp(0.6rem,2vw,0.76rem) 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:clamp(0.83rem,2vw,0.92rem);outline:none;transition:border-color 0.2s,box-shadow 0.2s;cursor:none;}
+    .fg input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,0.07);}
+    .fg input.good{border-color:var(--green);}
+    .fg input.bad{border-color:var(--red);}
+    .fhint{font-family:'Space Mono',monospace;font-size:0.64rem;margin-top:0.32rem;display:none;line-height:1.4;}
+    .fhint.ok{color:#6ee7b7;display:block;}
+    .fhint.no{color:#fca5a5;display:block;}
+    .fhint.ld{color:var(--muted);display:block;}
+    .btn-main{width:100%;padding:0.86rem;background:var(--accent);color:#06090d;border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:clamp(0.7rem,1.8vw,0.8rem);font-weight:700;letter-spacing:0.05em;cursor:none;transition:all 0.22s;margin-top:0.3rem;}
+    .btn-main:hover{box-shadow:0 0 32px rgba(0,229,255,0.35);transform:translateY(-1px);}
+    .btn-main:disabled{opacity:0.45;transform:none;box-shadow:none;}
+    .amsg{padding:0.7rem 1rem;border-radius:8px;font-family:'Space Mono',monospace;font-size:clamp(0.68rem,1.6vw,0.76rem);margin-top:0.85rem;display:none;line-height:1.55;}
+    .amsg.err{background:rgba(239,68,68,0.09);border:1px solid rgba(239,68,68,0.28);color:#fca5a5;}
+    .amsg.ok{background:rgba(16,185,129,0.09);border:1px solid rgba(16,185,129,0.28);color:#6ee7b7;}
 
     /* NAV */
-    nav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:1rem clamp(1.2rem,6vw,3.5rem); background:rgba(6,9,13,0.88); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
-    .nav-logo { font-family:'Space Mono',monospace; color:var(--accent); font-size:clamp(0.72rem,1.8vw,0.88rem); }
-    .nav-r { display:flex; align-items:center; gap:clamp(0.7rem,2vw,1.4rem); }
-    .nav-who { font-family:'Space Mono',monospace; font-size:clamp(0.62rem,1.4vw,0.73rem); color:var(--muted); }
-    .nav-who span { color:var(--accent); }
-    .nav-back { text-decoration:none; font-family:'Space Mono',monospace; font-size:clamp(0.6rem,1.3vw,0.7rem); color:var(--muted); transition:color 0.2s; }
-    .nav-back:hover { color:var(--accent); }
-    .btn-out { padding:0.42rem clamp(0.6rem,2vw,0.9rem); background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--muted); font-family:'Space Mono',monospace; font-size:clamp(0.58rem,1.4vw,0.68rem); cursor:none; transition:all 0.2s; }
-    .btn-out:hover { border-color:var(--red); color:var(--red); }
-    .hbg { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:none; padding:4px; }
-    .hbg span { width:21px; height:2px; background:var(--text); border-radius:2px; display:block; transition:all 0.3s; }
-    .mob-nav { display:none; position:absolute; top:100%; left:0; right:0; background:rgba(6,9,13,0.97); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); flex-direction:column; padding:1.2rem clamp(1.2rem,6vw,3.5rem); gap:1rem; }
-    .mob-nav.open { display:flex; }
-    .mob-nav a { text-decoration:none; color:var(--muted); font-family:'Space Mono',monospace; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; transition:color 0.2s; }
-    .mob-nav a:hover { color:var(--accent); }
+    nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0.9rem clamp(1rem,5vw,3rem);background:rgba(6,9,13,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Space Mono',monospace;color:var(--accent);font-size:clamp(0.7rem,1.8vw,0.86rem);}
+    .nav-r{display:flex;align-items:center;gap:clamp(0.6rem,2vw,1.2rem);}
+    .nav-who{font-family:'Space Mono',monospace;font-size:clamp(0.6rem,1.4vw,0.72rem);color:var(--muted);}
+    .nav-who span{color:var(--accent);}
+    .nav-back{text-decoration:none;font-family:'Space Mono',monospace;font-size:clamp(0.58rem,1.3vw,0.68rem);color:var(--muted);transition:color 0.2s;}
+    .nav-back:hover{color:var(--accent);}
+    .btn-out{padding:0.4rem clamp(0.55rem,1.8vw,0.85rem);background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Space Mono',monospace;font-size:clamp(0.56rem,1.3vw,0.66rem);cursor:none;transition:all 0.2s;}
+    .btn-out:hover{border-color:var(--red);color:var(--red);}
+    .hbg{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:none;padding:4px;}
+    .hbg span{width:21px;height:2px;background:var(--text);border-radius:2px;display:block;transition:all 0.3s;}
+    .mob-nav{display:none;position:absolute;top:100%;left:0;right:0;background:rgba(6,9,13,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);flex-direction:column;padding:1.2rem clamp(1rem,5vw,3rem);gap:1rem;}
+    .mob-nav.open{display:flex;}
+    .mob-nav a{text-decoration:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:0.76rem;letter-spacing:0.08em;text-transform:uppercase;transition:color 0.2s;}
+    .mob-nav a:hover{color:var(--accent);}
 
     /* APP */
-    #app { display:none; min-height:100vh; position:relative; z-index:1; }
-    main { padding:clamp(2rem,6vw,3.5rem) clamp(1.2rem,6vw,3.5rem); max-width:1280px; margin:0 auto; }
-    .pg-title { font-size:clamp(1.6rem,5vw,2.6rem); font-weight:800; letter-spacing:-0.02em; margin-bottom:0.5rem; }
-    .pg-sub { color:var(--muted); font-size:clamp(0.78rem,1.8vw,0.92rem); margin-bottom:2.5rem; }
-    .pg-sub span { color:var(--accent); }
+    #app{display:none;min-height:100vh;position:relative;z-index:1;}
 
-    /* ADD */
-    .add-box { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:clamp(1.2rem,4vw,2rem); margin-bottom:2.5rem; }
-    .add-eyebrow { font-family:'Space Mono',monospace; font-size:clamp(0.58rem,1.4vw,0.68rem); letter-spacing:0.18em; color:var(--accent); margin-bottom:1rem; }
-    .add-row { display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; }
-    .add-row .fg { flex:1; min-width:180px; margin:0; }
-    .btn-add { padding:clamp(0.62rem,2vw,0.78rem) clamp(1rem,3vw,1.8rem); background:var(--accent); color:#06090d; border:none; border-radius:8px; font-family:'Space Mono',monospace; font-size:clamp(0.68rem,1.6vw,0.78rem); font-weight:700; cursor:none; transition:all 0.22s; white-space:nowrap; }
-    .btn-add:hover { box-shadow:0 0 22px rgba(0,229,255,0.4); transform:translateY(-1px); }
-    .btn-add:disabled { opacity:0.45; transform:none; box-shadow:none; }
-    .fb { margin-top:0.9rem; font-family:'Space Mono',monospace; font-size:clamp(0.68rem,1.6vw,0.78rem); display:none; }
-    .fb.err { color:#fca5a5; } .fb.ld { color:var(--muted); } .fb.ok { color:#6ee7b7; }
+    /* DASHBOARD TABS */
+    .dash-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);padding:0 clamp(1rem,5vw,3rem);overflow-x:auto;scrollbar-width:none;}
+    .dash-tabs::-webkit-scrollbar{display:none;}
+    .dtab{padding:1rem clamp(0.7rem,2.5vw,1.4rem);font-family:'Space Mono',monospace;font-size:clamp(0.62rem,1.5vw,0.74rem);letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:none;transition:all 0.2s;white-space:nowrap;}
+    .dtab:hover{color:var(--text);}
+    .dtab.on{color:var(--accent);border-bottom-color:var(--accent);}
 
-    /* STATS */
-    .stats { display:flex; gap:1rem; margin-bottom:2rem; flex-wrap:wrap; }
-    .sp { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:0.72rem clamp(0.8rem,3vw,1.5rem); font-family:'Space Mono',monospace; font-size:clamp(0.62rem,1.4vw,0.73rem); color:var(--muted); }
-    .sp strong { color:var(--accent); font-size:clamp(0.9rem,2vw,1.1rem); display:block; }
+    /* VIEWS */
+    .view{display:none;padding:clamp(1.5rem,5vw,2.5rem) clamp(1rem,5vw,3rem);max-width:1280px;margin:0 auto;}
+    .view.on{display:block;}
+
+    /* VIEW HEADER */
+    .vhdr{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;}
+    .vhdr-l h2{font-size:clamp(1.4rem,4vw,2rem);font-weight:800;letter-spacing:-0.02em;margin-bottom:0.2rem;}
+    .vhdr-l p{color:var(--muted);font-size:clamp(0.74rem,1.7vw,0.84rem);}
+    .vhdr-r{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:0.4rem;padding:clamp(0.48rem,1.5vw,0.62rem) clamp(0.7rem,2vw,1.1rem);border-radius:7px;font-family:'Space Mono',monospace;font-size:clamp(0.6rem,1.4vw,0.7rem);font-weight:700;letter-spacing:0.04em;cursor:none;transition:all 0.22s;border:none;white-space:nowrap;}
+    .btn-a{background:var(--accent);color:#06090d;}
+    .btn-a:hover{box-shadow:0 0 20px rgba(0,229,255,0.35);transform:translateY(-1px);}
+    .btn-g{background:transparent;border:1px solid var(--border);color:var(--muted);}
+    .btn-g:hover{border-color:var(--accent);color:var(--accent);}
+    .btn-r{background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;}
+    .btn-r:hover{background:rgba(239,68,68,0.08);}
+    .btn-r.on{background:rgba(239,68,68,0.1);border-color:var(--red);}
+
+    /* VIEW TOGGLE */
+    .vtog{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden;}
+    .vt{padding:0.42rem 0.65rem;background:transparent;border:none;color:var(--muted);cursor:none;transition:all 0.18s;font-size:0.95rem;line-height:1;}
+    .vt.on{background:rgba(0,229,255,0.1);color:var(--accent);}
 
     /* SEARCH */
-    .search { width:100%; padding:clamp(0.62rem,2vw,0.78rem) 1rem; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'Syne',sans-serif; font-size:clamp(0.85rem,2vw,0.94rem); outline:none; transition:border-color 0.2s; margin-bottom:2rem; cursor:none; }
-    .search:focus { border-color:var(--accent); }
-    .search::placeholder { color:var(--muted); }
+    .srch-bar{width:100%;padding:clamp(0.6rem,2vw,0.76rem) 1rem;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Syne',sans-serif;font-size:clamp(0.83rem,2vw,0.92rem);outline:none;transition:border-color 0.2s;margin-bottom:1.5rem;cursor:none;}
+    .srch-bar:focus{border-color:var(--accent);}
+    .srch-bar::placeholder{color:var(--muted);}
 
-    /* GRID */
-    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(clamp(130px,18vw,170px),1fr)); gap:clamp(0.9rem,2vw,1.4rem); }
-    .bk { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:all 0.28s; position:relative; }
-    .bk:hover { transform:translateY(-6px); box-shadow:var(--glow); border-color:rgba(0,229,255,0.28); }
-    .bk-img { width:100%; aspect-ratio:2/3; object-fit:cover; display:block; background:var(--surface); }
-    .bk-ph { width:100%; aspect-ratio:2/3; background:linear-gradient(135deg,var(--surface),var(--border)); display:flex; align-items:center; justify-content:center; font-size:clamp(1.8rem,4vw,2.4rem); }
-    .bk-info { padding:clamp(0.62rem,2vw,0.88rem); }
-    .bk-title { font-size:clamp(0.72rem,1.7vw,0.83rem); font-weight:700; line-height:1.3; margin-bottom:0.28rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .bk-author { font-size:clamp(0.62rem,1.4vw,0.72rem); color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .bk-isbn { font-family:'Space Mono',monospace; font-size:clamp(0.52rem,1.2vw,0.62rem); color:var(--border); margin-top:0.35rem; }
-    .bk-del { position:absolute; top:0.5rem; right:0.5rem; width:27px; height:27px; background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.28); border-radius:50%; color:#fca5a5; font-size:0.72rem; cursor:none; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; }
-    .bk:hover .bk-del { opacity:1; }
-    .bk-del:hover { background:rgba(239,68,68,0.32); }
+    /* GRID VIEW */
+    .bk-grid-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(138px,18vw,175px),1fr));gap:clamp(0.9rem,2vw,1.4rem);}
+    .bk-gc{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all 0.28s;position:relative;cursor:none;}
+    .bk-gc:hover{transform:translateY(-5px);box-shadow:var(--glow);border-color:rgba(0,229,255,0.28);}
+    .bk-gc.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);}
+    .bk-gc-img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:var(--surface);}
+    .bk-gc-ph{width:100%;aspect-ratio:2/3;background:linear-gradient(135deg,var(--surface),var(--border));display:flex;align-items:center;justify-content:center;font-size:clamp(1.8rem,4vw,2.4rem);}
+    .bk-gc-body{padding:clamp(0.6rem,2vw,0.85rem);}
+    .bk-gc-title{font-size:clamp(0.7rem,1.6vw,0.82rem);font-weight:700;line-height:1.3;margin-bottom:0.22rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .bk-gc-author{font-size:clamp(0.6rem,1.3vw,0.7rem);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:0.28rem;}
+    .bk-gc-isbn{font-family:'Space Mono',monospace;font-size:clamp(0.5rem,1.1vw,0.6rem);color:var(--border);}
+    .bk-gc-price{font-family:'Space Mono',monospace;font-size:clamp(0.58rem,1.2vw,0.66rem);color:var(--green);margin-top:0.28rem;font-weight:700;}
+    .sel-check{position:absolute;top:0.5rem;left:0.5rem;width:22px;height:22px;border-radius:50%;border:2px solid var(--accent);background:rgba(6,9,13,0.8);display:none;align-items:center;justify-content:center;font-size:0.65rem;color:var(--accent);}
+    .rm-mode .sel-check{display:flex;}
+
+    /* LIST VIEW */
+    .bk-list-wrap{display:flex;flex-direction:column;gap:0.65rem;}
+    .bk-lc{background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:clamp(0.7rem,2vw,1.1rem);padding:clamp(0.6rem,1.5vw,0.82rem) clamp(0.8rem,2vw,1.1rem);transition:all 0.22s;cursor:none;position:relative;}
+    .bk-lc:hover{border-color:rgba(0,229,255,0.28);}
+    .bk-lc.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+    .bk-lc-thumb{width:clamp(38px,7vw,54px);aspect-ratio:2/3;object-fit:cover;border-radius:6px;flex-shrink:0;background:var(--surface);}
+    .bk-lc-ph{width:clamp(38px,7vw,54px);aspect-ratio:2/3;background:linear-gradient(135deg,var(--surface),var(--border));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+    .bk-lc-info{flex:1;min-width:0;}
+    .bk-lc-title{font-size:clamp(0.8rem,1.8vw,0.92rem);font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .bk-lc-author{font-size:clamp(0.68rem,1.5vw,0.76rem);color:var(--muted);margin-top:0.12rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .bk-lc-right{text-align:right;flex-shrink:0;}
+    .bk-lc-isbn{font-family:'Space Mono',monospace;font-size:clamp(0.54rem,1.2vw,0.62rem);color:var(--muted);}
+    .bk-lc-price{font-family:'Space Mono',monospace;font-size:clamp(0.6rem,1.3vw,0.68rem);color:var(--green);font-weight:700;margin-top:0.18rem;}
+    .lc-check{position:absolute;left:0.55rem;width:20px;height:20px;border-radius:50%;border:2px solid var(--accent);background:rgba(6,9,13,0.8);display:none;align-items:center;justify-content:center;font-size:0.62rem;color:var(--accent);}
+    .rm-mode .lc-check{display:flex;}
+    .rm-mode .bk-lc{padding-left:calc(clamp(0.8rem,2vw,1.1rem) + 26px);}
 
     /* EMPTY */
-    .empty { text-align:center; padding:clamp(2.5rem,8vw,5rem) 2rem; color:var(--muted); border:2px dashed var(--border); border-radius:16px; }
-    .empty .ico { font-size:clamp(2rem,6vw,3.2rem); margin-bottom:1rem; }
-    .empty p { font-size:clamp(0.82rem,1.8vw,0.94rem); line-height:1.7; }
+    .empty-box{text-align:center;padding:clamp(2.5rem,8vw,5rem) 2rem;color:var(--muted);border:2px dashed var(--border);border-radius:16px;}
+    .empty-box .ico{font-size:clamp(2rem,5vw,2.8rem);margin-bottom:0.9rem;}
+    .empty-box p{font-size:clamp(0.8rem,1.8vw,0.9rem);line-height:1.7;}
+
+    /* MODAL */
+    .mbg{position:fixed;inset:0;z-index:400;background:rgba(6,9,13,0.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem;}
+    .mbg.open{display:flex;}
+    .mbox{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:clamp(1.4rem,5vw,2.2rem);width:100%;max-width:500px;position:relative;max-height:90vh;overflow-y:auto;}
+    .mbox.wide{max-width:680px;}
+    .mbox h3{font-size:clamp(1.05rem,3vw,1.3rem);font-weight:800;margin-bottom:0.35rem;}
+    .mbox .msub{color:var(--muted);font-size:clamp(0.74rem,1.8vw,0.82rem);margin-bottom:1.4rem;line-height:1.5;}
+    .m-close{position:absolute;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);border-radius:50%;width:30px;height:30px;color:var(--muted);cursor:none;display:flex;align-items:center;justify-content:center;font-size:0.88rem;transition:all 0.2s;}
+    .m-close:hover{border-color:var(--red);color:var(--red);}
+
+    /* DETAIL MODAL */
+    .det-top{display:flex;gap:clamp(0.9rem,3vw,1.6rem);margin-bottom:1.4rem;flex-wrap:wrap;}
+    .det-cover{width:clamp(78px,14vw,115px);aspect-ratio:2/3;object-fit:cover;border-radius:10px;flex-shrink:0;background:var(--surface);}
+    .det-cover-ph{width:clamp(78px,14vw,115px);aspect-ratio:2/3;background:linear-gradient(135deg,var(--surface),var(--border));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;flex-shrink:0;}
+    .det-meta{flex:1;min-width:0;}
+    .det-title{font-size:clamp(1rem,2.5vw,1.25rem);font-weight:800;line-height:1.3;margin-bottom:0.35rem;}
+    .det-author{color:var(--muted);font-size:clamp(0.76rem,1.8vw,0.86rem);margin-bottom:0.55rem;}
+    .det-tags{display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.6rem;}
+    .dtag{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'Space Mono',monospace;font-size:0.6rem;padding:0.18rem 0.55rem;border-radius:4px;}
+    .det-isbn{font-family:'Space Mono',monospace;font-size:0.66rem;color:var(--muted);}
+    .sec-lbl{font-family:'Space Mono',monospace;font-size:0.64rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.65rem;margin-top:1.2rem;}
+    .prices-list{display:flex;flex-direction:column;gap:0.45rem;}
+    .price-row{display:flex;align-items:center;justify-content:space-between;padding:0.55rem 0.85rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;gap:0.5rem;flex-wrap:wrap;}
+    .price-row.cheapest{border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.05);}
+    .price-shop{font-size:clamp(0.7rem,1.6vw,0.78rem);font-weight:600;}
+    .price-r{display:flex;align-items:center;gap:0.6rem;}
+    .price-val{font-family:'Space Mono',monospace;font-size:clamp(0.7rem,1.6vw,0.78rem);color:var(--green);font-weight:700;}
+    .price-val.na{color:var(--muted);}
+    .price-link{font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--accent);text-decoration:none;padding:0.2rem 0.5rem;border:1px solid rgba(0,229,255,0.25);border-radius:4px;transition:all 0.2s;}
+    .price-link:hover{background:rgba(0,229,255,0.1);}
+    .desc-txt{color:#7a9bb8;font-size:clamp(0.8rem,1.8vw,0.88rem);line-height:1.8;}
+    .desc-txt.clamped{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+    .desc-more{font-family:'Space Mono',monospace;font-size:0.63rem;color:var(--accent);background:none;border:none;cursor:none;padding:0;margin-top:0.4rem;display:block;transition:opacity 0.2s;}
+    .desc-more:hover{opacity:0.7;}
+    .det-extras{display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;margin-top:1.1rem;}
+    .dex{background:var(--surface);border-radius:8px;padding:0.55rem 0.75rem;}
+    .dex-l{font-family:'Space Mono',monospace;font-size:0.56rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.18rem;}
+    .dex-v{font-size:clamp(0.74rem,1.7vw,0.82rem);font-weight:600;}
+
+    /* LISTS OVERVIEW */
+    .lists-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(180px,26vw,240px),1fr));gap:1.1rem;}
+    .list-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(1.1rem,3vw,1.5rem);cursor:none;transition:all 0.28s;position:relative;}
+    .list-card:hover{border-color:rgba(0,229,255,0.28);transform:translateY(-4px);box-shadow:var(--glow);}
+    .list-icon{font-size:1.7rem;margin-bottom:0.7rem;}
+    .list-name{font-size:clamp(0.88rem,2vw,1rem);font-weight:700;margin-bottom:0.25rem;}
+    .list-count{font-family:'Space Mono',monospace;font-size:0.66rem;color:var(--muted);}
+    .list-del{position:absolute;top:0.65rem;right:0.65rem;width:25px;height:25px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.22);border-radius:50%;color:#fca5a5;font-size:0.68rem;cursor:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;}
+    .list-card:hover .list-del{opacity:1;}
+    .list-del:hover{background:rgba(239,68,68,0.25);}
+    .breadcrumb{display:flex;align-items:center;gap:0.5rem;font-family:'Space Mono',monospace;font-size:0.66rem;color:var(--muted);margin-bottom:1.4rem;}
+    .breadcrumb button{background:none;border:none;color:var(--accent);font-family:'Space Mono',monospace;font-size:0.66rem;cursor:none;padding:0;}
+    .breadcrumb button:hover{text-decoration:underline;}
+
+    /* INLINE LOAD */
+    .iload{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--muted);font-family:'Space Mono',monospace;font-size:0.74rem;gap:0.7rem;}
 
     /* TOAST */
-    .toast { position:fixed; bottom:clamp(1rem,3vw,2rem); right:clamp(1rem,3vw,2rem); z-index:999; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:0.9rem 1.4rem; font-family:'Space Mono',monospace; font-size:clamp(0.68rem,1.5vw,0.78rem); transform:translateY(80px); opacity:0; transition:all 0.28s; max-width:min(300px,88vw); pointer-events:none; }
-    .toast.show { transform:translateY(0); opacity:1; }
-    .toast.ok { border-color:rgba(16,185,129,0.38); color:#6ee7b7; }
-    .toast.err { border-color:rgba(239,68,68,0.38); color:#fca5a5; }
+    .toast{position:fixed;bottom:clamp(1rem,3vw,2rem);right:clamp(1rem,3vw,2rem);z-index:999;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:0.85rem 1.3rem;font-family:'Space Mono',monospace;font-size:clamp(0.64rem,1.5vw,0.74rem);transform:translateY(80px);opacity:0;transition:all 0.28s;max-width:min(300px,88vw);pointer-events:none;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .toast.ok{border-color:rgba(16,185,129,0.38);color:#6ee7b7;}
+    .toast.err{border-color:rgba(239,68,68,0.38);color:#fca5a5;}
+    .toast.info{border-color:rgba(0,229,255,0.38);color:var(--accent);}
 
-    /* FOOTER */
-    footer { position:relative; z-index:1; border-top:1px solid var(--border); padding:1.6rem clamp(1.2rem,6vw,3.5rem); display:flex; justify-content:space-between; align-items:center; font-family:'Space Mono',monospace; font-size:clamp(0.58rem,1.4vw,0.68rem); color:var(--muted); flex-wrap:wrap; gap:0.5rem; }
+    footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.5rem clamp(1rem,5vw,3rem);display:flex;justify-content:space-between;align-items:center;font-family:'Space Mono',monospace;font-size:clamp(0.54rem,1.3vw,0.64rem);color:var(--muted);flex-wrap:wrap;gap:0.5rem;}
 
-    /* ANIMATIONS */
-    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-    .reveal{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease,transform 0.6s ease;}
-    .reveal.on{opacity:1;transform:translateY(0);}
-
-    /* RESPONSIVE */
-    @media(max-width:768px){
-      .hbg{display:flex;}
-      .nav-who{display:none;}
-      .nav-back{display:none;}
-    }
-    @media(max-width:480px){
-      .add-row{flex-direction:column;}
-      .btn-add{width:100%;text-align:center;}
-      .stats{flex-direction:column;}
-      footer{flex-direction:column;text-align:center;}
-    }
-    @media(min-width:1400px){
-      .grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));}
-    }
+    @media(max-width:768px){.hbg{display:flex;}.nav-who{display:none;}.nav-back{display:none;}.det-extras{grid-template-columns:1fr;}}
+    @media(max-width:520px){.vhdr{flex-direction:column;gap:0.8rem;}.vhdr-r{width:100%;justify-content:flex-start;}footer{flex-direction:column;text-align:center;}}
+    @media(min-width:1400px){.bk-grid-wrap{grid-template-columns:repeat(auto-fill,minmax(195px,1fr));}}
   </style>
 </head>
 <body>
-
-<div class="cursor" id="cur"></div>
-<div class="cursor-ring" id="curR"></div>
+<div class="cur" id="cur"></div>
+<div class="curR" id="curR"></div>
 
 <!-- LOADER -->
-<div id="loader">
-  <div class="ld-logo">📚 BOOK LIBRARY</div>
-  <div class="spinner"></div>
+<div id="loader"><div class="ld-logo">📚 BOOK LIBRARY</div><div class="spinner"></div></div>
+
+<!-- EMAIL VERIFIED SCREEN -->
+<div id="verifiedBanner" style="display:none;position:fixed;inset:0;z-index:600;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;text-align:center;padding:2rem;">
+  <div style="font-size:4rem;">✅</div>
+  <div style="font-size:clamp(1.4rem,4vw,2rem);font-weight:800;">Email Verified!</div>
+  <div style="color:var(--muted);font-size:clamp(0.84rem,2vw,0.96rem);max-width:380px;line-height:1.6;">Your account is confirmed. You can now sign in to your book library.</div>
+  <button class="btn-main" style="width:auto;padding:0.8rem 2rem;" onclick="dismissVerified()">GO TO SIGN IN →</button>
 </div>
 
 <!-- AUTH -->
@@ -158,34 +244,40 @@
     <div class="auth-logo">📚 BOOK LIBRARY</div>
     <h1 class="auth-h" id="authH">Welcome Back</h1>
     <p class="auth-sub" id="authS">Sign in to your personal cloud-synced book collection.</p>
-    <div class="tabs">
-      <button class="tab on" onclick="switchTab('in')">SIGN IN</button>
-      <button class="tab" onclick="switchTab('up')">SIGN UP</button>
+    <div class="atabs">
+      <button class="atab on" onclick="switchTab('in')">SIGN IN</button>
+      <button class="atab" onclick="switchTab('up')">SIGN UP</button>
     </div>
-
-    <!-- LOGIN -->
     <div id="fIn">
       <div class="fg"><label>EMAIL</label><input type="email" id="lEmail" placeholder="your@email.com" autocomplete="email"/></div>
       <div class="fg"><label>PASSWORD</label><input type="password" id="lPass" placeholder="••••••••" autocomplete="current-password"/></div>
       <button class="btn-main" id="lBtn" onclick="login()">SIGN IN →</button>
       <div class="amsg err" id="lErr"></div>
     </div>
-
-    <!-- SIGNUP -->
     <div id="fUp" style="display:none">
       <div class="fg">
-        <label>USERNAME <span style="font-size:0.6rem;color:var(--muted)">(letters, numbers, underscores · min 3 chars)</span></label>
-        <input type="text" id="uName" placeholder="e.g. sohailsameer" autocomplete="username"/>
+        <label>USERNAME <span style="font-size:0.58rem;opacity:0.6">(letters, numbers, underscores · min 3)</span></label>
+        <input type="text" id="uName" placeholder="e.g. sohailsameer" autocomplete="off" oninput="liveCheckUsername(this.value)"/>
+        <div class="fhint" id="unHint"></div>
       </div>
-      <div class="fg"><label>EMAIL</label><input type="email" id="uEmail" placeholder="your@email.com" autocomplete="email"/></div>
       <div class="fg">
-        <label>PASSWORD <span style="font-size:0.6rem;color:var(--muted)">(min 6 characters)</span></label>
-        <input type="password" id="uPass" placeholder="choose a password" autocomplete="new-password"/>
+        <label>EMAIL</label>
+        <input type="email" id="uEmail" placeholder="your@email.com" autocomplete="email" oninput="liveCheckEmail(this.value)"/>
+        <div class="fhint" id="emHint"></div>
       </div>
-      <div class="fg"><label>CONFIRM PASSWORD</label><input type="password" id="uPass2" placeholder="repeat password" autocomplete="new-password"/></div>
+      <div class="fg">
+        <label>PASSWORD <span style="font-size:0.58rem;opacity:0.6">(min 6 characters)</span></label>
+        <input type="password" id="uPass" placeholder="choose a password" autocomplete="new-password" oninput="liveCheckPass(this.value)"/>
+        <div class="fhint" id="pwHint"></div>
+      </div>
+      <div class="fg">
+        <label>CONFIRM PASSWORD</label>
+        <input type="password" id="uPass2" placeholder="repeat password" autocomplete="new-password" oninput="liveCheckPass2(this.value)"/>
+        <div class="fhint" id="pw2Hint"></div>
+      </div>
       <button class="btn-main" id="uBtn" onclick="signup()">CREATE ACCOUNT →</button>
       <div class="amsg err" id="uErr"></div>
-      <div class="amsg ok"  id="uOk"></div>
+      <div class="amsg ok" id="uOk"></div>
     </div>
   </div>
 </div>
@@ -195,7 +287,7 @@
   <nav>
     <div class="nav-logo">📚 BOOK LIBRARY</div>
     <div class="nav-r">
-      <div class="nav-who">Logged in as <span id="navWho"></span></div>
+      <div class="nav-who">Hey, <span id="navWho"></span></div>
       <a href="index.html" class="nav-back">← PORTFOLIO</a>
       <button class="btn-out" onclick="logout()">SIGN OUT</button>
       <button class="hbg" id="hbg"><span></span><span></span><span></span></button>
@@ -206,243 +298,717 @@
     </div>
   </nav>
 
-  <main>
-    <div class="reveal">
-      <h1 class="pg-title" id="pgTitle">My Library</h1>
-      <p class="pg-sub">Your personal collection · <span id="bkCnt">0</span> books · ☁️ synced across all devices</p>
-    </div>
+  <div class="dash-tabs">
+    <button class="dtab on" onclick="switchDash('books')">📚 Your Books</button>
+    <button class="dtab" onclick="switchDash('wishlist')">❤️ Wishlist</button>
+    <button class="dtab" onclick="switchDash('lists')">📋 Lists</button>
+  </div>
 
-    <div class="add-box reveal">
-      <div class="add-eyebrow">+ ADD A BOOK BY ISBN</div>
-      <div class="add-row">
-        <div class="fg">
-          <label>ISBN NUMBER</label>
-          <input type="text" id="isbn" placeholder="e.g. 9780140449136" maxlength="20" onkeydown="if(event.key==='Enter')addBook()"/>
+  <!-- YOUR BOOKS -->
+  <div class="view on" id="vBooks">
+    <div class="vhdr">
+      <div class="vhdr-l"><h2>Your Books</h2><p id="bkSub">0 books in your collection</p></div>
+      <div class="vhdr-r">
+        <div class="vtog">
+          <button class="vt on" id="bkGBtn" onclick="setViewMode('books','grid')" title="Grid">⊞</button>
+          <button class="vt" id="bkLBtn" onclick="setViewMode('books','list')" title="List">≡</button>
         </div>
-        <button class="btn-add" id="addBtn" onclick="addBook()">FETCH &amp; ADD</button>
+        <button class="btn btn-r" id="bkRmBtn" onclick="toggleRemove('books')">✕ Remove</button>
+        <button class="btn btn-a" onclick="openAdd('books')">+ Add Book</button>
       </div>
-      <div class="fb" id="fb"></div>
     </div>
+    <input class="srch-bar" id="bkSearch" placeholder="🔍  Search your books..." oninput="renderSection('books')" style="display:none"/>
+    <div id="bkContent"></div>
+  </div>
 
-    <div class="stats reveal" id="stats" style="display:none">
-      <div class="sp"><strong id="stTotal">0</strong>Total Books</div>
-      <div class="sp"><strong id="stLast">—</strong>Last Added</div>
-      <div class="sp" style="border-color:rgba(16,185,129,0.22)"><strong style="color:#6ee7b7">☁️</strong>Cloud Synced</div>
+  <!-- WISHLIST -->
+  <div class="view" id="vWishlist">
+    <div class="vhdr">
+      <div class="vhdr-l"><h2>Wishlist</h2><p id="wlSub">0 books on your wishlist</p></div>
+      <div class="vhdr-r">
+        <div class="vtog">
+          <button class="vt on" id="wlGBtn" onclick="setViewMode('wishlist','grid')" title="Grid">⊞</button>
+          <button class="vt" id="wlLBtn" onclick="setViewMode('wishlist','list')" title="List">≡</button>
+        </div>
+        <button class="btn btn-r" id="wlRmBtn" onclick="toggleRemove('wishlist')">✕ Remove</button>
+        <button class="btn btn-a" onclick="openAdd('wishlist')">+ Add to Wishlist</button>
+      </div>
     </div>
+    <input class="srch-bar" id="wlSearch" placeholder="🔍  Search your wishlist..." oninput="renderSection('wishlist')" style="display:none"/>
+    <div id="wlContent"></div>
+  </div>
 
-    <input class="search reveal" type="text" id="srch" placeholder="🔍  Search by title or author..." oninput="filterBooks()" style="display:none"/>
-
-    <div id="grid" class="grid"></div>
-    <div id="empty" class="empty reveal" style="display:none">
-      <div class="ico">📖</div>
-      <p>Your library is empty.<br/>Add your first book using the ISBN field above!</p>
+  <!-- LISTS -->
+  <div class="view" id="vLists">
+    <div id="listsHome">
+      <div class="vhdr">
+        <div class="vhdr-l"><h2>My Lists</h2><p id="lstSub">0 custom lists</p></div>
+        <div class="vhdr-r"><button class="btn btn-a" onclick="openCreateList()">+ New List</button></div>
+      </div>
+      <div id="listsGrid" class="lists-grid"></div>
     </div>
-  </main>
+    <div id="listDetail" style="display:none">
+      <div class="breadcrumb">
+        <button onclick="backToLists()">← All Lists</button>
+        <span>/</span><span id="ldName" style="color:var(--text)"></span>
+      </div>
+      <div class="vhdr">
+        <div class="vhdr-l"><h2 id="ldTitle"></h2><p id="ldSub">0 books</p></div>
+        <div class="vhdr-r">
+          <div class="vtog">
+            <button class="vt on" id="ldGBtn" onclick="setViewMode('listdetail','grid')" title="Grid">⊞</button>
+            <button class="vt" id="ldLBtn" onclick="setViewMode('listdetail','list')" title="List">≡</button>
+          </div>
+          <button class="btn btn-r" id="ldRmBtn" onclick="toggleRemove('listdetail')">✕ Remove</button>
+          <button class="btn btn-a" onclick="openAdd('listdetail')">+ Add Book</button>
+        </div>
+      </div>
+      <input class="srch-bar" id="ldSearch" placeholder="🔍  Search this list..." oninput="renderListDetail()" style="display:none"/>
+      <div id="ldContent"></div>
+    </div>
+  </div>
 
   <footer>
     <span>📚 Book Library — <span id="footWho"></span></span>
-    <span>Powered by Supabase &amp; Open Library</span>
+    <span>Supabase · Open Library · Google Books</span>
   </footer>
 </div>
 
+<!-- ADD BOOK MODAL -->
+<div class="mbg" id="addModal">
+  <div class="mbox">
+    <button class="m-close" onclick="closeAdd()">✕</button>
+    <h3 id="addTitle">Add a Book</h3>
+    <p class="msub">Enter the ISBN number — title, author, and cover will be fetched automatically.</p>
+    <div class="fg">
+      <label>ISBN NUMBER <span style="font-size:0.58rem;opacity:0.6">(10 or 13 digits)</span></label>
+      <input type="text" id="isbnIn" placeholder="e.g. 9780140449136" maxlength="20" onkeydown="if(event.key==='Enter')submitAdd()"/>
+    </div>
+    <div class="amsg" id="addMsg"></div>
+    <button class="btn-main" id="addBtn" onclick="submitAdd()" style="margin-top:0.9rem">FETCH &amp; ADD →</button>
+  </div>
+</div>
+
+<!-- CREATE LIST MODAL -->
+<div class="mbg" id="listModal">
+  <div class="mbox">
+    <button class="m-close" onclick="closeCreateList()">✕</button>
+    <h3>Create a New List</h3>
+    <p class="msub">Give your list a name. Add books to it afterwards.</p>
+    <div class="fg">
+      <label>LIST NAME</label>
+      <input type="text" id="listNameIn" placeholder="e.g. Summer Reads, Must-Reads..." maxlength="50" onkeydown="if(event.key==='Enter')submitCreateList()"/>
+    </div>
+    <div class="amsg err" id="listMsg"></div>
+    <button class="btn-main" onclick="submitCreateList()" style="margin-top:0.9rem">CREATE LIST →</button>
+  </div>
+</div>
+
+<!-- BOOK DETAIL MODAL -->
+<div class="mbg" id="detailModal">
+  <div class="mbox wide">
+    <button class="m-close" onclick="closeDetail()">✕</button>
+    <div id="detailContent"><div class="iload"><div class="spinner"></div> Loading...</div></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     PASTE YOUR SUPABASE CREDENTIALS BELOW
+     ══════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const SB_URL  = 'https://zqtqvnvylwzshwqwnkhz.supabase.co';
-  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
+const SB_URL  = 'https://zqtqvnvylwzshwqwnkhz.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
 
-  const { createClient } = supabase;
-  const sb = createClient(SB_URL, SB_ANON);
-  const $  = id => document.getElementById(id);
-  let books = [], me = null;
+const {createClient} = supabase;
+const sb = createClient(SB_URL, SB_ANON);
+const $  = id => document.getElementById(id);
 
-  /* ── CURSOR ── */
-  const cur=$('cur'), curR=$('curR');
-  let mx=0,my=0,rx=0,ry=0;
-  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx-5+'px';cur.style.top=my-5+'px';});
-  (function tick(){rx+=(mx-rx-17)*0.12;ry+=(my-ry-17)*0.12;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(tick);})();
-  function curHover(el){
-    el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2.2)';curR.style.width='56px';curR.style.height='56px';curR.style.borderColor='var(--accent2)';});
-    el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';curR.style.width='34px';curR.style.height='34px';curR.style.borderColor='var(--accent)';});
-  }
-  document.querySelectorAll('a,button,input').forEach(curHover);
+// ── STATE ──
+let me = null;
+let S = {
+  books:      {data:[], view:'grid', removing:false},
+  wishlist:   {data:[], view:'grid', removing:false},
+  lists:      {data:[]},
+  listdetail: {data:[], view:'grid', removing:false, id:null, name:''},
+};
+let addTarget = 'books';
+let selectedIds = new Set();
 
-  /* ── HAMBURGER ── */
-  $('hbg').addEventListener('click',()=>$('mobNav').classList.toggle('open'));
+// ── CURSOR ──
+const cur=$('cur'), curR=$('curR');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx-5+'px';cur.style.top=my-5+'px';});
+(function tick(){rx+=(mx-rx-17)*0.12;ry+=(my-ry-17)*0.12;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(tick);})();
+function ch(el){
+  if(!el||el._ch)return;el._ch=true;
+  el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2)';curR.style.width='52px';curR.style.height='52px';curR.style.borderColor='var(--accent2)';});
+  el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';curR.style.width='34px';curR.style.height='34px';curR.style.borderColor='var(--accent)';});
+}
+document.querySelectorAll('a,button,input').forEach(ch);
 
-  /* ── REVEAL ── */
-  const rObs=new IntersectionObserver(es=>{
-    es.forEach((e,i)=>{if(!e.isIntersecting)return;setTimeout(()=>e.target.classList.add('on'),i*70);rObs.unobserve(e.target);});
-  },{threshold:0.1});
-  document.querySelectorAll('.reveal').forEach(r=>rObs.observe(r));
+// ── HAMBURGER ──
+$('hbg').addEventListener('click',()=>$('mobNav').classList.toggle('open'));
 
-  /* ── STARTUP ── */
-  window.addEventListener('load',async()=>{
-    const {data:{session}}=await sb.auth.getSession();
+// ── STARTUP — handle email verification redirect ──
+window.addEventListener('load', async()=>{
+  // Supabase puts tokens in the URL hash after email confirmation
+  const hash = window.location.hash;
+  const params = new URLSearchParams(window.location.search);
+
+  // Check if this is an email confirmation callback
+  if(hash.includes('access_token') || hash.includes('type=signup') || params.get('type')==='signup'){
+    // Let Supabase SDK pick up the session from the URL
+    await sb.auth.getSession(); // this processes the hash
     $('loader').style.display='none';
-    if(session){me=session.user;loadApp(session.user);}
-    else $('authWrap').style.display='flex';
+    // Clear the URL
+    history.replaceState(null,'',window.location.pathname);
+    // Show verified screen
+    $('verifiedBanner').style.display='flex';
+    return;
+  }
 
-    sb.auth.onAuthStateChange((_,s)=>{
-      if(s){me=s.user;loadApp(s.user);}
-      else{me=null;books=[];$('app').style.display='none';$('authWrap').style.display='flex';}
-    });
+  const {data:{session}} = await sb.auth.getSession();
+  $('loader').style.display='none';
+  if(session){ me=session.user; loadApp(session.user); }
+  else $('authWrap').style.display='flex';
+
+  sb.auth.onAuthStateChange((_,s)=>{
+    if(s){ me=s.user; loadApp(s.user); }
+    else{ me=null; resetState(); $('app').style.display='none'; $('authWrap').style.display='flex'; }
   });
+});
 
-  /* ── TABS ── */
-  window.switchTab=tab=>{
-    $('fIn').style.display=tab==='in'?'block':'none';
-    $('fUp').style.display=tab==='up'?'block':'none';
-    $('authH').textContent=tab==='in'?'Welcome Back':'Create Account';
-    $('authS').textContent=tab==='in'
-      ?'Sign in to your personal cloud-synced book collection.'
-      :'Create your free account — no credit card needed.';
-    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',(tab==='in'&&i===0)||(tab==='up'&&i===1)));
-  };
+window.dismissVerified=()=>{
+  $('verifiedBanner').style.display='none';
+  $('authWrap').style.display='flex';
+  switchTab('in');
+};
 
-  /* ── ERROR HELPER ── */
-  function sbErr(msg){
-    const m={'Invalid login credentials':'Incorrect email or password.','Email not confirmed':'Confirm your email first, then sign in.','User already registered':'An account with this email already exists.','Password should be at least 6':'Password must be at least 6 characters.','For security purposes':'Too many attempts. Please wait a moment.'};
-    for(const[k,v]of Object.entries(m))if(msg.includes(k))return v;
-    return msg||'Something went wrong. Please try again.';
-  }
-  function showMsg(id,msg,type='err'){
-    const el=$(id);el.textContent=msg;el.className='amsg '+type;el.style.display='block';
-    if(type!=='ok')setTimeout(()=>el.style.display='none',5000);
-  }
+function resetState(){
+  S.books.data=[]; S.wishlist.data=[]; S.lists.data=[];
+  S.listdetail.data=[]; S.listdetail.id=null; selectedIds.clear();
+}
 
-  /* ── SIGN UP ── */
-  window.signup=async()=>{
-    const un=$('uName').value.trim(),em=$('uEmail').value.trim(),pw=$('uPass').value,pw2=$('uPass2').value;
-    if(!un||!em||!pw||!pw2)return showMsg('uErr','Please fill in all fields.');
-    if(un.length<3)return showMsg('uErr','Username must be at least 3 characters.');
-    if(!/^[a-zA-Z0-9_]+$/.test(un))return showMsg('uErr','Username: letters, numbers, underscores only.');
-    if(pw!==pw2)return showMsg('uErr','Passwords do not match.');
-    $('uBtn').disabled=true;$('uBtn').textContent='CREATING...';
-    const{error}=await sb.auth.signUp({email:em,password:pw,options:{data:{username:un}}});
-    $('uBtn').disabled=false;$('uBtn').textContent='CREATE ACCOUNT →';
-    if(error)return showMsg('uErr',sbErr(error.message));
-    $('uErr').style.display='none';
-    showMsg('uOk','✓ Account created! Check your email ('+em+') and click the confirmation link, then sign in.','ok');
-  };
+// ── AUTH TAB SWITCH ──
+window.switchTab=tab=>{
+  $('fIn').style.display=tab==='in'?'block':'none';
+  $('fUp').style.display=tab==='up'?'block':'none';
+  $('authH').textContent=tab==='in'?'Welcome Back':'Create Account';
+  $('authS').textContent=tab==='in'
+    ?'Sign in to your personal cloud-synced book collection.'
+    :'Create your free account — no credit card needed.';
+  document.querySelectorAll('.atab').forEach((t,i)=>t.classList.toggle('on',(tab==='in'&&i===0)||(tab==='up'&&i===1)));
+};
 
-  /* ── SIGN IN ── */
-  window.login=async()=>{
-    const em=$('lEmail').value.trim(),pw=$('lPass').value;
-    if(!em||!pw)return showMsg('lErr','Please fill in all fields.');
-    $('lBtn').disabled=true;$('lBtn').textContent='SIGNING IN...';
-    const{error}=await sb.auth.signInWithPassword({email:em,password:pw});
-    if(error){showMsg('lErr',sbErr(error.message));$('lBtn').disabled=false;$('lBtn').textContent='SIGN IN →';}
-  };
+// ── REAL-TIME VALIDATION ──
+let unTimer=null;
 
-  /* ── LOGOUT ── */
-  window.logout=async()=>{await sb.auth.signOut();books=[];$('grid').innerHTML='';};
-
-  /* ── LOAD APP ── */
-  async function loadApp(user){
-    const un=user.user_metadata?.username||user.email.split('@')[0];
-    $('authWrap').style.display='none';$('app').style.display='block';
-    $('navWho').textContent=un;$('pgTitle').textContent=un+"'s Library";$('footWho').textContent=un;
-    await fetchBooks(user.id);
-  }
-
-  /* ── FETCH ── */
-  async function fetchBooks(uid){
-    const{data,error}=await sb.from('books').select('*').eq('user_id',uid).order('added_at',{ascending:false});
-    if(error){toast('Error loading books.','err');return;}
-    books=data||[];render();
-  }
-
-  /* ── ADD ── */
-  window.addBook=async()=>{
-    const isbn=$('isbn').value.trim().replace(/[-\s]/g,'');
-    if(!isbn)return fb('Please enter an ISBN number.','err');
-    if(!/^\d{10}(\d{3})?$/.test(isbn))return fb('Enter a valid 10 or 13-digit ISBN.','err');
-    if(books.find(b=>b.isbn===isbn))return fb('This book is already in your library!','err');
-    fb('Looking up book...','ld');$('addBtn').disabled=true;
+window.liveCheckUsername=val=>{
+  const h=$('unHint'), inp=$('uName');
+  inp.classList.remove('good','bad'); h.className='fhint'; h.textContent='';
+  if(!val) return;
+  if(val.length<3){setHint(h,inp,'no','✗ At least 3 characters required.');return;}
+  if(!/^[a-zA-Z0-9_]+$/.test(val)){setHint(h,inp,'no','✗ Only letters, numbers and underscores.');return;}
+  setHint(h,inp,'ld','⏳ Checking availability...');
+  clearTimeout(unTimer);
+  unTimer=setTimeout(async()=>{
     try{
-      const res=await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
-      const data=await res.json();const key=`ISBN:${isbn}`;
-      if(!data[key]){fb('Book not found. Check the ISBN and try again.','err');$('addBtn').disabled=false;return;}
-      const info=data[key];
-      const bk={user_id:me.id,isbn,title:info.title||'Unknown Title',authors:info.authors?.map(a=>a.name).join(', ')||'Unknown Author',cover:info.cover?.medium||info.cover?.small||null,added_at:new Date().toISOString()};
-      const{data:ins,error}=await sb.from('books').insert([bk]).select().single();
-      if(error){fb('Error saving: '+error.message,'err');$('addBtn').disabled=false;return;}
-      books.unshift(ins);$('isbn').value='';
-      fb(`"${bk.title}" added!`,'ok');render();toast(`📚 "${bk.title}" added!`,'ok');
-    }catch(e){fb('Network error. Check your connection.','err');}
-    $('addBtn').disabled=false;
-  };
+      const {data}=await sb.from('profiles').select('id').eq('username',val.toLowerCase()).maybeSingle();
+      if(data) setHint(h,inp,'no','✗ Username is already taken.');
+      else setHint(h,inp,'ok','✓ Username is available!');
+    }catch(e){ setHint(h,inp,'ok','✓ Looks available!'); }
+  },500);
+};
 
-  /* ── DELETE ── */
-  window.delBook=async(id,title,e)=>{
-    e.stopPropagation();
-    const{error}=await sb.from('books').delete().eq('id',id).eq('user_id',me.id);
-    if(error){toast('Error removing book.','err');return;}
-    books=books.filter(b=>b.id!==id);render();
-    toast(`🗑️ "${title}" removed.`,'err');
-  };
+window.liveCheckEmail=val=>{
+  const h=$('emHint'), inp=$('uEmail');
+  inp.classList.remove('good','bad'); h.className='fhint'; h.textContent='';
+  if(!val) return;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) setHint(h,inp,'no','✗ Enter a valid email address.');
+  else setHint(h,inp,'ok','✓ Email looks good!');
+};
 
-  /* ── RENDER ── */
-  function render(list=null){
-    const bks=list??books;
-    const g=$('grid'),em=$('empty'),st=$('stats'),sr=$('srch');
-    $('bkCnt').textContent=books.length;
-    $('stTotal').textContent=books.length;
-    $('stLast').textContent=books[0]?new Date(books[0].added_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'}):'—';
-    if(books.length===0){
-      g.style.display='none';em.style.display='block';st.style.display='none';sr.style.display='none';
-      rObs.observe(em);return;
+window.liveCheckPass=val=>{
+  const h=$('pwHint'), inp=$('uPass');
+  inp.classList.remove('good','bad'); h.className='fhint'; h.textContent='';
+  if(!val) return;
+  if(val.length<6) setHint(h,inp,'no','✗ At least 6 characters required.');
+  else setHint(h,inp,'ok','✓ Strong enough!');
+  if($('uPass2').value) liveCheckPass2($('uPass2').value);
+};
+
+window.liveCheckPass2=val=>{
+  const h=$('pw2Hint'), inp=$('uPass2');
+  inp.classList.remove('good','bad'); h.className='fhint'; h.textContent='';
+  if(!val) return;
+  const match=$('uPass').value===val;
+  setHint(h,inp,match?'ok':'no',match?'✓ Passwords match!':'✗ Passwords do not match.');
+};
+
+function setHint(el,inp,type,msg){
+  el.textContent=msg; el.className='fhint '+type;
+  inp.classList.remove('good','bad'); inp.classList.add(type==='ok'?'good':'bad');
+}
+
+// ── AUTH HELPERS ──
+function sbErr(msg){
+  const m={'Invalid login credentials':'Incorrect email or password.','Email not confirmed':'Please confirm your email first — check your inbox.','User already registered':'An account with this email already exists.','Password should be at least 6':'Password must be at least 6 characters.','For security purposes':'Too many attempts. Please wait a moment.'};
+  for(const[k,v]of Object.entries(m))if(msg.includes(k))return v;
+  return msg||'Something went wrong.';
+}
+function showMsg(id,msg,type='err'){
+  const el=$(id);el.textContent=msg;el.className='amsg '+type;el.style.display='block';
+  if(type!=='ok')setTimeout(()=>el.style.display='none',5500);
+}
+
+// ── SIGN UP ──
+window.signup=async()=>{
+  const un=$('uName').value.trim().toLowerCase();
+  const em=$('uEmail').value.trim();
+  const pw=$('uPass').value, pw2=$('uPass2').value;
+  if(!un||!em||!pw||!pw2) return showMsg('uErr','Please fill in all fields.');
+  if($('unHint').classList.contains('no')) return showMsg('uErr','Please fix the username first.');
+  if($('emHint').classList.contains('no')) return showMsg('uErr','Please enter a valid email.');
+  if(pw!==pw2) return showMsg('uErr','Passwords do not match.');
+  $('uBtn').disabled=true; $('uBtn').textContent='CREATING...';
+  const{error}=await sb.auth.signUp({
+    email:em, password:pw,
+    options:{
+      data:{username:un},
+      emailRedirectTo: window.location.href.split('#')[0].split('?')[0]
     }
-    em.style.display='none';g.style.display='grid';st.style.display='flex';sr.style.display='block';
-    if(bks.length===0){
-      g.innerHTML=`<p style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.78rem;grid-column:1/-1">No books match your search.</p>`;return;
-    }
-    g.innerHTML='';
-    bks.forEach(b=>{
-      const st=b.title.replace(/'/g,"\\'").replace(/"/g,'&quot;');
-      const c=document.createElement('div');c.className='bk';
-      c.innerHTML=`
-        <button class="bk-del" onclick="delBook(${b.id},'${st}',event)" title="Remove">✕</button>
-        ${b.cover
-          ?`<img class="bk-img" src="${b.cover}" alt="${b.title}" loading="lazy" onerror="this.outerHTML='<div class=\\'bk-ph\\'>📘</div>'">`
-          :`<div class="bk-ph">📘</div>`}
-        <div class="bk-info">
-          <div class="bk-title">${b.title}</div>
-          <div class="bk-author">${b.authors}</div>
-          <div class="bk-isbn">${b.isbn}</div>
-        </div>`;
-      g.appendChild(c);
-      curHover(c);
-    });
-  }
-
-  /* ── SEARCH ── */
-  window.filterBooks=()=>{
-    const q=$('srch').value.toLowerCase();
-    render(books.filter(b=>b.title.toLowerCase().includes(q)||b.authors.toLowerCase().includes(q)));
-  };
-
-  /* ── FEEDBACK ── */
-  function fb(msg,type){
-    const el=$('fb');
-    el.textContent=type==='ld'?'⏳ '+msg:type==='err'?'✗ '+msg:'✓ '+msg;
-    el.className='fb '+type;el.style.display='block';
-    if(type!=='ld')setTimeout(()=>el.style.display='none',4000);
-  }
-
-  /* ── TOAST ── */
-  function toast(msg,type='ok'){
-    const t=$('toast');t.textContent=msg;t.className='toast '+type+' show';
-    setTimeout(()=>t.className='toast '+type,3200);
-  }
-
-  /* ── ENTER KEYS ── */
-  document.addEventListener('keydown',e=>{
-    if(e.key!=='Enter')return;
-    if($('fIn').style.display!=='none')window.login();
-    else if($('fUp').style.display!=='none')window.signup();
   });
+  $('uBtn').disabled=false; $('uBtn').textContent='CREATE ACCOUNT →';
+  if(error) return showMsg('uErr',sbErr(error.message));
+  $('uErr').style.display='none';
+  showMsg('uOk','✓ Account created! Check your email and click the confirmation link to activate your account.','ok');
+};
+
+// ── SIGN IN ──
+window.login=async()=>{
+  const em=$('lEmail').value.trim(), pw=$('lPass').value;
+  if(!em||!pw) return showMsg('lErr','Please fill in all fields.');
+  $('lBtn').disabled=true; $('lBtn').textContent='SIGNING IN...';
+  const{error}=await sb.auth.signInWithPassword({email:em,password:pw});
+  if(error){ showMsg('lErr',sbErr(error.message)); $('lBtn').disabled=false; $('lBtn').textContent='SIGN IN →'; }
+};
+
+window.logout=async()=>{ await sb.auth.signOut(); resetState(); };
+
+// ── LOAD APP ──
+async function loadApp(user){
+  const un=user.user_metadata?.username||user.email.split('@')[0];
+  await sb.from('profiles').upsert({id:user.id,username:un},{onConflict:'id'});
+  $('authWrap').style.display='none'; $('app').style.display='block';
+  $('navWho').textContent=un; $('footWho').textContent=un;
+  await Promise.all([fetchSection('books'),fetchSection('wishlist'),fetchLists()]);
+  renderSection('books');
+}
+
+// ── FETCH ──
+async function fetchSection(s){
+  const {data}=await sb.from(s).select('*').eq('user_id',me.id).order('added_at',{ascending:false});
+  S[s].data=data||[];
+}
+async function fetchLists(){
+  const {data}=await sb.from('lists').select('*').eq('user_id',me.id).order('created_at',{ascending:true});
+  S.lists.data=data||[];
+}
+async function fetchListBooks(id){
+  const {data}=await sb.from('list_books').select('*').eq('list_id',id).order('added_at',{ascending:false});
+  S.listdetail.data=data||[];
+}
+
+// ── DASH TABS ──
+let curDash='books';
+window.switchDash=tab=>{
+  curDash=tab;
+  document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('on',['books','wishlist','lists'][i]===tab));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  $('v'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('on');
+  selectedIds.clear(); resetRemoveButtons();
+  if(tab==='books') renderSection('books');
+  else if(tab==='wishlist') renderSection('wishlist');
+  else renderLists();
+};
+
+window.setViewMode=(s,mode)=>{
+  S[s].view=mode;
+  const p=s==='books'?'bk':s==='wishlist'?'wl':'ld';
+  $(p+'GBtn').classList.toggle('on',mode==='grid');
+  $(p+'LBtn').classList.toggle('on',mode==='list');
+  if(s==='listdetail') renderListDetail();
+  else renderSection(s);
+};
+
+// ── REMOVE MODE ──
+window.toggleRemove=s=>{
+  const sec=S[s]; sec.removing=!sec.removing;
+  if(!sec.removing){ doRemove(s); return; }
+  selectedIds.clear();
+  const p=s==='books'?'bk':s==='wishlist'?'wl':'ld';
+  const btn=$(p+'RmBtn');
+  btn.classList.add('on'); btn.textContent='✓ Done (tap books to select)';
+  refreshRemodeUI(s);
+};
+
+function refreshRemodeUI(s){
+  const cont=s==='books'?$('bkContent'):s==='wishlist'?$('wlContent'):$('ldContent');
+  if(!cont) return;
+  cont.querySelectorAll('.bk-grid-wrap,.bk-list-wrap').forEach(w=>w.classList.toggle('rm-mode',S[s].removing));
+}
+
+function resetRemoveButtons(){
+  ['books','wishlist','listdetail'].forEach(s=>{
+    S[s].removing=false; selectedIds.clear();
+    const p=s==='books'?'bk':s==='wishlist'?'wl':'ld';
+    const btn=$(p+'RmBtn');
+    if(btn){btn.classList.remove('on');btn.textContent='✕ Remove';}
+  });
+}
+
+async function doRemove(s){
+  const p=s==='books'?'bk':s==='wishlist'?'wl':'ld';
+  const btn=$(p+'RmBtn'); btn.classList.remove('on'); btn.textContent='✕ Remove';
+  if(selectedIds.size===0) return;
+  const ids=[...selectedIds];
+  const table=s==='books'?'books':s==='wishlist'?'wishlist':'list_books';
+  const q=sb.from(table).delete().in('id',ids);
+  if(s!=='listdetail') q.eq('user_id',me.id);
+  const{error}=await q;
+  if(error){toast('Error removing books.','err');return;}
+  S[s].data=S[s].data.filter(b=>!ids.includes(b.id));
+  selectedIds.clear();
+  if(s==='listdetail') renderListDetail();
+  else renderSection(s);
+  toast(`🗑️ ${ids.length} book${ids.length>1?'s':''} removed.`,'err');
+}
+
+// ── RENDER SECTION ──
+window.renderSection=s=>{
+  const sec=S[s];
+  const cont=s==='books'?$('bkContent'):$('wlContent');
+  const sub=s==='books'?$('bkSub'):$('wlSub');
+  const srch=s==='books'?$('bkSearch'):$('wlSearch');
+  const q=(s==='books'?$('bkSearch'):$('wlSearch')).value.toLowerCase();
+  const filtered=sec.data.filter(b=>b.title?.toLowerCase().includes(q)||b.authors?.toLowerCase().includes(q));
+  sub.textContent=`${sec.data.length} book${sec.data.length!==1?'s':''} ${s==='books'?'in your collection':'on your wishlist'}`;
+  srch.style.display=sec.data.length?'block':'none';
+  if(sec.data.length===0){cont.innerHTML=emptyHTML(s==='books'?'📚':'❤️',s==='books'?'Your library is empty.':'Your wishlist is empty.',s==='books'?'Add Book':'Add to Wishlist');return;}
+  if(sec.view==='grid') renderGrid(filtered,cont,s);
+  else renderList(filtered,cont,s);
+  refreshRemodeUI(s);
+};
+
+function emptyHTML(ico,msg,btn){
+  return `<div class="empty-box"><div class="ico">${ico}</div><p>${msg}<br/>Click <strong>+ ${btn}</strong> to get started!</p></div>`;
+}
+
+// ── GRID ──
+function renderGrid(data,cont,s){
+  cont.innerHTML='';
+  const wrap=document.createElement('div'); wrap.className='bk-grid-wrap'+(S[s].removing?' rm-mode':'');
+  data.forEach(b=>{
+    const sel=selectedIds.has(b.id);
+    const d=document.createElement('div'); d.className='bk-gc'+(sel?' sel':'');
+    d.innerHTML=`
+      <div class="sel-check">${sel?'✓':''}</div>
+      ${b.cover?`<img class="bk-gc-img" src="${b.cover}" alt="${esc(b.title)}" loading="lazy" onerror="this.outerHTML='<div class=\\'bk-gc-ph\\'>📘</div>'">`:`<div class="bk-gc-ph">📘</div>`}
+      <div class="bk-gc-body">
+        <div class="bk-gc-title">${esc(b.title)}</div>
+        <div class="bk-gc-author">${esc(b.authors||'')}</div>
+        <div class="bk-gc-isbn">${b.isbn}</div>
+        ${s==='wishlist'&&b.cheapest_price?`<div class="bk-gc-price">From ${esc(b.cheapest_price)}</div>`:''}
+      </div>`;
+    d.addEventListener('click',()=>S[s].removing?toggleSel(b.id,d,s):openDetail(b,s));
+    ch(d); wrap.appendChild(d);
+  });
+  cont.appendChild(wrap);
+}
+
+// ── LIST ──
+function renderList(data,cont,s){
+  cont.innerHTML='';
+  const wrap=document.createElement('div'); wrap.className='bk-list-wrap'+(S[s].removing?' rm-mode':'');
+  data.forEach(b=>{
+    const sel=selectedIds.has(b.id);
+    const d=document.createElement('div'); d.className='bk-lc'+(sel?' sel':'');
+    d.innerHTML=`
+      <div class="lc-check">${sel?'✓':''}</div>
+      ${b.cover?`<img class="bk-lc-thumb" src="${b.cover}" alt="${esc(b.title)}" loading="lazy" onerror="this.outerHTML='<div class=\\'bk-lc-ph\\'>📘</div>'">`:`<div class="bk-lc-ph">📘</div>`}
+      <div class="bk-lc-info">
+        <div class="bk-lc-title">${esc(b.title)}</div>
+        <div class="bk-lc-author">${esc(b.authors||'')}</div>
+      </div>
+      <div class="bk-lc-right">
+        <div class="bk-lc-isbn">${b.isbn}</div>
+        ${s==='wishlist'&&b.cheapest_price?`<div class="bk-lc-price">From ${esc(b.cheapest_price)}</div>`:''}
+      </div>`;
+    d.addEventListener('click',()=>S[s].removing?toggleSel(b.id,d,s):openDetail(b,s));
+    ch(d); wrap.appendChild(d);
+  });
+  cont.appendChild(wrap);
+}
+
+// ── SELECT ──
+function toggleSel(id,el,s){
+  const check=el.querySelector('.sel-check,.lc-check');
+  if(selectedIds.has(id)){selectedIds.delete(id);el.classList.remove('sel');if(check)check.textContent='';}
+  else{selectedIds.add(id);el.classList.add('sel');if(check)check.textContent='✓';}
+}
+
+// ── LISTS ──
+function renderLists(){
+  const g=$('listsGrid');
+  $('lstSub').textContent=`${S.lists.data.length} custom list${S.lists.data.length!==1?'s':''}`;
+  if(S.lists.data.length===0){g.innerHTML=`<div class="empty-box" style="grid-column:1/-1"><div class="ico">📋</div><p>No lists yet.<br/>Click <strong>+ New List</strong> to create your first one!</p></div>`;return;}
+  g.innerHTML='';
+  S.lists.data.forEach(l=>{
+    const d=document.createElement('div'); d.className='list-card';
+    d.innerHTML=`
+      <button class="list-del" onclick="deleteList(${l.id},event)">✕</button>
+      <div class="list-icon">📋</div>
+      <div class="list-name">${esc(l.name)}</div>
+      <div class="list-count" id="lc_${l.id}">...</div>`;
+    d.addEventListener('click',()=>enterList(l));
+    ch(d); g.appendChild(d);
+    sb.from('list_books').select('id',{count:'exact',head:true}).eq('list_id',l.id).then(({count})=>{
+      const el=$(`lc_${l.id}`); if(el) el.textContent=`${count||0} book${count!==1?'s':''}`;
+    });
+  });
+}
+
+async function enterList(l){
+  S.listdetail.id=l.id; S.listdetail.name=l.name;
+  $('ldName').textContent=l.name; $('ldTitle').textContent=l.name;
+  $('listsHome').style.display='none'; $('listDetail').style.display='block';
+  $('ldContent').innerHTML=`<div class="iload"><div class="spinner"></div> Loading...</div>`;
+  await fetchListBooks(l.id); renderListDetail();
+}
+
+window.renderListDetail=()=>{
+  const s=S.listdetail;
+  const q=$('ldSearch').value.toLowerCase();
+  const filtered=s.data.filter(b=>b.title?.toLowerCase().includes(q)||b.authors?.toLowerCase().includes(q));
+  $('ldSub').textContent=`${s.data.length} book${s.data.length!==1?'s':''}`;
+  $('ldSearch').style.display=s.data.length?'block':'none';
+  if(s.data.length===0){$('ldContent').innerHTML=`<div class="empty-box"><div class="ico">📋</div><p>This list is empty.<br/>Click <strong>+ Add Book</strong> to add some!</p></div>`;return;}
+  if(s.view==='grid') renderGrid(filtered,$('ldContent'),'listdetail');
+  else renderList(filtered,$('ldContent'),'listdetail');
+  refreshRemodeUI('listdetail');
+};
+
+window.backToLists=()=>{
+  $('listsHome').style.display=''; $('listDetail').style.display='none';
+  resetRemoveButtons(); selectedIds.clear(); renderLists();
+};
+
+window.deleteList=async(id,e)=>{
+  e.stopPropagation();
+  if(!confirm('Delete this list and all its books?')) return;
+  await sb.from('lists').delete().eq('id',id).eq('user_id',me.id);
+  S.lists.data=S.lists.data.filter(l=>l.id!==id);
+  renderLists(); toast('List deleted.','info');
+};
+
+// ── CREATE LIST ──
+window.openCreateList=()=>{$('listModal').classList.add('open');$('listNameIn').value='';$('listMsg').style.display='none';setTimeout(()=>$('listNameIn').focus(),120);};
+window.closeCreateList=()=>$('listModal').classList.remove('open');
+window.submitCreateList=async()=>{
+  const name=$('listNameIn').value.trim();
+  if(!name){$('listMsg').textContent='Please enter a name.';$('listMsg').style.display='block';return;}
+  const{data,error}=await sb.from('lists').insert([{user_id:me.id,name}]).select().single();
+  if(error){$('listMsg').textContent='Error: '+error.message;$('listMsg').style.display='block';return;}
+  S.lists.data.push(data); closeCreateList(); renderLists(); toast(`📋 "${name}" created!`,'ok');
+};
+
+// ── ADD BOOK MODAL ──
+window.openAdd=t=>{
+  addTarget=t;
+  $('addTitle').textContent=t==='wishlist'?'Add to Wishlist':t==='listdetail'?`Add to "${S.listdetail.name}"`:'Add a Book';
+  $('addModal').classList.add('open'); $('isbnIn').value=''; $('addMsg').style.display='none';
+  setTimeout(()=>$('isbnIn').focus(),120);
+};
+window.closeAdd=()=>$('addModal').classList.remove('open');
+
+window.submitAdd=async()=>{
+  const isbn=$('isbnIn').value.trim().replace(/[-\s]/g,'');
+  if(!isbn) return setAddMsg('Please enter an ISBN number.','err');
+  if(!/^\d{10}(\d{3})?$/.test(isbn)) return setAddMsg('Enter a valid 10 or 13-digit ISBN.','err');
+  const targetData=addTarget==='books'?S.books.data:addTarget==='wishlist'?S.wishlist.data:S.listdetail.data;
+  if(targetData.find(b=>b.isbn===isbn)) return setAddMsg('This book is already in this collection!','err');
+
+  setAddMsg('<span class="spinner sm"></span> Fetching book details...','');
+  $('addBtn').disabled=true;
+
+  try{
+    // Open Library
+    const olRes=await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+    const olData=await olRes.json();
+    const info=olData[`ISBN:${isbn}`];
+    if(!info){setAddMsg('Book not found. Please check the ISBN.','err');$('addBtn').disabled=false;return;}
+
+    // Google Books for description + price
+    let desc='', pages=null, published=null, publisher=null, subjects='', cheapest=null;
+    try{
+      const gbRes=await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+      const gbData=await gbRes.json();
+      if(gbData.items?.length){
+        const v=gbData.items[0].volumeInfo, s=gbData.items[0].saleInfo;
+        desc=v.description||''; pages=v.pageCount||null; published=v.publishedDate||null;
+        publisher=v.publisher||null; subjects=v.categories?.join(', ')||'';
+        if(s?.retailPrice) cheapest=`₹${s.retailPrice.amount} (Google Play)`;
+      }
+    }catch(e){}
+
+    const book={
+      isbn, title:info.title||'Unknown Title',
+      authors:info.authors?.map(a=>a.name).join(', ')||'Unknown Author',
+      cover:info.cover?.medium||info.cover?.small||null,
+      description:desc||'', pages, published,
+      publisher:info.publishers?.[0]?.name||publisher||null,
+      subjects:info.subjects?.slice(0,5).map(s=>typeof s==='string'?s:s.name).join(', ')||subjects,
+      cheapest_price:cheapest,
+      added_at:new Date().toISOString(),
+    };
+
+    const table=addTarget==='books'?'books':addTarget==='wishlist'?'wishlist':'list_books';
+    if(addTarget==='listdetail'){book.list_id=S.listdetail.id;}
+    else{book.user_id=me.id;}
+    if(addTarget==='listdetail') book.user_id=me.id;
+
+    const{data:ins,error}=await sb.from(table).insert([book]).select().single();
+    if(error){setAddMsg('Error saving: '+error.message,'err');$('addBtn').disabled=false;return;}
+
+    if(addTarget==='books') S.books.data.unshift(ins);
+    else if(addTarget==='wishlist') S.wishlist.data.unshift(ins);
+    else S.listdetail.data.unshift(ins);
+
+    closeAdd();
+    if(addTarget==='books') renderSection('books');
+    else if(addTarget==='wishlist') renderSection('wishlist');
+    else renderListDetail();
+    toast(`📚 "${book.title}" added!`,'ok');
+  }catch(e){ setAddMsg('Network error. Check your connection.','err'); }
+  $('addBtn').disabled=false;
+};
+
+function setAddMsg(html,type){
+  const el=$('addMsg'); el.innerHTML=html;
+  el.className=type?'amsg '+type:'amsg'; el.style.display='block';
+}
+
+// ── BOOK DETAIL ──
+window.openDetail=async(book,section)=>{
+  $('detailModal').classList.add('open');
+  $('detailContent').innerHTML=`<div class="iload"><div class="spinner"></div> Loading details...</div>`;
+
+  let desc=book.description||'', pages=book.pages, published=book.published,
+      publisher=book.publisher, subjects=book.subjects||'';
+  const isWl=section==='wishlist';
+
+  // Retailer links (India-focused)
+  const q=encodeURIComponent((book.title||'')+' '+book.isbn);
+  const retailers=[
+    {shop:'Amazon India',price:null,link:`https://www.amazon.in/s?k=${q}`},
+    {shop:'Flipkart',price:null,link:`https://www.flipkart.com/search?q=${q}`},
+    {shop:'Google Play Books',price:null,link:`https://play.google.com/store/search?q=${q}&c=books`},
+  ];
+
+  try{
+    const gbRes=await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}`);
+    const gbData=await gbRes.json();
+    if(gbData.items?.length){
+      const v=gbData.items[0].volumeInfo, s=gbData.items[0].saleInfo;
+      if(!desc) desc=v.description||'';
+      if(!pages) pages=v.pageCount;
+      if(!published) published=v.publishedDate;
+      if(!publisher) publisher=v.publisher;
+      if(!subjects) subjects=v.categories?.join(', ')||'';
+      if(s?.retailPrice){
+        const r=retailers.find(r=>r.shop==='Google Play Books');
+        if(r){r.price=`₹${s.retailPrice.amount}`;r.link=s.buyLink||r.link;}
+      }
+    }
+  }catch(e){}
+
+  // Find cheapest
+  const priced=retailers.filter(r=>r.price);
+  let cheapShop='';
+  if(priced.length){
+    cheapShop=priced.reduce((a,b)=>parseFloat(a.price.replace(/[^0-9.]/g,''))<parseFloat(b.price.replace(/[^0-9.]/g,''))?a:b).shop;
+    const cheapPrice=priced.find(r=>r.shop===cheapShop)?.price;
+    const table=section==='books'?'books':section==='wishlist'?'wishlist':'list_books';
+    sb.from(table).update({cheapest_price:cheapPrice}).eq('id',book.id);
+  }
+
+  const truncated=desc&&desc.length>400;
+  const subTags=subjects?subjects.split(',').slice(0,4).map(s=>`<span class="dtag">${esc(s.trim())}</span>`).join(''):'';
+
+  $('detailContent').innerHTML=`
+    <div class="det-top">
+      ${book.cover?`<img class="det-cover" src="${book.cover}" alt="${esc(book.title)}" onerror="this.outerHTML='<div class=\\'det-cover-ph\\'>📘</div>'">`:`<div class="det-cover-ph">📘</div>`}
+      <div class="det-meta">
+        <div class="det-title">${esc(book.title)}</div>
+        <div class="det-author">by ${esc(book.authors||'Unknown Author')}</div>
+        ${subTags?`<div class="det-tags">${subTags}</div>`:''}
+        <div class="det-isbn">ISBN: ${book.isbn}</div>
+      </div>
+    </div>
+    ${isWl?`
+    <div class="sec-lbl">WHERE TO BUY</div>
+    <div class="prices-list">
+      ${retailers.map(r=>`
+        <div class="price-row${r.shop===cheapShop?' cheapest':''}">
+          <span class="price-shop">${r.shop}${r.shop===cheapShop?' 🏷️':''}</span>
+          <div class="price-r">
+            <span class="price-val${!r.price?' na':''}">${r.price||(r.shop==='Amazon India'||r.shop==='Flipkart'?'See store':'Not available')}</span>
+            <a class="price-link" href="${r.link}" target="_blank" rel="noopener">Visit →</a>
+          </div>
+        </div>`).join('')}
+    </div>`:''}
+    <div class="sec-lbl">ABOUT THIS BOOK</div>
+    ${desc?`
+      <div class="desc-txt${truncated?' clamped':''}" id="dTxt">${esc(desc)}</div>
+      ${truncated?`<button class="desc-more" id="dMore" onclick="toggleDesc()">Read more ▼</button>`:''}`
+    :`<div class="desc-txt" style="color:var(--muted);font-style:italic">No description available for this book.</div>`}
+    <div class="det-extras">
+      ${pages?`<div class="dex"><div class="dex-l">PAGES</div><div class="dex-v">${pages}</div></div>`:''}
+      ${published?`<div class="dex"><div class="dex-l">PUBLISHED</div><div class="dex-v">${esc(published)}</div></div>`:''}
+      ${publisher?`<div class="dex"><div class="dex-l">PUBLISHER</div><div class="dex-v">${esc(publisher)}</div></div>`:''}
+    </div>
+  `;
+  document.querySelectorAll('#detailContent a,#detailContent button').forEach(ch);
+};
+
+window.toggleDesc=()=>{
+  const t=$('dTxt'), b=$('dMore');
+  if(t.classList.contains('clamped')){t.classList.remove('clamped');b.textContent='Show less ▲';}
+  else{t.classList.add('clamped');b.textContent='Read more ▼';}
+};
+window.closeDetail=()=>$('detailModal').classList.remove('open');
+
+// ── CLOSE MODALS ON BACKDROP CLICK ──
+['addModal','listModal','detailModal'].forEach(id=>{
+  $(id).addEventListener('click',e=>{ if(e.target===$(id)) $(id).classList.remove('open'); });
+});
+
+// ── UTILS ──
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,type='ok'){
+  const t=$('toast');t.textContent=msg;t.className='toast '+type+' show';
+  setTimeout(()=>t.className='toast '+type,3200);
+}
+
+// ── ENTER KEYS ──
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter') return;
+  if($('fIn').style.display!=='none') window.login();
+  else if($('fUp').style.display!=='none') window.signup();
+});
 </script>
 </body>
 </html>
