@@ -516,7 +516,7 @@ window.liveCheckUsername=val=>{
   clearTimeout(unTimer);
   unTimer=setTimeout(async()=>{
     try{
-      const {data}=await sb.from('profiles').select('id').eq('username',val.toLowerCase()).maybeSingle();
+      const {data}=await sb.from('usernames').select('username').eq('username',val.toLowerCase()).maybeSingle();
       if(data) setHint(h,inp,'no','✗ Username is already taken.');
       else setHint(h,inp,'ok','✓ Username is available!');
     }catch(e){ setHint(h,inp,'ok','✓ Looks available!'); }
@@ -528,7 +528,7 @@ window.liveCheckEmail=val=>{
   inp.classList.remove('good','bad'); h.className='fhint'; h.textContent='';
   if(!val) return;
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) setHint(h,inp,'no','✗ Enter a valid email address.');
-  else setHint(h,inp,'ok','✓ Email looks good!');
+  else setHint(h,inp,'ok','✓ Format looks good — duplicate emails are caught on submit.');
 };
 
 window.liveCheckPass=val=>{
@@ -574,6 +574,12 @@ window.signup=async()=>{
   if($('emHint').classList.contains('no')) return showMsg('uErr','Please enter a valid email.');
   if(pw!==pw2) return showMsg('uErr','Passwords do not match.');
   $('uBtn').disabled=true; $('uBtn').textContent='CREATING...';
+  // Reserve username in public table so live checks work immediately
+  const {error:unErr}=await sb.from('usernames').insert([{username:un}]);
+  if(unErr){
+    $('uBtn').disabled=false; $('uBtn').textContent='CREATE ACCOUNT →';
+    return showMsg('uErr','Username is already taken. Please choose another.');
+  }
   const{error}=await sb.auth.signUp({
     email:em, password:pw,
     options:{
