@@ -447,7 +447,7 @@
     <li><a href="#achievements">Wins</a></li>
     <li><a href="#education">Education</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="library.html" style="color:var(--accent)">Library ↗</a></li>
+    <li><a href="dashboard.html" style="color:var(--accent)">Dashboard ↗</a></li>
   </ul>
   <button class="hamburger" id="hbg" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -459,7 +459,7 @@
     <a href="#achievements" onclick="closeMob()">Wins</a>
     <a href="#education" onclick="closeMob()">Education</a>
     <a href="#contact" onclick="closeMob()">Contact</a>
-    <a href="library.html" style="color:var(--accent)">Library ↗</a>
+    <a href="dashboard.html" style="color:var(--accent)">Dashboard ↗</a>
   </div>
 </nav>
 
@@ -491,7 +491,7 @@
       <div class="meta-list">
         <div class="meta-row"><span class="mk">📍 Location</span><span class="mv">Visakhapatnam, AP, India</span></div>
         <div class="meta-row"><span class="mk">📞 Phone</span><span class="mv">+91 6364120768</span></div>
-        <div class="meta-row"><span class="mk">📧 Email</span><span class="mv">sohailsameer2008@gmail.com</span></div>
+        <div class="meta-row"><span class="mk">📧 Email</span><span class="mv"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b9cad6d1d8d0d5cad8d4dcdccb8b898981f9ded4d8d0d597dad6d4">[email&#160;protected]</a></span></div>
         <div class="meta-row"><span class="mk">🎓 Degree</span><span class="mv">B.Tech Engineering (2025–2029)</span></div>
       </div>
     </div>
@@ -577,7 +577,7 @@
   <div class="section-eyebrow">06 — Contact</div>
   <div class="section-heading">Let's Connect</div>
   <p style="color:var(--muted);margin-bottom:2rem;font-size:clamp(0.88rem,2vw,1rem)">Open to internships, collaborations, and exciting opportunities.</p>
-  <a href="mailto:sohailsameer2008@gmail.com" class="contact-email reveal">sohailsameer2008@gmail.com</a>
+  <a href="/cdn-cgi/l/email-protection#12617d7a737b7e61737f7777602022222a52757f737b7e3c717d7f" class="contact-email reveal"><span class="__cf_email__" data-cfemail="33405c5b525a5f40525e5656410103030b73545e525a5f1d505c5e">[email&#160;protected]</span></a>
   <div class="contact-meta reveal">+91 6364120768 &nbsp;·&nbsp; Visakhapatnam, AP, India</div>
 </section>
 
@@ -586,7 +586,7 @@
   <span>Built with HTML · CSS · JS</span>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   /* ── cursor ── */
   const cur=document.getElementById('cur'), curR=document.getElementById('curR');
   let mx=0,my=0,rx=0,ry=0;
@@ -621,15 +621,4 @@
     const t=setInterval(()=>{c=Math.min(c+step,target);el.textContent=Math.floor(c);if(c>=target)clearInterval(t);},25);
   }
 
-  /* ── active nav ── */
-  const secs=[...document.querySelectorAll('section[id]')];
-  window.addEventListener('scroll',()=>{
-    let cur='';
-    secs.forEach(s=>{if(window.scrollY>=s.offsetTop-140)cur=s.id;});
-    document.querySelectorAll('.nav-links a').forEach(a=>{
-      a.style.color=a.getAttribute('href')==='#'+cur?'var(--accent)':'';
-    });
-  });
-</script>
-</body>
-</html>
+  /*
