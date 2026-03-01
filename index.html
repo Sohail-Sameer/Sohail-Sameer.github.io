@@ -58,13 +58,17 @@
       background: var(--accent); border-radius: 50%;
       pointer-events: none; z-index: 9999;
       mix-blend-mode: screen;
-      transition: transform 0.08s;
+      opacity: 0;
+      transform: translate(-50%,-50%);
+      transition: transform 0.08s, opacity 0.2s;
     }
     .cursor-ring {
       position: fixed; width: 34px; height: 34px;
       border: 1px solid var(--accent); border-radius: 50%;
-      pointer-events: none; z-index: 9998; opacity: 0.45;
-      transition: width 0.18s, height 0.18s, border-color 0.18s;
+      pointer-events: none; z-index: 9998;
+      opacity: 0;
+      transform: translate(-50%,-50%);
+      transition: width 0.18s, height 0.18s, border-color 0.18s, opacity 0.2s;
     }
 
     /* ── NAV ── */
@@ -589,12 +593,18 @@
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   /* ── cursor ── */
   const cur=document.getElementById('cur'), curR=document.getElementById('curR');
-  let mx=0,my=0,rx=0,ry=0;
-  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx-5+'px';cur.style.top=my-5+'px';});
-  (function tick(){rx+=(mx-rx-17)*0.12;ry+=(my-ry-17)*0.12;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(tick);})();
+  let mx=window.innerWidth/2,my=window.innerHeight/2,rx=mx,ry=my,curActive=false;
+  document.addEventListener('mousemove',e=>{
+    mx=e.clientX;my=e.clientY;
+    if(!curActive){curActive=true;cur.style.opacity='1';curR.style.opacity='.45';}
+    cur.style.left=mx+'px';cur.style.top=my+'px';
+  });
+  document.addEventListener('mouseleave',()=>{cur.style.opacity='0';curR.style.opacity='0';});
+  document.addEventListener('mouseenter',()=>{if(curActive){cur.style.opacity='1';curR.style.opacity='.45';}});
+  (function tick(){rx+=(mx-rx)*.14;ry+=(my-ry)*.14;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(tick);})();
   document.querySelectorAll('a,button,.skill-card,.counter-box,.achieve-card,.strength-card,.project-card,.edu-card,.lang-card').forEach(el=>{
-    el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2.2)';curR.style.width='56px';curR.style.height='56px';curR.style.borderColor='var(--accent2)';});
-    el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';curR.style.width='34px';curR.style.height='34px';curR.style.borderColor='var(--accent)';});
+    el.addEventListener('mouseenter',()=>{cur.style.transform='translate(-50%,-50%) scale(2.2)';curR.style.width='56px';curR.style.height='56px';curR.style.borderColor='var(--accent2)';});
+    el.addEventListener('mouseleave',()=>{cur.style.transform='translate(-50%,-50%) scale(1)';curR.style.width='34px';curR.style.height='34px';curR.style.borderColor='var(--accent)';});
   });
 
   /* ── hamburger ── */
