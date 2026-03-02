@@ -459,21 +459,21 @@ function renderSubjects(){
 }
 
 window.mark=async(id,type)=>{
-  const s=subjects.find(x=>x.id===id);if(!s)return;
+  id=+id; const s=subjects.find(x=>x.id===id);if(!s)return;
   if(type==='p')s.present++;else s.absent++;
   renderAll();
   await sb.from('subjects').update({present:s.present,absent:s.absent}).eq('id',id).eq('user_id',me.id);
   toast(type==='p'?'✅ Present marked!':'❌ Absent marked.',type==='p'?'ok':'err');
 };
 window.undo=async(id,type)=>{
-  const s=subjects.find(x=>x.id===id);if(!s)return;
+  id=+id; const s=subjects.find(x=>x.id===id);if(!s)return;
   if(type==='p'&&s.present>0)s.present--;else if(type==='a'&&s.absent>0)s.absent--;else{toast('Nothing to undo.','info');return;}
   renderAll();
   await sb.from('subjects').update({present:s.present,absent:s.absent}).eq('id',id).eq('user_id',me.id);
   toast('↩ Undone.','info');
 };
 window.deleteSubject=async(id,e)=>{
-  e.stopPropagation();
+  e.stopPropagation(); id=+id;
   const s=subjects.find(x=>x.id===id);
   if(!confirm(`Delete "${s?.name}" and all its data?`))return;
   subjects=subjects.filter(x=>x.id!==id);
@@ -510,8 +510,8 @@ window.addSlot=async()=>{
   const subjId=$('slotSubj').value, day=$('slotDay').value, time=$('slotTime').value.trim();
   if(!subjId){showSlotMsg('Select a subject.','err');return;}
   if(!time){showSlotMsg('Enter a time.','err');return;}
-  if(slots.find(sl=>sl.subject_id===subjId&&sl.day===day&&sl.time===time)){showSlotMsg('This slot already exists.','err');return;}
-  const{data,error}=await sb.from('timetable_slots').insert([{subject_id:subjId,day,time,user_id:me.id}]).select().single();
+  if(slots.find(sl=>sl.subject_id==subjId&&sl.day===day&&sl.time===time)){showSlotMsg('This slot already exists.','err');return;}
+  const{data,error}=await sb.from('timetable_slots').insert([{subject_id:+subjId,day,time,user_id:me.id}]).select().single();
   if(error){showSlotMsg('Error: '+error.message,'err');return;}
   slots.push(data);renderTimetable();renderSubjects();$('slotTime').value='';showSlotMsg('Slot added!','ok');toast('🗓️ Slot added!','ok');
 };
@@ -538,7 +538,7 @@ function parseCSV(file){
         if(error){skipped++;continue;}
         subjects.push(data);subj=data;
       }
-      if(slots.find(sl=>sl.subject_id===subj.id&&sl.day===day&&sl.time===time)){skipped++;continue;}
+      if(slots.find(sl=>sl.subject_id==subj.id&&sl.day===day&&sl.time===time)){skipped++;continue;}
       const{data:sd,error:se}=await sb.from('timetable_slots').insert([{subject_id:subj.id,day,time,user_id:me.id}]).select().single();
       if(se){skipped++;continue;}
       slots.push(sd);added++;
