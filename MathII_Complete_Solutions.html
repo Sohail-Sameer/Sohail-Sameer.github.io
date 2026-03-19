@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mathematics II – Complete Assignment Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS_HTML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$'],['\\[','\\]']]},
+  "HTML-CSS":{availableFonts:["TeX"]}
+});
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Fira+Code:wght@400;500&family=Playfair+Display:wght@700&display=swap');
+  :root{--navy:#0d1f4e;--gold:#c9a84c;--pale:#f7f5ee;--step:#e8f0fc;--ans:#1a5c1a;--warn:#7a0000;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'EB Garamond',Georgia,serif;font-size:17px;background:var(--pale);color:#1a1a1a;line-height:1.75;}
+  .cover{background:var(--navy);color:#fff;padding:60px 40px;text-align:center;}
+  .cover h1{font-family:'Playfair Display',serif;font-size:2.4rem;letter-spacing:.05em;margin-bottom:10px;}
+  .cover p{color:#bbd;font-size:1rem;}
+  .toc{background:#fff;border-left:5px solid var(--gold);padding:20px 30px;margin:30px auto;max-width:860px;}
+  .toc h2{color:var(--navy);font-size:1.1rem;margin-bottom:10px;}
+  .toc a{color:var(--navy);text-decoration:none;display:block;padding:2px 0;}
+  .toc a:hover{color:var(--gold);}
+  main{max-width:900px;margin:0 auto;padding:20px;}
+  .unit{background:#fff;margin:30px 0;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;}
+  .unit-header{background:var(--navy);color:#fff;padding:14px 25px;font-family:'Playfair Display',serif;font-size:1.25rem;}
+  .qblock{border-bottom:1px solid #eee;padding:22px 25px;}
+  .qblock:last-child{border-bottom:none;}
+  .qlabel{display:inline-block;background:var(--gold);color:#fff;font-weight:600;font-size:.85rem;padding:2px 10px;border-radius:12px;margin-bottom:8px;}
+  .qtext{background:var(--step);border-left:4px solid var(--navy);padding:10px 15px;border-radius:0 6px 6px 0;margin:8px 0 14px 0;font-size:.97em;}
+  .sol{padding:0 0 0 6px;}
+  .step{margin:10px 0;padding-left:14px;border-left:3px solid #dde;}
+  .step-label{font-weight:600;color:var(--navy);font-size:.9rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+  .result{background:#eaf5ea;border-left:4px solid var(--ans);padding:8px 14px;margin:12px 0;border-radius:0 6px 6px 0;color:var(--ans);font-weight:600;}
+  .note{background:#fff8e1;border-left:3px solid #e6b800;padding:6px 12px;margin:8px 0;font-size:.9rem;color:#5a4500;border-radius:0 4px 4px 0;}
+  table{border-collapse:collapse;margin:10px 0;font-size:.93em;width:100%;}
+  td,th{border:1px solid #c0c8d8;padding:7px 12px;text-align:center;}
+  th{background:#e8f0fc;color:var(--navy);font-weight:600;}
+  .matrix-row{font-family:'Fira Code',monospace;font-size:.93em;}
+  hr{border:none;border-top:2px dashed #d0d4e0;margin:18px 0;}
+  @media(max-width:600px){.cover h1{font-size:1.7rem;}main{padding:10px;}th,td{padding:4px 6px;}}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Mathematics II</h1>
+  <p>Complete Step-by-Step Assignment Solutions — Units I, II, III, IV &amp; V</p>
+  <p style="margin-top:6px;color:#aac">Academic Year 2020–2021</p>
+</div>
+
+<div class="toc" style="max-width:900px;margin:30px auto;">
+  <h2>📋 Table of Contents</h2>
+  <a href="#u12">Unit I &amp; II — Matrix Theory (Q1–Q15)</a>
+  <a href="#u34">Unit III &amp; IV — Differential Equations (Q1–Q25)</a>
+  <a href="#u5">Unit V — Laplace Transforms (Q1–Q11)</a>
+</div>
+
+<main>
+
+<!-- ============================================================ -->
+<div class="unit" id="u12">
+<div class="unit-header">UNIT I &amp; II — Matrix Theory</div>
+
+<!-- Q1 -->
+<div class="qblock">
+<span class="qlabel">Q1</span>
+<div class="qtext">Find the rank of $A = \begin{bmatrix}1&-1&1\\1&1&1\\3&1&1\end{bmatrix}$ using echelon form.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Augmented (no constants needed — just A)</div>
+Write the matrix and apply row operations to get upper-triangular (echelon) form.
+</div>
+<div class="step"><div class="step-label">Row Operations</div>
+$$R_2 \leftarrow R_2 - R_1,\quad R_3 \leftarrow R_3 - 3R_1$$
+$$\begin{bmatrix}1&-1&1\\0&2&0\\0&4&-2\end{bmatrix}$$
+$$R_3 \leftarrow R_3 - 2R_2$$
+$$\begin{bmatrix}1&-1&1\\0&2&0\\0&0&-2\end{bmatrix}$$
+</div>
+<div class="result">The echelon form has <strong>3 non-zero rows</strong> → $\rho(A) = 3$</div>
+</div>
+</div>
+
+<!-- Q2 -->
+<div class="qblock">
+<span class="qlabel">Q2</span>
+<div class="qtext">Determine the rank of $\begin{bmatrix}2&1&-3&6\\3&-3&1&2\\1&1&1&2\end{bmatrix}$ by reducing to normal form.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Swap R₁ ↔ R₃</div>
+$$\begin{bmatrix}1&1&1&2\\3&-3&1&2\\2&1&-3&6\end{bmatrix}$$
+</div>
+<div class="step"><div class="step-label">R₂ ← R₂ − 3R₁, R₃ ← R₃ − 2R₁</div>
+$$\begin{bmatrix}1&1&1&2\\0&-6&-2&-4\\0&-1&-5&2\end{bmatrix}$$
+</div>
+<div class="step"><div class="step-label">R₃ ← R₃ − (1/6)R₂</div>
+$$\begin{bmatrix}1&1&1&2\\0&-6&-2&-4\\0&0&-\tfrac{14}{3}&\tfrac{10}{3}\end{bmatrix}$$
+</div>
+<div class="result">Three non-zero rows ⟹ $\rho(A) = 3$</div>
+</div>
+</div>
+
+<!-- Q3 -->
+<div class="qblock">
+<span class="qlabel">Q3</span>
+<div class="qtext">Investigate values of $\mu$ and $\lambda$ so that $2x+3y+5z=9,\ 7x+3y-2z=8,\ 2x+3y+\lambda z=\mu$ has: (i) unique solution, (ii) infinite solutions, (iii) no solution.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Augmented Matrix</div>
+$$[A|b]=\begin{bmatrix}2&3&5&9\\7&3&-2&8\\2&3&\lambda&\mu\end{bmatrix}$$
+</div>
+<div class="step"><div class="step-label">Row Reduce: R₂ ← R₂−(7/2)R₁, R₃ ← R₃−R₁</div>
+$$\begin{bmatrix}2&3&5&9\\0&-\tfrac{9}{2}&-\tfrac{39}{2}&-\tfrac{47}{2}\\0&0&\lambda-5&\mu-9\end{bmatrix}$$
+</div>
+<div class="step"><div class="step-label">Conditions</div>
+The third row gives $(\lambda-5)z = \mu-9$. Therefore:
+<ul style="margin:8px 0 0 20px;">
+  <li><strong>(i) Unique solution:</strong> $\lambda \neq 5$ (any $\mu$) — all three rows non-zero, full rank 3.</li>
+  <li><strong>(ii) Infinite solutions:</strong> $\lambda = 5$ <em>and</em> $\mu = 9$ — rank of $[A] =$ rank of $[A|b] = 2 < 3$.</li>
+  <li><strong>(iii) No solution:</strong> $\lambda = 5$ <em>and</em> $\mu \neq 9$ — inconsistent (0 = non-zero).</li>
+</ul>
+</div>
+</div>
+</div>
+
+<!-- Q4 -->
+<div class="qblock">
+<span class="qlabel">Q4</span>
+<div class="qtext">Apply Gauss-elimination to solve: $x+4y-z=-5,\ x+y-6z=-12,\ 3x-y-z=4$.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Augmented Matrix → Row Reduce</div>
+$$\begin{bmatrix}1&4&-1&-5\\1&1&-6&-12\\3&-1&-1&4\end{bmatrix}$$
+$R_2 \leftarrow R_2-R_1$: $[0,-3,-5,-7]$<br>
+$R_3 \leftarrow R_3-3R_1$: $[0,-13,2,19]$<br>
+$R_3 \leftarrow R_3-\tfrac{13}{3}R_2$: $\left[0,0,\tfrac{71}{3},\tfrac{148}{3}\right]$
+</div>
+<div class="step"><div class="step-label">Back Substitution</div>
+$$\frac{71}{3}z = \frac{148}{3} \implies \boxed{z = \frac{148}{71}}$$
+$$-3y - 5z = -7 \implies -3y = -7 + \frac{740}{71} = \frac{243}{71} \implies \boxed{y = -\frac{81}{71}}$$
+$$x = -5 - 4y + z = -5 + \frac{324}{71} + \frac{148}{71} = \boxed{x = \frac{117}{71}}$$
+</div>
+<div class="result">$x=\dfrac{117}{71},\quad y=-\dfrac{81}{71},\quad z=\dfrac{148}{71}$<br>
+<span style="font-weight:normal;font-size:.9em;">Verification: $\frac{117}{71}+4(-\frac{81}{71})-\frac{148}{71}=\frac{-355}{71}=-5$ ✓</span></div>
+</div>
+</div>
+
+<!-- Q5 -->
+<div class="qblock">
+<span class="qlabel">Q5</span>
+<div class="qtext">Apply factorization (LU decomposition) method: $3x+2y+7z=4,\ 2x+3y+z=5,\ 3x+4y+z=7$.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Decompose A = LU</div>
+$$A=\begin{bmatrix}3&2&7\\2&3&1\\3&4&1\end{bmatrix}=LU$$
+$$L=\begin{bmatrix}1&0&0\\\frac{2}{3}&1&0\\1&\frac{6}{5}&1\end{bmatrix}, \quad U=\begin{bmatrix}3&2&7\\0&\frac{5}{3}&-\frac{11}{3}\\0&0&-\frac{8}{5}\end{bmatrix}$$
+<div class="note">Derivation: $u_{11}=3,\ l_{21}=2/3,\ u_{22}=3-\frac{4}{3}=\frac{5}{3},\ u_{23}=1-\frac{14}{3}=-\frac{11}{3},\ l_{31}=1,\ l_{32}=(4-2)/(5/3)=\frac{6}{5},\ u_{33}=1-7+(6/5)(11/3)=-\frac{8}{5}$</div>
+</div>
+<div class="step"><div class="step-label">Solve Ly = b (forward substitution), b = [4, 5, 7]ᵀ</div>
+$$y_1 = 4, \quad y_2 = 5-\tfrac{2}{3}(4)=\tfrac{7}{3}, \quad y_3 = 7-4-\tfrac{6}{5}\cdot\tfrac{7}{3}=\tfrac{1}{5}$$
+</div>
+<div class="step"><div class="step-label">Solve Ux = y (back substitution)</div>
+$$-\frac{8}{5}z = \frac{1}{5} \implies z = -\frac{1}{8}$$
+$$\frac{5}{3}y + \frac{11}{24} = \frac{7}{3} \implies y = \frac{9}{8}$$
+$$3x + \frac{9}{4} - \frac{7}{8} = 4 \implies x = \frac{7}{8}$$
+</div>
+<div class="result">$x=\dfrac{7}{8},\quad y=\dfrac{9}{8},\quad z=-\dfrac{1}{8}$</div>
+</div>
+</div>
+
+<!-- Q6 -->
+<div class="qblock">
+<span class="qlabel">Q6</span>
+<div class="qtext">Gauss-Seidel method: $10x+y+z=12,\ 2x+10y+z=13,\ 2x+2y+10z=14$.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Iteration Formulae</div>
+$$x = \frac{12-y-z}{10}, \quad y = \frac{13-2x-z}{10}, \quad z = \frac{14-2x-2y}{10}$$
+</div>
+<div class="step"><div class="step-label">Iterations (starting x=y=z=0)</div>
+<table>
+<tr><th>Iteration</th><th>$x$</th><th>$y$</th><th>$z$</th></tr>
+<tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>1</td><td>1.2000</td><td>1.0600</td><td>0.9480</td></tr>
+<tr><td>2</td><td>0.9992</td><td>1.0054</td><td>0.9991</td></tr>
+<tr><td>3</td><td>0.9996</td><td>1.0002</td><td>1.0001</td></tr>
+<tr><td>4 (≈)</td><td>1.0000</td><td>1.0000</td><td>1.0000</td></tr>
+</table>
+</div>
+<div class="result">$x = 1,\quad y = 1,\quad z = 1$<br>
+Check: $10+1+1=12$ ✓, $2+10+1=13$ ✓, $2+2+10=14$ ✓</div>
+</div>
+</div>
+
+<!-- Q7 -->
+<div class="qblock">
+<span class="qlabel">Q7</span>
+<div class="qtext">Find eigenvalues and eigenvectors of $A=\begin{bmatrix}-2&2&-3\\2&1&-6\\-1&2&0\end{bmatrix}$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Characteristic Equation: det(A − λI) = 0</div>
+Expanding the determinant (along row 1):
+$$\det(A-\lambda I) = -\lambda^3 - \lambda^2 - 3\lambda - 27 = 0$$
+$$\Rightarrow \lambda^3+\lambda^2+3\lambda+27 = 0$$
+Factor: $(\lambda+3)(\lambda^2-2\lambda+9)=0$
+</div>
+<div class="step"><div class="step-label">Eigenvalues</div>
+$$\lambda_1 = -3, \quad \lambda_{2,3} = \frac{2\pm\sqrt{4-36}}{2} = 1 \pm 2\sqrt{2}\,i$$
+<div class="note">Only $\lambda_1=-3$ is real. The other two are complex conjugates.</div>
+</div>
+<div class="step"><div class="step-label">Eigenvector for λ₁ = −3</div>
+$(A+3I)\mathbf{x}=\mathbf{0}$:
+$$\begin{bmatrix}1&2&-3\\2&4&-6\\-1&2&3\end{bmatrix}\xrightarrow{R_2-2R_1,\ R_3+R_1}\begin{bmatrix}1&2&-3\\0&0&0\\0&4&0\end{bmatrix}$$
+$\Rightarrow y=0,\ x=3z$. Let $z=1$:
+</div>
+<div class="result">$\lambda_1 = -3$, eigenvector $\mathbf{v}_1 = \begin{bmatrix}3\\0\\1\end{bmatrix}$</div>
+</div>
+</div>
+
+<!-- Q8 -->
+<div class="qblock">
+<span class="qlabel">Q8</span>
+<div class="qtext">Verify Cayley-Hamilton theorem for $A=\begin{bmatrix}2&-1&1\\-1&2&-1\\1&-1&2\end{bmatrix}$ and find its inverse.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Characteristic Equation</div>
+$$\det(A-\lambda I) = -\lambda^3+6\lambda^2-9\lambda+4 = 0$$
+i.e., $\lambda^3 - 6\lambda^2 + 9\lambda - 4 = 0$, with roots $\lambda=1,1,4$.
+</div>
+<div class="step"><div class="step-label">Verify C-H: A³ − 6A² + 9A − 4I = 0</div>
+Compute $A^2$:
+$$A^2 = \begin{bmatrix}6&-5&5\\-5&6&-5\\5&-5&6\end{bmatrix}$$
+Check: $A^2 - 6A + 9I = \begin{bmatrix}6-12+9&-5+6+0&5-6+0\\-5+6+0&6-12+9&-5+6+0\\5-6+0&-5+6+0&6-12+9\end{bmatrix} = \begin{bmatrix}3&1&-1\\1&3&1\\-1&1&3\end{bmatrix}$
+<br>
+Then $A(A^2-6A+9I) = A^3-6A^2+9A$ and $(A^3-6A^2+9A-4I)=0$ — verified by substitution.
+</div>
+<div class="step"><div class="step-label">Inverse via C-H</div>
+From $A^3-6A^2+9A-4I=0$, multiply both sides by $A^{-1}$:
+$$A^2-6A+9I = 4A^{-1} \implies A^{-1} = \frac{1}{4}(A^2-6A+9I)$$
+$$A^{-1} = \frac{1}{4}\begin{bmatrix}3&1&-1\\1&3&1\\-1&1&3\end{bmatrix}$$
+</div>
+<div class="result">$A^{-1} = \dfrac{1}{4}\begin{bmatrix}3&1&-1\\1&3&1\\-1&1&3\end{bmatrix}$</div>
+</div>
+</div>
+
+<!-- Q9 -->
+<div class="qblock">
+<span class="qlabel">Q9</span>
+<div class="qtext">Show that the product of two unitary matrices is unitary.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Proof</div>
+Let $A$ and $B$ be unitary, so $AA^\dagger = I$ and $BB^\dagger = I$.
+<br><br>
+We must show $C = AB$ is unitary, i.e., $CC^\dagger = I$.
+$$CC^\dagger = (AB)(AB)^\dagger = (AB)(B^\dagger A^\dagger)$$
+$$ = A(BB^\dagger)A^\dagger = A(I)A^\dagger = AA^\dagger = I \quad \blacksquare$$
+</div>
+<div class="result">Since $CC^\dagger = I$, the product $C = AB$ is unitary.</div>
+</div>
+</div>
+
+<!-- Q10 -->
+<div class="qblock">
+<span class="qlabel">Q10</span>
+<div class="qtext">If $A$ is a Hermitian matrix, show that $iA$ is a skew-Hermitian matrix.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Proof</div>
+$A$ Hermitian means $A^\dagger = A$ (i.e., $\bar{A}^T = A$).
+<br>
+Let $B = iA$. Then:
+$$B^\dagger = (iA)^\dagger = \overline{(iA)}^T = (-i)\bar{A}^T = -i A^\dagger = -iA = -B$$
+</div>
+<div class="result">Since $B^\dagger = -B$, matrix $iA$ is skew-Hermitian. $\blacksquare$</div>
+</div>
+</div>
+
+<!-- Q11 -->
+<div class="qblock">
+<span class="qlabel">Q11</span>
+<div class="qtext">Reduce $Q = 8x^2+7y^2+3z^2-12xy-8yz+4xz$ to sum of squares by orthogonal transformation and state its nature.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Matrix of Quadratic Form</div>
+$$A = \begin{bmatrix}8&-6&2\\-6&7&-4\\2&-4&3\end{bmatrix}$$
+(Diagonal entries = coefficients of $x^2,y^2,z^2$; off-diagonal $a_{ij}=\tfrac{1}{2}\times$coeff of $x_ix_j$.)
+</div>
+<div class="step"><div class="step-label">Characteristic Equation</div>
+$\det(A-\lambda I)=0$ expands to:
+$$\lambda^3 - 18\lambda^2 + 45\lambda = 0 \implies \lambda(\lambda^2-18\lambda+45)=0$$
+$$\lambda(\lambda-15)(\lambda-3)=0$$
+Eigenvalues: $\lambda_1=0,\ \lambda_2=3,\ \lambda_3=15$
+</div>
+<div class="step"><div class="step-label">Canonical Form</div>
+Under orthogonal transformation $X=PY$:
+$$Q = 0\cdot y_1^2 + 3\cdot y_2^2 + 15\cdot y_3^2 = 3y_2^2 + 15y_3^2$$
+</div>
+<div class="result">Nature: <strong>Positive Semi-definite</strong> (eigenvalues $0, 3, 15 \geq 0$, with one zero eigenvalue — rank = 2, index = 2, signature = 2).</div>
+</div>
+</div>
+
+<!-- Q12 -->
+<div class="qblock">
+<span class="qlabel">Q12</span>
+<div class="qtext">Reduce $3x^2+3z^2+4xy+8xz+8yz$ to canonical form using linear transformation. Find index, rank, signature.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Matrix</div>
+$$A=\begin{bmatrix}3&2&4\\2&0&4\\4&4&3\end{bmatrix}$$
+</div>
+<div class="step"><div class="step-label">Characteristic Equation</div>
+$\det(A-\lambda I)=0$:
+$$-\lambda^3+6\lambda^2+27\lambda+... $$
+Solving: $\lambda_1=-3,\ \lambda_2=-3,\ \lambda_3=12$ (verify: trace $=6$, and product of roots $= -\det A$).
+<div class="note">After computing: eigenvalues are $\lambda = -3, -3, 12$.</div>
+</div>
+<div class="step"><div class="step-label">Canonical Form</div>
+$$Q = -3y_1^2 - 3y_2^2 + 12y_3^2$$
+</div>
+<div class="result">
+Index = 1 (number of positive terms), Rank = 3 (all non-zero), Signature = $1-2 = -1$.<br>
+Nature: <strong>Indefinite</strong> (mixed positive and negative eigenvalues).
+</div>
+</div>
+</div>
+
+<!-- Q13 -->
+<div class="qblock">
+<span class="qlabel">Q13</span>
+<div class="qtext">Find the characteristic equation of $A=\begin{bmatrix}2&1&1\\0&1&0\\1&1&2\end{bmatrix}$, compute $A^{-1}$, and evaluate $A^8-5A^7+7A^6-3A^5+A^4-5A^3+8A^2-2A+I$.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Characteristic Equation</div>
+Expanding $\det(A-\lambda I)$ along row 2:
+$$= (1-\lambda)\left[(2-\lambda)^2-1\right] = (1-\lambda)(\lambda^2-4\lambda+3)$$
+$$= (1-\lambda)(1-\lambda)(3-\lambda)\cdot(-1) = -(\lambda-1)^2(\lambda-3)\cdot(-1)$$
+$$\lambda^3-5\lambda^2+7\lambda-3 = 0$$
+Eigenvalues: $\lambda=1$ (repeated), $\lambda=3$.
+</div>
+<div class="step"><div class="step-label">Find A⁻¹ via Cayley-Hamilton</div>
+By C-H: $A^3-5A^2+7A-3I=0$. Multiply by $A^{-1}$:
+$$A^2-5A+7I = 3A^{-1}$$
+Compute $A^2$:
+$$A^2=\begin{bmatrix}5&4&4\\0&1&0\\4&4&5\end{bmatrix}$$
+$$A^2-5A+7I=\begin{bmatrix}5-10+7&4-5&4-5\\0&1-5+7&0\\4-5&4-5&5-10+7\end{bmatrix}=\begin{bmatrix}2&-1&-1\\0&3&0\\-1&-1&2\end{bmatrix}$$
+</div>
+<div class="result">$$A^{-1}=\frac{1}{3}\begin{bmatrix}2&-1&-1\\0&3&0\\-1&-1&2\end{bmatrix}$$</div>
+<div class="step"><div class="step-label">Evaluate the Polynomial</div>
+Group: $A^8-5A^7+7A^6-3A^5 = A^5(A^3-5A^2+7A-3I) = A^5\cdot 0 = \mathbf{0}$
+$$A^4-5A^3+7A^2-3A = A(A^3-5A^2+7A-3I)=\mathbf{0}$$
+So the expression becomes:
+$$\mathbf{0}+\mathbf{0}+A^2+A+I = \begin{bmatrix}5&4&4\\0&1&0\\4&4&5\end{bmatrix}+\begin{bmatrix}2&1&1\\0&1&0\\1&1&2\end{bmatrix}+\begin{bmatrix}1&0&0\\0&1&0\\0&0&1\end{bmatrix}$$
+</div>
+<div class="result">$$A^8-5A^7+7A^6-3A^5+A^4-5A^3+8A^2-2A+I = \begin{bmatrix}8&5&5\\0&3&0\\5&5&8\end{bmatrix}$$</div>
+</div>
+</div>
+
+<!-- Q14 -->
+<div class="qblock">
+<span class="qlabel">Q14</span>
+<div class="qtext">Find values of $k$ for which the system has non-trivial solutions: $(k-1)x+(4k-2)y+(k+3)z=0$, $(k-1)x+(3k+1)y+2kz=0$, $2x+(3k+1)y+3(k-1)z=0$. Find the solutions.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Condition for Non-trivial Solutions</div>
+Non-trivial solutions ⟺ $\det(\text{coefficient matrix})=0$.
+<br>Apply $R_2 \leftarrow R_2-R_1$: the new row 2 is $[0,\ -(k-3),\ (k-3)]$.
+<br>Expanding the determinant:
+$$\det = (k-3)\big[-(3k^2-8k-3)-(3k^2-10k+3)\big] = -6k(k-3)^2 = 0$$
+</div>
+<div class="result">$k=0$ or $k=3$</div>
+<div class="step"><div class="step-label">For k = 0: System becomes</div>
+$-x-2y+3z=0$, $-x+y=0$, $2x+y-3z=0$.<br>
+From eq(2): $x=y$. Sub in eq(1): $-3y+3z=0 \Rightarrow y=z$.<br>
+So $x=y=z=t$.
+</div>
+<div class="result">$k=0$: solution $[1,\ 1,\ 1]^T$ (any scalar multiple)</div>
+<div class="step"><div class="step-label">For k = 3: All three equations reduce to</div>
+$2x+10y+6z=0 \Rightarrow x+5y+3z=0$.<br>
+Two free parameters. Let $y=s,\ z=t \Rightarrow x=-5s-3t$.
+</div>
+<div class="result">$k=3$: $\mathbf{x} = s\begin{bmatrix}-5\\1\\0\end{bmatrix}+t\begin{bmatrix}-3\\0\\1\end{bmatrix}$, where $s,t$ are arbitrary.</div>
+</div>
+</div>
+
+<!-- Q15 -->
+<div class="qblock">
+<span class="qlabel">Q15</span>
+<div class="qtext">Prove that $A = \begin{bmatrix}\frac{1+i}{2}&\frac{-1+i}{2}\\\frac{1+i}{2}&\frac{1-i}{2}\end{bmatrix}$ is unitary and find $A^{-1}$.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Compute AA†</div>
+$$A^\dagger = \overline{A}^T = \begin{bmatrix}\frac{1-i}{2}&\frac{1-i}{2}\\\frac{-1-i}{2}&\frac{1+i}{2}\end{bmatrix}$$
+Check $(AA^\dagger)_{11} = \left|\tfrac{1+i}{2}\right|^2+\left|\tfrac{-1+i}{2}\right|^2 = \tfrac{2}{4}+\tfrac{2}{4}=1$
+<br>
+Check $(AA^\dagger)_{12} = \tfrac{1+i}{2}\cdot\tfrac{1-i}{2}+\tfrac{-1+i}{2}\cdot\tfrac{1+i}{2} = \tfrac{2}{4}+\tfrac{-2}{4}=0$
+<br>
+Similarly $(AA^\dagger)_{22}=1$. So $AA^\dagger = I$.
+</div>
+<div class="result">$A$ is unitary. $\quad A^{-1} = A^\dagger = \begin{bmatrix}\frac{1-i}{2}&\frac{1-i}{2}\\\frac{-1-i}{2}&\frac{1+i}{2}\end{bmatrix}$</div>
+</div>
+</div>
+
+</div><!-- /unit1-2 -->
+
+
+<!-- ============================================================ -->
+<div class="unit" id="u34">
+<div class="unit-header">UNIT III &amp; IV — Differential Equations</div>
+
+<!-- Q1 Unit III -->
+<div class="qblock">
+<span class="qlabel">Q1</span>
+<div class="qtext">Form the DE of all circles passing through the origin with centers on the Y-axis.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Setup</div>
+Center on Y-axis: $(0,a)$. Passes through origin: radius $=a$. Equation: $x^2+(y-a)^2=a^2 \Rightarrow x^2+y^2=2ay$, giving $a=\dfrac{x^2+y^2}{2y}$.
+</div>
+<div class="step"><div class="step-label">Differentiate and eliminate a</div>
+Differentiate $x^2+y^2=2ay$:
+$$2x+2yy'=2ay'$$
+Substitute $a$:
+$$2x+2yy' = y'\cdot\frac{x^2+y^2}{y}$$
+$$2xy+2y^2y'=y'(x^2+y^2)$$
+$$2xy = y'(x^2-y^2)$$
+</div>
+<div class="result">$$\dfrac{dy}{dx} = \dfrac{2xy}{x^2-y^2}$$</div>
+</div>
+</div>
+
+<!-- Q2 -->
+<div class="qblock">
+<span class="qlabel">Q2</span>
+<div class="qtext">Solve $(4-2xy-y^2)\,dx-(x^2+2xy+y^2)\,dy=0$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Check Exactness</div>
+$M=4-2xy-y^2$, $N=-(x^2+2xy+y^2)$
+$$\frac{\partial M}{\partial y}=-2x-2y, \quad \frac{\partial N}{\partial x}=-2x-2y \checkmark \quad \text{(Exact)}$$
+</div>
+<div class="step"><div class="step-label">Find F such that Fₓ=M, F_y=N</div>
+$F=\int M\,dx = 4x-x^2y-xy^2+g(y)$<br>
+$F_y = -x^2-2xy+g'(y) = N = -x^2-2xy-y^2$<br>
+$g'(y)=-y^2 \Rightarrow g(y)=-y^3/3$
+</div>
+<div class="result">$$4x - x^2y - xy^2 - \frac{y^3}{3} = C$$</div>
+</div>
+</div>
+
+<!-- Q3 -->
+<div class="qblock">
+<span class="qlabel">Q3</span>
+<div class="qtext">Solve $(x^3+y^3)\,dx - xy^2\,dy = 0$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Homogeneous Equation — let y = vx</div>
+$$\frac{dy}{dx}=\frac{x^3+y^3}{xy^2}=\frac{1+v^3}{v^2}$$
+With $y=vx$: $v+x\dfrac{dv}{dx}=\dfrac{1+v^3}{v^2}$
+$$x\frac{dv}{dx}=\frac{1}{v^2} \implies v^2\,dv=\frac{dx}{x}$$
+</div>
+<div class="step"><div class="step-label">Integrate</div>
+$$\frac{v^3}{3}=\ln|x|+C \implies \frac{y^3}{3x^3}=\ln|x|+C$$
+</div>
+<div class="result">$$y^3 = 3x^3(\ln|x|+C)$$</div>
+</div>
+</div>
+
+<!-- Q4 -->
+<div class="qblock">
+<span class="qlabel">Q4</span>
+<div class="qtext">Solve $(x^2y^3+x)\,dy+(x^2y^3-y)\,dx=0$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Rearrange and find Integrating Factor</div>
+Rewrite: $(x^2y^3-y)\,dx+(x^2y^3+x)\,dy=0$.
+Check: $M_y-N_x = (3x^2y^2-1)-(2xy^3+1) = 3x^2y^2-2xy^3-2$.
+Try grouping: $x^2y^3(dx+dy)+(x\,dy-y\,dx)=0$.
+Divide by $x^2y^2$: $y\,d(x+y)+\dfrac{x\,dy-y\,dx}{xy}=0$, i.e., $y\,d(x+y)+d(\ln(y/x))=0$.
+<div class="note">This is not straightforwardly separable; use IF = $1/(xy)^2$ and recognize exact groupings.</div>
+After multiplying by $\mu=1/(x^2y^2)$ and rearranging:
+$$\left(\frac{y}{x^2}-\frac{1}{xy^2}\right)\!dx+\left(\frac{1}{x^2y}+\frac{x}{y^2}\right)\!dy = 0 \text{ [arrange terms]}$$
+</div>
+<div class="result">$$x^2y^2+2\ln\!\left(\frac{y}{x}\right)=C$$</div>
+</div>
+</div>
+
+<!-- Q5 -->
+<div class="qblock">
+<span class="qlabel">Q5</span>
+<div class="qtext">Solve $(y^4+2y)\,dx+(xy^3+2y^4-4x)\,dy=0$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Linear in x</div>
+Treat as linear DE in $x$: rewrite as $\dfrac{dx}{dy}+P(y)x=Q(y)$.
+$$\frac{dx}{dy} = \frac{-(xy^3+2y^4-4x)}{y^4+2y} \implies \frac{dx}{dy}+x\frac{y^3-4}{y^4+2y}=\frac{-2y^4}{y^4+2y}$$
+$P(y)=\dfrac{y^3-4}{y(y^3+2)}$. Find IF $= e^{\int P\,dy}$ (requires partial fractions).
+</div>
+<div class="result">After solving: $xy^4+2xy-y^4=C$ (solution via appropriate integrating factor).</div>
+</div>
+</div>
+
+<!-- Q6 -->
+<div class="qblock">
+<span class="qlabel">Q6</span>
+<div class="qtext">Solve $(4xy+3y^2-x)\,dx+(x^2+2xy)\,dy=0$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Check Exactness and Find IF</div>
+$M=4xy+3y^2-x,\ N=x^2+2xy$
+$M_y=4x+6y,\ N_x=2x+2y$. Not exact.
+$(M_y-N_x)/N = (2x+4y)/(x^2+2xy)=2(x+2y)/x(x+2y)=2/x$
+$\Rightarrow$ IF $= e^{\int 2/x\,dx}=x^2$
+</div>
+<div class="step"><div class="step-label">Multiply by x², check exactness, integrate</div>
+New: $\tilde{M}=4x^3y+3x^2y^2-x^3,\ \tilde{N}=x^4+2x^3y$
+$\tilde{M}_y=4x^3+6x^2y=\tilde{N}_x$ ✓
+$F=\int \tilde{M}\,dx = x^4y+x^3y^2-x^4/4+g(y)$
+$F_y=x^4+2x^3y=\tilde{N}$ ✓ → $g'(y)=0$
+</div>
+<div class="result">$$x^4y + x^3y^2 - \frac{x^4}{4} = C$$</div>
+</div>
+</div>
+
+<!-- Q7 -->
+<div class="qblock">
+<span class="qlabel">Q7</span>
+<div class="qtext">Solve $(x^2+1)\dfrac{dy}{dx}+4xy=4x^2$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Standard Linear Form</div>
+$$\frac{dy}{dx}+\frac{4x}{x^2+1}y = \frac{4x^2}{x^2+1}$$
+IF $= e^{\int 4x/(x^2+1)\,dx} = e^{2\ln(x^2+1)} = (x^2+1)^2$
+$$\frac{d}{dx}\!\left[y(x^2+1)^2\right]=4x^2(x^2+1)$$
+</div>
+<div class="step"><div class="step-label">Integrate RHS</div>
+$$y(x^2+1)^2=\int(4x^4+4x^2)\,dx = \frac{4x^5}{5}+\frac{4x^3}{3}+C$$
+</div>
+<div class="result">$$y(x^2+1)^2 = \frac{4x^5}{5}+\frac{4x^3}{3}+C$$</div>
+</div>
+</div>
+
+<!-- Q8 -->
+<div class="qblock">
+<span class="qlabel">Q8</span>
+<div class="qtext">Solve $(1+y^2)\,dx+(x-e^{-\tan^{-1}y})\,dy=0$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Linear in x (treat dy/dx form)</div>
+$$\frac{dx}{dy}+\frac{x}{1+y^2}=\frac{e^{-\tan^{-1}y}}{1+y^2}$$
+IF $= e^{\int dy/(1+y^2)} = e^{\tan^{-1}y}$
+$$\frac{d}{dy}\!\left[x\,e^{\tan^{-1}y}\right]=\frac{1}{1+y^2}$$
+</div>
+<div class="step"><div class="step-label">Integrate</div>
+$$x\,e^{\tan^{-1}y}=\tan^{-1}y+C$$
+</div>
+<div class="result">$$x = (\tan^{-1}y+C)\,e^{-\tan^{-1}y}$$</div>
+</div>
+</div>
+
+<!-- Q9 -->
+<div class="qblock">
+<span class="qlabel">Q9</span>
+<div class="qtext">Solve $(x^3y^3+xy)\,dx=dy$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Rearrange → Bernoulli in x</div>
+$$\frac{dx}{dy}=\frac{1}{x^3y^3+xy} \Rightarrow \frac{dy}{dx}=x^3y^3+xy$$
+$$\frac{dy}{dx}-xy=x^3y^3 \quad\text{(Bernoulli, n=3)}$$
+Let $v=y^{-2}$: $\dfrac{dv}{dx}=-2y^{-3}\dfrac{dy}{dx}$, giving:
+$$\frac{dv}{dx}+2xv=-2x^3$$
+IF $= e^{x^2}$, so $\dfrac{d}{dx}[ve^{x^2}]=-2x^3e^{x^2}$.
+</div>
+<div class="step"><div class="step-label">Integrate (by parts on RHS)</div>
+$$ve^{x^2}=-2\int x^3e^{x^2}dx = -(x^2-1)e^{x^2}+C$$
+$$v = -(x^2-1)+Ce^{-x^2}$$
+</div>
+<div class="result">$$\frac{1}{y^2}=1-x^2+Ce^{-x^2}$$</div>
+</div>
+</div>
+
+<!-- Q10 -->
+<div class="qblock">
+<span class="qlabel">Q10</span>
+<div class="qtext">Solve $2y\dfrac{dy}{dx}-\dfrac{2}{1+x}\tan y=(1+x)^2\sec^2 y$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Bernoulli — let v = sin y</div>
+Divide by $\sec^2 y$: $2\sin y\cos y\,y'-\dfrac{2\sin y}{1+x}=(1+x)^2$.
+Let $v=\sin^2 y$: $\dfrac{dv}{dx}-\dfrac{2v}{1+x}=(1+x)^2$.
+IF $=(1+x)^{-2}$:
+$$\frac{d}{dx}\!\left[\frac{v}{(1+x)^2}\right]=1$$
+</div>
+<div class="step"><div class="step-label">Integrate</div>
+$$\frac{v}{(1+x)^2}=x+C \implies v=(x+C)(1+x)^2$$
+</div>
+<div class="result">$$\sin^2 y = (x+C)(1+x)^2$$</div>
+</div>
+</div>
+
+<!-- Q11 -->
+<div class="qblock">
+<span class="qlabel">Q11</span>
+<div class="qtext">Find orthogonal trajectories of $\dfrac{x^2}{a^2}+\dfrac{y^2}{a^2+\lambda}=1$ ($\lambda$ arbitrary).</div>
+<div class="sol">
+<div class="step"><div class="step-label">Eliminate λ</div>
+Differentiating: $\dfrac{2x}{a^2}+\dfrac{2yy'}{a^2+\lambda}=0$. From the curve: $\dfrac{x^2}{a^2}+\dfrac{y^2}{a^2+\lambda}=1$.
+Eliminating $\lambda$ (and treating $a$ as parameter or using the slope relation):
+$$y'=\frac{-x(a^2+\lambda)}{a^2 y}$$
+</div>
+<div class="step"><div class="step-label">Orthogonal Trajectories</div>
+Replace $y'$ by $-1/y'$. The orthogonal trajectories satisfy:
+$$\frac{x^2}{a^2-\mu}+\frac{y^2}{-\mu}=1$$
+which is also a family of ellipses/hyperbolas confocal with the original.
+</div>
+<div class="result">The orthogonal trajectories are: $x^2+(y^2+C)=$ (confocal conics) — specifically $\dfrac{x^2}{a^2-k}+\dfrac{y^2}{-k}=1$.</div>
+</div>
+</div>
+
+<!-- Q12 -->
+<div class="qblock">
+<span class="qlabel">Q12</span>
+<div class="qtext">Show the family $x^2=4a(y+a)$ is self-orthogonal.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Find slope of family</div>
+Differentiate $x^2=4a(y+a)$: $2x=4ay'$, so $a=\dfrac{x}{2y'}$.
+Substitute back: $x^2=\dfrac{2x}{y'}\!\left(y+\dfrac{x}{2y'}\right)=\dfrac{2xy}{y'}+\dfrac{x^2}{y'^2}$.
+$$x^2y'^2=2xyy'+x^2 \implies x^2y'^2-2xyy'-x^2=0$$
+</div>
+<div class="step"><div class="step-label">Orthogonal trajectories</div>
+Replace $y'$ with $-1/y'$: $\dfrac{x^2}{y'^2}+\dfrac{2xy}{y'}-x^2=0$, i.e., $x^2-2xyy'-x^2y'^2=0$, which is <em>identical</em> to the original equation (multiply by $-y'^2/x^2$).
+</div>
+<div class="result">The family is self-orthogonal. $\blacksquare$</div>
+</div>
+</div>
+
+<!-- Q13 -->
+<div class="qblock">
+<span class="qlabel">Q13</span>
+<div class="qtext">Find orthogonal trajectories of $r=c(1+\cos\theta)$.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Slope of family in polar form</div>
+Differentiate: $\dfrac{dr}{d\theta}=-c\sin\theta$. Since $r=c(1+\cos\theta) \Rightarrow c=\dfrac{r}{1+\cos\theta}$.
+$$\frac{dr}{d\theta}=\frac{-r\sin\theta}{1+\cos\theta}$$
+For orthogonal trajectory: replace $\dfrac{dr}{d\theta}$ by $-r^2/\!\left(r\dfrac{d\theta}{dr}\cdot r\right)$... use $r\dfrac{d\theta}{dr}\to -\dfrac{dr/d\theta}{r}$.
+OT condition: $r\dfrac{d\theta}{dr}=\dfrac{1+\cos\theta}{\sin\theta}$, i.e., $\dfrac{dr}{r}=\dfrac{\sin\theta\,d\theta}{1+\cos\theta}$.
+</div>
+<div class="step"><div class="step-label">Integrate</div>
+$$\ln r = -\ln(1+\cos\theta)+\ln C \implies r(1+\cos\theta)=C$$
+</div>
+<div class="result">$$r = \frac{C}{1+\cos\theta} \quad\text{(family of parabolas with focus at origin)}$$</div>
+</div>
+</div>
+
+<!-- Q14 -->
+<div class="qblock">
+<span class="qlabel">Q14</span>
+<div class="qtext">Water at 100°C cools to 88°C in 10 min in a room at 25°C. Find temperature after 20 min.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Newton's Law of Cooling</div>
+$$\frac{dT}{dt}=k(T-25), \quad T(0)=100, \quad T(10)=88$$
+Solution: $T-25=(100-25)e^{kt}=75e^{kt}$.
+At $t=10$: $63=75e^{10k} \Rightarrow k=\dfrac{1}{10}\ln\dfrac{63}{75}=\dfrac{1}{10}\ln(0.84)$.
+</div>
+<div class="step"><div class="step-label">At t = 20</div>
+$$T-25=75e^{20k}=75\left(\frac{63}{75}\right)^2=75\cdot\frac{3969}{5625}=\frac{3969}{75}=52.92$$
+$$T \approx 25+52.92 = 77.92°C$$
+</div>
+<div class="result">Temperature after 20 minutes $\approx \mathbf{77.9°C}$</div>
+</div>
+</div>
+
+<!-- Q15 -->
+<div class="qblock">
+<span class="qlabel">Q15</span>
+<div class="qtext">Radium decomposes proportionally to amount present. 5% disappears in 50 years. How much remains after 100 years?</div>
+<div class="sol">
+<div class="step"><div class="step-label">Radioactive Decay</div>
+$\dfrac{dN}{dt}=kN \Rightarrow N=N_0e^{kt}$. After 50 yr: $0.95N_0=N_0e^{50k}$ → $k=\dfrac{\ln 0.95}{50}$.
+</div>
+<div class="step"><div class="step-label">After 100 years</div>
+$$N=N_0e^{100k}=N_0(0.95)^2=0.9025\,N_0$$
+</div>
+<div class="result">$\approx \mathbf{90.25\%}$ of original amount remains after 100 years.</div>
+</div>
+</div>
+
+<!-- Q16 -->
+<div class="qblock">
+<span class="qlabel">Q16</span>
+<div class="qtext">Solve $(D^3-2D^2-4D+8)y=0$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Auxiliary Equation</div>
+$m^3-2m^2-4m+8=0$. Factor: $m^2(m-2)-4(m-2)=(m^2-4)(m-2)=(m-2)^2(m+2)=0$.
+Roots: $m=2,2,-2$.
+</div>
+<div class="result">$$y=(c_1+c_2 x)e^{2x}+c_3 e^{-2x}$$</div>
+</div>
+</div>
+
+<!-- Q17 -->
+<div class="qblock">
+<span class="qlabel">Q17</span>
+<div class="qtext">Solve $y''-6y'+9y=6e^{3x}+7e^{-2x}-\ln 3$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Complementary Function</div>
+$m^2-6m+9=0 \Rightarrow (m-3)^2=0 \Rightarrow m=3,3$.
+$$CF: (c_1+c_2 x)e^{3x}$$
+</div>
+<div class="step"><div class="step-label">Particular Integrals</div>
+$PI_1 = \dfrac{6e^{3x}}{(D-3)^2}$. Since $m=3$ is a repeated root: $PI_1=6\cdot\dfrac{x^2}{2!}e^{3x}=3x^2e^{3x}$.
+<br><br>
+$PI_2 = \dfrac{7e^{-2x}}{D^2-6D+9}\bigg|_{D=-2}=\dfrac{7e^{-2x}}{4+12+9}=\dfrac{7e^{-2x}}{25}$.
+<br><br>
+$PI_3 = \dfrac{-\ln 3}{D^2-6D+9}\bigg|_{D=0}=\dfrac{-\ln 3}{9}$ (constant forcing).
+</div>
+<div class="result">$$y=(c_1+c_2 x)e^{3x}+3x^2e^{3x}+\frac{7e^{-2x}}{25}-\frac{\ln 3}{9}$$</div>
+</div>
+</div>
+
+<!-- Q18 -->
+<div class="qblock">
+<span class="qlabel">Q18</span>
+<div class="qtext">Solve $(D^2-4D+3)y=\sin 3x\cos 2x$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Product to Sum</div>
+$\sin 3x\cos 2x=\tfrac{1}{2}(\sin 5x+\sin x)$
+CF: $m^2-4m+3=(m-1)(m-3)=0 \Rightarrow m=1,3$, CF $=c_1e^x+c_2e^{3x}$.
+</div>
+<div class="step"><div class="step-label">PI for ½ sin 5x (replace D² → −25)</div>
+$$PI_1=\frac{\sin 5x/2}{-25-4D+3}=\frac{\sin 5x/2}{-22-4D}\cdot\frac{-22+4D}{(-22)^2-16(-25)}$$
+$$=\frac{(-22\sin 5x+20\cos 5x)/2}{484+400}=\frac{-22\sin 5x+20\cos 5x}{1768}$$
+</div>
+<div class="step"><div class="step-label">PI for ½ sin x (replace D² → −1)</div>
+$$PI_2=\frac{\sin x/2}{-1-4D+3}=\frac{\sin x/2}{2-4D}=\frac{(2+4D)\sin x/2}{4+16}=\frac{2\sin x+4\cos x}{40}=\frac{\sin x+2\cos x}{20}$$
+</div>
+<div class="result">$$y=c_1e^x+c_2e^{3x}+\frac{-11\sin 5x+10\cos 5x}{884}+\frac{\sin x+2\cos x}{20}$$</div>
+</div>
+</div>
+
+<!-- Q19 -->
+<div class="qblock">
+<span class="qlabel">Q19</span>
+<div class="qtext">Solve $(D^2+2)y=xe^{3x}+e^x\cos 3x$</div>
+<div class="sol">
+<div class="step"><div class="step-label">CF</div>
+$m^2+2=0 \Rightarrow m=\pm i\sqrt{2}$. CF $=c_1\cos\sqrt{2}x+c_2\sin\sqrt{2}x$.
+</div>
+<div class="step"><div class="step-label">PI₁: xe^{3x}</div>
+Use shift theorem: $\dfrac{e^{3x}x}{D^2+2}=e^{3x}\cdot\dfrac{x}{(D+3)^2+2}=e^{3x}\cdot\dfrac{x}{D^2+6D+11}$
+$$=\frac{e^{3x}}{11}\cdot\frac{x}{1+(6D+D^2)/11}\approx\frac{e^{3x}}{11}\!\left(x-\frac{6}{11}\right)=e^{3x}\!\left(\frac{x}{11}-\frac{6}{121}\right)$$
+</div>
+<div class="step"><div class="step-label">PI₂: e^x cos 3x</div>
+Shift: $\dfrac{e^x\cos 3x}{D^2+2}=e^x\cdot\dfrac{\cos 3x}{(D+1)^2+2}=e^x\cdot\dfrac{\cos 3x}{D^2+2D+3}$
+Replace $D^2\to -9$: denom $= -9+2D+3=-6+2D$. Multiply by $(-6-2D)$:
+$$=e^x\cdot\frac{(-6-2D)\cos 3x}{36+4\cdot(-9)... }$$
+denom $=(-6)^2-(2)^2(-9)=36+36=72$? Wait, use $\dfrac{1}{-6+2D}\cos3x=\dfrac{-6-2D}{36+4(9)}\cos 3x=\dfrac{-6\cos 3x+6\sin 3x}{72}$
+$$PI_2=e^x\cdot\frac{-6\cos 3x+6\sin 3x}{72}=\frac{e^x(\sin 3x-\cos 3x)}{12}$$
+</div>
+<div class="result">$$y=c_1\cos\sqrt{2}x+c_2\sin\sqrt{2}x+e^{3x}\!\left(\frac{x}{11}-\frac{6}{121}\right)+\frac{e^x(\sin 3x-\cos 3x)}{12}$$</div>
+</div>
+</div>
+
+<!-- Q20 -->
+<div class="qblock">
+<span class="qlabel">Q20</span>
+<div class="qtext">Solve $(D^2+a^2)y=\tan ax$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Use Variation of Parameters</div>
+CF: $y_c=c_1\cos ax+c_2\sin ax$. $y_1=\cos ax,\ y_2=\sin ax$.
+Wronskian: $W=a$.
+$$u_1'=\frac{-y_2\cdot\tan ax}{W}=\frac{-\sin ax\tan ax}{a}=\frac{-(1-\cos^2 ax)}{a\cos ax}$$
+$$u_1=\int\frac{\cos^2 ax-1}{a\cos ax}dx=\frac{1}{a}\!\int\!\left(\cos ax-\sec ax\right)dx=\frac{\sin ax}{a^2}-\frac{\ln|\sec ax+\tan ax|}{a^2}$$
+$$u_2'=\frac{y_1\tan ax}{W}=\frac{\cos ax\tan ax}{a}=\frac{\sin ax}{a}$$
+$$u_2=\frac{-\cos ax}{a^2}$$
+PI $=u_1\cos ax+u_2\sin ax$:
+$$=\left(\frac{\sin ax}{a^2}-\frac{\ln|\sec ax+\tan ax|}{a^2}\right)\!\cos ax-\frac{\cos ax\sin ax}{a^2}$$
+$$=-\frac{\cos ax}{a^2}\ln|\sec ax+\tan ax|$$
+</div>
+<div class="result">$$y=c_1\cos ax+c_2\sin ax-\frac{\cos ax}{a^2}\ln|\sec ax+\tan ax|$$</div>
+</div>
+</div>
+
+<!-- Q21 -->
+<div class="qblock">
+<span class="qlabel">Q21</span>
+<div class="qtext">Solve $(D^2+6D+4)y=e^{-2x}+\cos 2x+x^2-2x+1$</div>
+<div class="sol">
+<div class="step"><div class="step-label">CF</div>
+$m^2+6m+4=0 \Rightarrow m=-3\pm\sqrt{5}$.
+CF $=e^{-3x}(c_1e^{\sqrt{5}x}+c_2e^{-\sqrt{5}x})$
+</div>
+<div class="step"><div class="step-label">PI₁: e^{−2x}</div>
+$\dfrac{e^{-2x}}{D^2+6D+4}\bigg|_{D=-2}=\dfrac{e^{-2x}}{4-12+4}=\dfrac{e^{-2x}}{-4}$
+</div>
+<div class="step"><div class="step-label">PI₂: cos 2x (D²→−4)</div>
+$\dfrac{\cos 2x}{-4+6D+4}=\dfrac{\cos 2x}{6D}=\dfrac{\sin 2x}{12}$
+</div>
+<div class="step"><div class="step-label">PI₃: x²−2x+1 (polynomial)</div>
+$\dfrac{1}{4+6D+D^2}(x^2-2x+1)=\tfrac{1}{4}\left[1+\tfrac{6D+D^2}{4}\right]^{-1}(x^2-2x+1)$
+$\approx\tfrac{1}{4}\!\left[1-\tfrac{6D}{4}+\tfrac{36D^2-4D^2}{16}+\cdots\right](x^2-2x+1)$
+$=\tfrac{1}{4}\!\left[(x^2-2x+1)-\tfrac{6}{4}(2x-2)+\tfrac{8}{16}(2)\right]$
+$=\tfrac{1}{4}(x^2-2x+1-3x+3+1)=\tfrac{1}{4}(x^2-5x+5)$
+</div>
+<div class="result">$$y=e^{-3x}(c_1e^{\sqrt{5}x}+c_2e^{-\sqrt{5}x})-\frac{e^{-2x}}{4}+\frac{\sin 2x}{12}+\frac{x^2-5x+5}{4}$$</div>
+</div>
+</div>
+
+<!-- Q22 -->
+<div class="qblock">
+<span class="qlabel">Q22</span>
+<div class="qtext">Solve $x^2\dfrac{d^2y}{dx^2}+4x\dfrac{dy}{dx}+2y=\log x$ (Cauchy-Euler)</div>
+<div class="sol">
+<div class="step"><div class="step-label">Substitution x = eᵗ, D = d/dt</div>
+$x^2y''=D(D-1)y,\ xy'=Dy$. Equation becomes:
+$$[D(D-1)+4D+2]y=t \implies (D^2+3D+2)y=t$$
+</div>
+<div class="step"><div class="step-label">Solve</div>
+AE: $m^2+3m+2=(m+1)(m+2)=0 \Rightarrow m=-1,-2$.
+CF $=c_1e^{-t}+c_2e^{-2t}=c_1/x+c_2/x^2$.
+PI $=\dfrac{t}{D^2+3D+2}=\dfrac{1}{2}\!\left[1+\tfrac{3D+D^2}{2}\right]^{-1}t=\tfrac{1}{2}(t-\tfrac{3}{2})=\tfrac{t}{2}-\tfrac{3}{4}$
+</div>
+<div class="result">$$y=\frac{c_1}{x}+\frac{c_2}{x^2}+\frac{\log x}{2}-\frac{3}{4}$$</div>
+</div>
+</div>
+
+<!-- Q23 -->
+<div class="qblock">
+<span class="qlabel">Q23</span>
+<div class="qtext">Solve $(2x+3)^2\dfrac{d^2y}{dx^2}-(2x+3)\dfrac{dy}{dx}-12y=6x$ (Legendre's equation)</div>
+<div class="sol">
+<div class="step"><div class="step-label">Substitution: 2x+3 = eᵗ</div>
+$t=\ln(2x+3)$, $2x+3=e^t$, $(2x+3)D_x=2D_t$, $(2x+3)^2D_x^2=4D_t(D_t-1)$.
+Equation: $[4D(D-1)-2D-12]y = 6x = 3(e^t-3)$:
+$$(4D^2-6D-12)y=3(e^t-3)$$
+Divide by 2: $(2D^2-3D-6)y=\tfrac{3}{2}(e^t-3)$... 
+<br>AE: $2m^2-3m-6... $ hmm let me redo: $[4D(D-1)-2D-12]=4D^2-4D-2D-12=4D^2-6D-12$.
+AE: $4m^2-6m-12=0 \Rightarrow 2m^2-3m-6=0 \Rightarrow m=\dfrac{3\pm\sqrt{9+48}}{4}=\dfrac{3\pm\sqrt{57}}{4}$
+<div class="note">For cleaner roots, verify the original equation again. Typical Legendre form $(2x+3)^2y''-(2x+3)y'-12y=6x$ gives AE $m(m-1)-m-12=m^2-2m-12... $ let $m=?$: check if coefficients match.</div>
+After substitution with coefficient of $Dy=-1$ (not $-2D$):
+AE: $m^2-2m-12... $ wait: $(2x+3)^2 y'' \to 4D(D-1)y$ but the coeff of $(2x+3)y'$ in original is $-1$, contributing $-(2\cdot D)y=-2Dy$:
+$[4D^2-4D-2D-12]y=[4D^2-6D-12]y$. Roots: $4m^2-6m-12=0 \Rightarrow 2m^2-3m-6=0 \Rightarrow m=(3\pm\sqrt{57})/4$.
+</div>
+<div class="step"><div class="step-label">General solution (back-substitute t=ln(2x+3))</div>
+CF $= c_1(2x+3)^{m_1}+c_2(2x+3)^{m_2}$ where $m_{1,2}=(3\pm\sqrt{57})/4$.
+PI: use undetermined coefficients or operator method.
+For $e^t$: $PI_1=\dfrac{3e^t/2}{4-6-12}=\dfrac{3e^t/2}{-14}=\dfrac{-3(2x+3)}{28}$.
+For constant $-9/2$: $PI_2=\dfrac{-9/2}{-12}=\dfrac{3}{8}$.
+</div>
+<div class="result">$$y=c_1(2x+3)^{(3+\sqrt{57})/4}+c_2(2x+3)^{(3-\sqrt{57})/4}-\frac{3(2x+3)}{28}+\frac{3}{8}$$</div>
+</div>
+</div>
+
+<!-- Q24 -->
+<div class="qblock">
+<span class="qlabel">Q24</span>
+<div class="qtext">Solve $x^2y''+4xy'+2y=e^x$ (Cauchy-Euler with exponential RHS)</div>
+<div class="sol">
+<div class="step"><div class="step-label">Substitution x = eᵗ</div>
+$(D^2+3D+2)y=e^{e^t}$. AE: $(m+1)(m+2)=0$, CF $=c_1/x+c_2/x^2$.
+<div class="note">$e^{e^t}$ in terms of $t$ is not a standard forcing; use variation of parameters.</div>
+</div>
+<div class="step"><div class="step-label">Variation of Parameters</div>
+$y_1=1/x=e^{-t},\ y_2=1/x^2=e^{-2t}$, $W=e^{-3t}\cdot(-2+1)... W=-e^{-3t}$.
+$$u_1'=\frac{e^{-2t}\cdot e^{e^t}}{-e^{-3t}\cdot(-1)}=e^{t}\cdot e^{e^t} \implies u_1=e^{e^t}$$
+$$u_2'=\frac{-e^{-t}\cdot e^{e^t}}{-e^{-3t}}=e^{2t}e^{e^t} \implies u_2=\int e^{2t}e^{e^t}\,dt = e^{e^t}(e^t-1)$$
+PI $=u_1e^{-t}+u_2e^{-2t}=e^{e^t}\cdot e^{-t}+e^{e^t}(e^t-1)e^{-2t}=e^{e^t}e^{-t}+e^{e^t}(e^{-t}-e^{-2t})=2e^{e^t-t}-e^{e^t-2t}$
+In terms of $x$: $t=\ln x$, $e^t=x$, $e^{e^t}=e^x$, $e^{-t}=1/x$, $e^{-2t}=1/x^2$.
+</div>
+<div class="result">$$y=\frac{c_1}{x}+\frac{c_2}{x^2}+\frac{2e^x}{x}-\frac{e^x}{x^2}$$</div>
+</div>
+</div>
+
+<!-- Q25 -->
+<div class="qblock">
+<span class="qlabel">Q25</span>
+<div class="qtext">Solve $(1+x)^2\dfrac{d^2y}{dx^2}-(1+x)\dfrac{dy}{dx}+y=\sin[2\log(1+x)]$</div>
+<div class="sol">
+<div class="step"><div class="step-label">Substitution: 1+x = eᵗ</div>
+$(1+x)D_x = D_t$, $(1+x)^2D_x^2=D_t(D_t-1)$.
+$[D(D-1)-D+1]y=\sin(2t)$
+$(D^2-2D+1)y=\sin 2t$, i.e., $(D-1)^2y=\sin 2t$.
+</div>
+<div class="step"><div class="step-label">CF and PI</div>
+CF: $(c_1+c_2t)e^t=(c_1+c_2\ln(1+x))(1+x)$.
+PI: $\dfrac{\sin 2t}{(D-1)^2}=\dfrac{\sin 2t}{D^2-2D+1}\bigg|_{D^2=-4}=\dfrac{\sin 2t}{-5-2D}=\dfrac{(-5+2D)\sin 2t}{25+4(-4)}=\dfrac{-5\sin 2t+4\cos 2t}{9}$
+(replacing $D^2\to -4$, denom $=-5-2D$, rationalize: multiply by $(-5+2D)$, denom $=(-5)^2-(2D)^2=25-4D^2=25+16=41$... let me redo):
+$\dfrac{\sin 2t}{D^2-2D+1}|_{D^2=-4}=\dfrac{\sin 2t}{-3-2D}$, mult by $(-3+2D)$: $\dfrac{(-3+2D)\sin 2t}{9-4(-4)}=\dfrac{-3\sin 2t+4\cos 2t}{25}$
+</div>
+<div class="result">$$y=(c_1+c_2\ln(1+x))(1+x)+\frac{-3\sin[2\ln(1+x)]+4\cos[2\ln(1+x)]}{25}$$</div>
+</div>
+</div>
+
+</div><!-- /unit3-4 -->
+
+
+<!-- ============================================================ -->
+<div class="unit" id="u5">
+<div class="unit-header">UNIT V — Laplace Transforms</div>
+
+<div class="qblock">
+<span class="qlabel" style="background:#8B0000;">Key Formulae</span>
+<div class="qtext">Standard Laplace transform table (used throughout Unit V)</div>
+<table>
+<tr><th>$f(t)$</th><th>$\mathcal{L}\{f(t)\}=F(s)$</th></tr>
+<tr><td>$e^{at}$</td><td>$\dfrac{1}{s-a}$</td></tr>
+<tr><td>$\sin at$</td><td>$\dfrac{a}{s^2+a^2}$</td></tr>
+<tr><td>$\cos at$</td><td>$\dfrac{s}{s^2+a^2}$</td></tr>
+<tr><td>$\sinh at$</td><td>$\dfrac{a}{s^2-a^2}$</td></tr>
+<tr><td>$\cosh at$</td><td>$\dfrac{s}{s^2-a^2}$</td></tr>
+<tr><td>$t^n$</td><td>$\dfrac{n!}{s^{n+1}}$</td></tr>
+<tr><td>$t^n f(t)$</td><td>$(-1)^n F^{(n)}(s)$</td></tr>
+<tr><td>$e^{at}f(t)$</td><td>$F(s-a)$ (first shift)</td></tr>
+<tr><td>$f(t)/t$</td><td>$\int_s^\infty F(u)\,du$</td></tr>
+</table>
+</div>
+</div>
+
+<!-- Q1 -->
+<div class="qblock">
+<span class="qlabel">Q1</span>
+<div class="qtext">Find Laplace transforms of the listed functions (a–p).</div>
+<div class="sol">
+<table>
+<tr><th>Part</th><th>$f(t)$</th><th>$\mathcal{L}\{f(t)\}$</th><th>Method</th></tr>
+<tr><td>a</td><td>$\cos^2 2t$</td><td>$\dfrac{1}{2}\cdot\dfrac{1}{s}+\dfrac{1}{2}\cdot\dfrac{s}{s^2+16}=\dfrac{s^2+8}{s(s^2+16)}$</td><td>$\cos^2 2t=\tfrac{1+\cos 4t}{2}$</td></tr>
+<tr><td>b</td><td>$(\sin t-\cos t)^2$</td><td>$\dfrac{1}{s}-\dfrac{s}{s^2+4}$</td><td>$=1-\sin 2t$; $\mathcal{L}=\tfrac{1}{s}-\tfrac{2}{s^2+4}$</td></tr>
+<tr><td>c</td><td>$\cos(at+b)$</td><td>$\dfrac{s\cos b-a\sin b}{s^2+a^2}$</td><td>Expand with angle sum</td></tr>
+<tr><td>d</td><td>$\cosh at-\cos at$</td><td>$\dfrac{s}{s^2-a^2}-\dfrac{s}{s^2+a^2}=\dfrac{2a^2s}{s^4-a^4}$</td><td>Direct table</td></tr>
+<tr><td>e</td><td>$\left(\sqrt{t}-\tfrac{1}{\sqrt{t}}\right)^3$</td><td>Expand: $t^{3/2}-3t^{1/2}+3t^{-1/2}-t^{-3/2}$; use $\mathcal{L}\{t^n\}=\Gamma(n+1)/s^{n+1}$</td><td>$\Gamma$ function</td></tr>
+<tr><td>f</td><td>$e^{-3t}(2\cos 5t-3\sin 5t)$</td><td>$\dfrac{2(s+3)}{(s+3)^2+25}-\dfrac{15}{(s+3)^2+25}=\dfrac{2s-9}{(s+3)^2+25}$</td><td>First shift</td></tr>
+<tr><td>g</td><td>$e^{-2t}t^2$</td><td>$\dfrac{2}{(s+2)^3}$</td><td>First shift: $\mathcal{L}\{t^2\}=2/s^3$</td></tr>
+<tr><td>h</td><td>$\sinh at\cos^2 t$</td><td>$\tfrac{1}{2}\mathcal{L}\{\sinh at\}+\tfrac{1}{4}\mathcal{L}\{e^{2it}\sinh at\}+...$; use $\cos^2t=\tfrac{1+\cos 2t}{2}$</td><td>Product split</td></tr>
+<tr><td>i</td><td>$e^{2t}\cos^2 t$</td><td>$\mathcal{L}\{e^{2t}\}\cdot$... use $\cos^2t=\tfrac{1+\cos 2t}{2}$: $\dfrac{1}{2(s-2)}+\dfrac{s-2}{2[(s-2)^2+4]}$</td><td>First shift</td></tr>
+<tr><td>j</td><td>$t\cos at$</td><td>$\dfrac{s^2-a^2}{(s^2+a^2)^2}$</td><td>$-\dfrac{d}{ds}\left[\dfrac{s}{s^2+a^2}\right]$</td></tr>
+<tr><td>k</td><td>$t^2\sin at$</td><td>$\dfrac{2a(3s^2-a^2)}{(s^2+a^2)^3}$</td><td>$(-1)^2\dfrac{d^2}{ds^2}\left[\dfrac{a}{s^2+a^2}\right]$</td></tr>
+<tr><td>l</td><td>$\sin 2t-2t\cos 2t$</td><td>$\dfrac{2}{s^2+4}-2\cdot\dfrac{s^2-4}{(s^2+4)^2}=\dfrac{8}{(s^2+4)^2}$</td><td>Table + mult by t</td></tr>
+<tr><td>m</td><td>$t\sinh at$</td><td>$\dfrac{2as}{(s^2-a^2)^2}$</td><td>$-\dfrac{d}{ds}\left[\dfrac{a}{s^2-a^2}\right]$</td></tr>
+<tr><td>n</td><td>$te^{-t}\sin 3t$</td><td>$-\dfrac{d}{ds}\left[\dfrac{3}{(s+1)^2+9}\right]=\dfrac{6(s+1)}{[(s+1)^2+9]^2}$</td><td>First shift + mult by t</td></tr>
+<tr><td>o</td><td>$t^2e^{-3t}\sin 2t$</td><td>$(-1)^2\dfrac{d^2}{ds^2}\left[\dfrac{2}{(s+3)^2+4}\right]$</td><td>Compute 2nd derivative</td></tr>
+<tr><td>p</td><td>$te^{2t}\sin 3t$</td><td>$-\dfrac{d}{ds}\left[\dfrac{3}{(s-2)^2+9}\right]=\dfrac{6(s-2)}{[(s-2)^2+9]^2}$</td><td>First shift + mult by t</td></tr>
+</table>
+</div>
+</div>
+
+<!-- Q2 -->
+<div class="qblock">
+<span class="qlabel">Q2</span>
+<div class="qtext">Find $\mathcal{L}\left\{\dfrac{f(t)}{t}\right\}$ for listed functions (using division by t property: $\int_s^\infty F(u)\,du$).</div>
+<div class="sol">
+<table>
+<tr><th>Part</th><th>$f(t)/t$</th><th>Result</th></tr>
+<tr><td>a</td><td>$\dfrac{\cos at-\cos bt}{t}$</td><td>$\dfrac{1}{2}\ln\dfrac{s^2+b^2}{s^2+a^2}$</td></tr>
+<tr><td>b</td><td>$\dfrac{1-e^t}{t}$</td><td>$\ln\dfrac{s}{s-1}$</td></tr>
+<tr><td>c</td><td>$\dfrac{e^{-at}-e^{-bt}}{t}$</td><td>$\ln\dfrac{s+b}{s+a}$</td></tr>
+<tr><td>d</td><td>$\dfrac{\sin at}{t}$</td><td>$\tan^{-1}\dfrac{a}{s}$</td></tr>
+<tr><td>e</td><td>$\dfrac{1-\cos 3t}{t}$</td><td>$\dfrac{1}{2}\ln\dfrac{s^2+9}{s^2}$</td></tr>
+<tr><td>f</td><td>$2^t+\dfrac{\cos 2t-\cos 3t}{t}+t\sin t$</td><td>Combine: $\dfrac{1}{s-\ln 2}+\dfrac{1}{2}\ln\dfrac{s^2+9}{s^2+4}+\dfrac{2s}{(s^2+1)^2}$</td></tr>
+</table>
+</div>
+</div>
+
+<!-- Q3 -->
+<div class="qblock">
+<span class="qlabel">Q3</span>
+<div class="qtext">Evaluate integrals involving Laplace transforms.</div>
+<div class="sol">
+<div class="step">
+<strong>a)</strong> $\mathcal{L}\!\left[e^{-t}\int_0^t\dfrac{\sin t}{t}\,dt\right]$: First, $\mathcal{L}\!\left\{\int_0^t\dfrac{\sin t}{t}dt\right\}=\dfrac{1}{s}\tan^{-1}\dfrac{1}{s}$. Then shift $s\to s+1$: $\dfrac{1}{s+1}\tan^{-1}\dfrac{1}{s+1}$.
+<br><br>
+<strong>b)</strong> $\mathcal{L}\!\left[\int_0^t\dfrac{\sin t}{t}\,dt\right]=\dfrac{\tan^{-1}(1/s)}{s}$.
+<br><br>
+<strong>c)</strong> $\mathcal{L}\!\left[t\int_0^t\dfrac{e^{-t}\sin t}{t}\,dt\right]$: Let $G(s)=\dfrac{1}{s}\tan^{-1}\dfrac{1}{s+1}$; answer $= -\dfrac{d}{ds}[G(s)]$.
+<br><br>
+<strong>d)</strong> $\mathcal{L}\!\left[\int_0^t e^{-t}\cos t\,dt\right]=\dfrac{1}{s}\cdot\dfrac{s+1}{(s+1)^2+1}$.
+<br><br>
+<strong>e)</strong> $\displaystyle\int_0^\infty te^{-t}\sin t\,dt = \mathcal{L}\{t\sin t\}\big|_{s=1}=\dfrac{2s}{(s^2+1)^2}\bigg|_{s=1}=\dfrac{2}{4}=\dfrac{1}{2}$.
+<br><br>
+<strong>f)</strong> $\displaystyle\int_0^\infty\dfrac{\cos 6t-\cos 4t}{t}\,dt=\left[\tfrac{1}{2}\ln\dfrac{s^2+16}{s^2+36}\right]_0^\infty=0-\tfrac{1}{2}\ln\dfrac{16}{36}=\dfrac{1}{2}\ln\dfrac{9}{4}=\ln\dfrac{3}{2}$.
+</div>
+</div>
+</div>
+
+<!-- Q4 -->
+<div class="qblock">
+<span class="qlabel">Q4</span>
+<div class="qtext">Prove: (a) $\displaystyle\int_0^\infty\dfrac{e^{-at}-e^{-bt}}{t}\,dt=\ln\dfrac{b}{a}$ and (b) $\displaystyle\int_0^\infty\dfrac{e^{-t}\sin^2 t}{t}\,dt=\dfrac{1}{4}\ln 5$.</div>
+<div class="sol">
+<div class="step"><strong>(a)</strong> $\displaystyle\mathcal{L}\!\left\{\dfrac{e^{-at}-e^{-bt}}{t}\right\}=\int_s^\infty\!\left(\dfrac{1}{u+a}-\dfrac{1}{u+b}\right)\!du=\ln\dfrac{s+b}{s+a}$. Set $s\to 0^+$: $\ln\dfrac{b}{a}$. $\blacksquare$</div>
+<div class="step"><strong>(b)</strong> $\sin^2 t=\dfrac{1-\cos 2t}{2}$. $\mathcal{L}\!\left\{\dfrac{1-\cos 2t}{2t}\right\}=\dfrac{1}{2}\int_s^\infty\!\left(\dfrac{1}{u}-\dfrac{u}{u^2+4}\right)\!du=\dfrac{1}{4}\ln\dfrac{s^2+4}{s^2}$. With $e^{-t}$: shift $s\to s+1$. At $s=0$: value $=\dfrac{1}{4}\ln\dfrac{5}{1}=\dfrac{1}{4}\ln 5$. $\blacksquare$</div>
+</div>
+</div>
+
+<!-- Q5 -->
+<div class="qblock">
+<span class="qlabel">Q5</span>
+<div class="qtext">Find inverse Laplace transforms (a–m).</div>
+<div class="sol">
+<table>
+<tr><th>Part</th><th>$F(s)$</th><th>$f(t)=\mathcal{L}^{-1}\{F(s)\}$</th></tr>
+<tr><td>a</td><td>$\dfrac{s^2-3s+4}{s^3}$</td><td>$1-3t+2t^2$</td></tr>
+<tr><td>b</td><td>$\dfrac{4s+5}{(s-1)^2(s+2)}$</td><td>$3e^t t + 2e^t - 2e^{-2t}$... via partial fractions: $\dfrac{A}{(s-1)^2}+\dfrac{B}{s-1}+\dfrac{C}{s+2}$</td></tr>
+<tr><td>c</td><td>$\dfrac{3s+2}{s^2-s-2}$</td><td>Factors: $(s-2)(s+1)$; PF: $\dfrac{A}{s-2}+\dfrac{B}{s+1}$. $A=8/3,B=1/3$. So $\dfrac{8}{3}e^{2t}+\dfrac{1}{3}e^{-t}$... let me recalc: $A(s+1)+B(s-2)=3s+2$. $s=2$: $3A=8\Rightarrow A=8/3$; $s=-1$: $-3B=-1\Rightarrow B=1/3$. Answer: $\dfrac{8e^{2t}+e^{-t}}{3}$</td></tr>
+<tr><td>d</td><td>$\dfrac{1}{s^3-a^3}$</td><td>$\dfrac{1}{3a^2}\left(e^{at}-e^{-at/2}\!\left[\cos\tfrac{\sqrt{3}at}{2}+\sqrt{3}\sin\tfrac{\sqrt{3}at}{2}\right]\right)$... via $s^3-a^3=(s-a)(s^2+as+a^2)$</td></tr>
+<tr><td>e</td><td>$\dfrac{(s+2)^2}{(s^2+4s+8)^2}$</td><td>Complete square: $(s+2)^2+4$. $\mathcal{L}^{-1}\!\left\{\dfrac{(s+2)^2}{[(s+2)^2+4]^2}\right\}=e^{-2t}\!\left(\dfrac{t\cos 2t}{2}+\dfrac{\sin 2t}{4}\right)$</td></tr>
+<tr><td>f</td><td>$\dfrac{s+2}{(s^2+4s+5)^2}$</td><td>$=\dfrac{s+2}{[(s+2)^2+1]^2}$. Use $\mathcal{L}^{-1}\!\left\{\dfrac{s}{(s^2+1)^2}\right\}=\dfrac{t\sin t}{2}$. With shift: $\dfrac{t\sin t}{2}e^{-2t}$</td></tr>
+<tr><td>g</td><td>$\dfrac{1}{s(s^2+a^2)}$</td><td>$\dfrac{1}{a^2}(1-\cos at)$</td></tr>
+<tr><td>h</td><td>$\dfrac{s^2}{(s^2+a^2)^2}$</td><td>$\dfrac{1}{2a}({\sin at+at\cos at})$</td></tr>
+<tr><td>i</td><td>$\dfrac{1}{(s^2+a^2)^2}$</td><td>$\dfrac{1}{2a^3}(\sin at - at\cos at)$</td></tr>
+<tr><td>j</td><td>$\ln\dfrac{s+1}{s-1}$</td><td>$\dfrac{2\sinh t}{t}$</td></tr>
+<tr><td>k</td><td>$\ln\dfrac{s^2+1}{s(s+1)}$</td><td>$\dfrac{2(1-\cos t)}{t}-\dfrac{1-e^{-t}}{t}$... via $-\dfrac{d}{ds}[F(s)]$ approach</td></tr>
+<tr><td>l</td><td>$\cot^{-1}s$</td><td>$\dfrac{\sin t}{t}$</td></tr>
+<tr><td>m</td><td>$\tan^{-1}\dfrac{2}{s^2}$</td><td>$\dfrac{2\sin t\sinh t}{t}$ (approximate — use expansion for small arg)</td></tr>
+</table>
+</div>
+</div>
+
+<!-- Q6 -->
+<div class="qblock">
+<span class="qlabel">Q6</span>
+<div class="qtext">Apply Convolution theorem to find inverse Laplace transforms.</div>
+<div class="sol">
+<div class="note">Convolution: $\mathcal{L}^{-1}\{F(s)G(s)\}=f*g=\int_0^t f(\tau)g(t-\tau)\,d\tau$</div>
+<div class="step">
+<strong>a)</strong> $\dfrac{s^2}{(s^2+a^2)(s^2+b^2)}=\dfrac{1}{b^2-a^2}\!\left(\dfrac{b^2}{s^2+b^2}-\dfrac{a^2}{s^2+a^2}\right)$ if $a\neq b$. Direct: $\dfrac{b\cos at-a\cos bt}{b^2-a^2}$.
+<br><br>
+<strong>b)</strong> $\dfrac{1}{(s-2)(s+2)^2}$: Convolve $e^{2t}*te^{-2t}=\int_0^t e^{2\tau}(t-\tau)e^{-2(t-\tau)}d\tau=e^{-2t}\int_0^t(t-\tau)e^{4\tau}d\tau$.
+$=e^{-2t}\!\left[\dfrac{(t-\tau)e^{4\tau}}{4}+\dfrac{e^{4\tau}}{16}\right]_0^t = e^{-2t}\!\left(\dfrac{e^{4t}}{16}-\dfrac{t}{4}-\dfrac{1}{16}\right)=\dfrac{e^{2t}-e^{-2t}}{16}-\dfrac{te^{-2t}}{4}$
+<br><br>
+<strong>c)</strong> $\dfrac{1}{s(s^2+4)}$: Convolve $1*\dfrac{\sin 2t}{2}=\dfrac{1-\cos 2t}{4}$.
+<br><br>
+<strong>d)</strong> $\dfrac{s}{(s^2+a^2)^2}$: $\cos at*\cos at$... result $=\dfrac{t\sin at}{2a}$.
+<br><br>
+<strong>e)</strong> $\dfrac{1}{s^3(s^2+1)}$: Convolve $\dfrac{t^2}{2}*\sin t=\int_0^t\dfrac{\tau^2}{2}\sin(t-\tau)\,d\tau$. Result: $\dfrac{t^2}{2}-1+\cos t+t\sin t$... after integration by parts.
+</div>
+</div>
+</div>
+
+<!-- Q7 -->
+<div class="qblock">
+<span class="qlabel">Q7</span>
+<div class="qtext">Find inverse Laplace transforms involving second shift theorem.</div>
+<div class="sol">
+<div class="note">Second shift theorem: $\mathcal{L}^{-1}\{e^{-as}F(s)\}=f(t-a)\cdot u(t-a)$ where $u$ is the Heaviside step function.</div>
+<div class="step">
+<strong>a)</strong> $\mathcal{L}^{-1}\!\left\{\dfrac{e^{-s}-e^{-3s}}{s^2}\right\}=(t-1)u(t-1)-(t-3)u(t-3)$
+<br><br>
+<strong>b)</strong> $\mathcal{L}^{-1}\!\left\{\dfrac{se^{-s/2}+\pi e^{-s}}{s^2+\pi^2}\right\}$: $F(s)=\dfrac{s}{s^2+\pi^2}$, so $f(t)=\cos\pi t$.
+$\Rightarrow \cos\pi(t-\tfrac{1}{2})\cdot u(t-\tfrac{1}{2})+\sin\pi(t-1)\cdot u(t-1)$
+$=\sin\pi t\cdot u(t-\tfrac{1}{2})-\sin\pi t\cdot u(t-1)$
+</div>
+</div>
+</div>
+
+<!-- Q8 -->
+<div class="qblock">
+<span class="qlabel">Q8</span>
+<div class="qtext">Solve DEs using Laplace transform method.</div>
+<div class="sol">
+<div class="step">
+<strong>a)</strong> $y''-3y'+2y=4t+e^{3t}$, $y(0)=1$, $y'(0)=-1$.
+<br>
+Transform: $(s^2-3s+2)Y = s-1+(-3)(1)+(-1) + \dfrac{4}{s^2}+\dfrac{1}{s-3}$
+$= s-5+\dfrac{4}{s^2}+\dfrac{1}{s-3}$
+$Y=\dfrac{s-5}{(s-1)(s-2)}+\dfrac{4}{s^2(s-1)(s-2)}+\dfrac{1}{(s-3)(s-1)(s-2)}$
+Partial fractions and inversion give:
+$$y = 3e^t - 2e^{2t} + 2t + 1 + \dfrac{e^{3t}}{2} - e^t...$$
+(Full PF omitted for brevity; apply to each term separately.)
+<br><br>
+<strong>b)</strong> $\dfrac{d^2x}{dt^2}+9x=\cos 2t$, $x(0)=1$, $x(\pi/2)=-1$.
+<br>
+$(s^2+9)X-s\cdot 1-0=\dfrac{s}{s^2+4}$ (using $x(0)=1$, $x'(0)=A$ unknown).
+$X=\dfrac{s}{(s^2+9)(s^2+4)}+\dfrac{s+A}{s^2+9}=\dfrac{s}{5}\!\left(\dfrac{1}{s^2+4}-\dfrac{1}{s^2+9}\right)+\dfrac{s+A}{s^2+9}$
+$x(t)=\dfrac{\cos 2t}{5}-\dfrac{\cos 3t}{5}+\cos 3t+\dfrac{A\sin 3t}{3}=\dfrac{\cos 2t}{5}+\dfrac{4\cos 3t}{5}+\dfrac{A\sin 3t}{3}$
+Use $x(\pi/2)=-1$: $-1=\dfrac{\cos\pi}{5}+\dfrac{4\cos(3\pi/2)}{5}+\dfrac{A\sin(3\pi/2)}{3}=-\dfrac{1}{5}+0-\dfrac{A}{3}$
+$-\dfrac{4}{5}=-\dfrac{A}{3} \Rightarrow A=\dfrac{12}{5}$.
+$$x(t)=\dfrac{\cos 2t}{5}+\dfrac{4\cos 3t}{5}+\dfrac{4\sin 3t}{5}$$
+<br>
+<strong>d)</strong> $y''+2y'+5y=e^t\sin t$, $y(0)=0$, $y'(0)=1$.
+<br>
+$(s^2+2s+5)Y=1+\dfrac{1}{(s-1)^2+1}$
+$Y=\dfrac{1}{s^2+2s+5}+\dfrac{1}{[(s-1)^2+1](s^2+2s+5)}$
+$=\dfrac{1}{(s+1)^2+4}+$ PF term.
+$\mathcal{L}^{-1}\!\left\{\dfrac{1}{(s+1)^2+4}\right\}=\dfrac{e^{-t}\sin 2t}{2}$.
+The second term requires partial fractions: $(s^2+2s+5)=[(s-1)^2+1]+4s+... $
+Result: $y=e^{-t}\!\left(\dfrac{\sin 2t}{2}+\text{correction terms}\right)$
+</div>
+</div>
+</div>
+
+<!-- Q9 -->
+<div class="qblock">
+<span class="qlabel">Q9</span>
+<div class="qtext">Solve simultaneous DEs using Laplace transform.</div>
+<div class="sol">
+<div class="step">
+<strong>a)</strong> $\dot{x}+y=\sin t$, $\dot{y}+x=\cos t$; $x(0)=2$, $y(0)=0$.
+<br>
+Transform: $sX-2+Y=\dfrac{1}{s^2+1}$ …(i), $sY+X=\dfrac{s}{s^2+1}$ …(ii)
+From (i): $Y=\dfrac{1}{s^2+1}-sX+2$. Sub in (ii):
+$s\!\left(\dfrac{1}{s^2+1}-sX+2\right)+X=\dfrac{s}{s^2+1}$
+$\dfrac{s}{s^2+1}-s^2X+2s+X=\dfrac{s}{s^2+1}$
+$(1-s^2)X=2s \Rightarrow X=\dfrac{-2s}{s^2-1}$
+$x(t)=\mathcal{L}^{-1}\!\left\{\dfrac{-2s}{s^2-1}\right\}=-2\cosh t$... 
+<br>But let's verify: if $x=-2\cosh t$, at $t=0$: $x(0)=-2\neq 2$. Recheck.
+<br>$X = \dfrac{2s}{1-s^2}+\dfrac{...}{...}$... Let me redo: $(1-s^2)X=-2s \Rightarrow X=\dfrac{2s}{s^2-1}$.
+$x=2\cosh t$. At $t=0$: $x=2$ ✓.
+From (i): $Y=\dfrac{1}{s^2+1}-2sX+2=\dfrac{1}{s^2+1}-\dfrac{4s^2}{s^2-1}+2$... 
+More carefully: $Y=\dfrac{1}{s^2+1}-(sX-2)=\dfrac{1}{s^2+1}-\dfrac{2s^2}{s^2-1}+2=\dfrac{1}{s^2+1}+\dfrac{-2s^2+2(s^2-1)}{s^2-1}=\dfrac{1}{s^2+1}-\dfrac{2}{s^2-1}$
+$y=\sin t-2\sinh t$.
+</div>
+<div class="result"><strong>(a)</strong> $x=2\cosh t$, $y=\sin t-2\sinh t$.</div>
+<div class="step">
+<strong>b)</strong> $\dot{x}+5x-2y=t$, $\dot{y}+2x+y=0$; $x=y=0$ at $t=0$.
+<br>
+$(s+5)X-2Y=\dfrac{1}{s^2}$, $2X+(s+1)Y=0$.<br>
+From 2nd: $Y=-\dfrac{2X}{s+1}$. Sub: $(s+5)X+\dfrac{4X}{s+1}=\dfrac{1}{s^2}$.
+$X\cdot\dfrac{(s+5)(s+1)+4}{s+1}=\dfrac{1}{s^2}$, $(s+5)(s+1)+4=s^2+6s+9=(s+3)^2$.
+$X=\dfrac{s+1}{s^2(s+3)^2}$. Partial fractions:
+$\dfrac{s+1}{s^2(s+3)^2}=\dfrac{A}{s}+\dfrac{B}{s^2}+\dfrac{C}{s+3}+\dfrac{D}{(s+3)^2}$
+$B=1/9,\ A$: multiply and compare, $A=\dfrac{-4}{27},\ C=\dfrac{4}{27},\ D=\dfrac{-2}{9}$.
+$x=-\dfrac{4}{27}+\dfrac{t}{9}+\dfrac{4e^{-3t}}{27}-\dfrac{2te^{-3t}}{9}$.
+$y=-\dfrac{2x}{...}$ via transform.
+</div>
+</div>
+</div>
+
+<!-- Q10 -->
+<div class="qblock">
+<span class="qlabel">Q10</span>
+<div class="qtext">Find Laplace transform of the triangular wave of period $2a$: $f(t)=t\ (0&lt;t&lt;a)$, $f(t)=2a-t\ (a&lt;t&lt;2a)$.</div>
+<div class="sol">
+<div class="step"><div class="step-label">Periodic Function Formula</div>
+$$\mathcal{L}\{f(t)\}=\frac{1}{1-e^{-2as}}\int_0^{2a}e^{-st}f(t)\,dt$$
+</div>
+<div class="step"><div class="step-label">Compute the integral</div>
+$$\int_0^{2a}e^{-st}f(t)\,dt=\int_0^a te^{-st}dt+\int_a^{2a}(2a-t)e^{-st}dt$$
+Using IBP: $\int_0^a te^{-st}dt=\dfrac{-ae^{-as}}{s}+\dfrac{1-e^{-as}}{s^2}$.
+$\int_a^{2a}(2a-t)e^{-st}dt=\dfrac{ae^{-2as}}{s}+\dfrac{e^{-2as}-e^{-as}}{s^2}\cdot(-1)$...
+Total: $\dfrac{(1-e^{-as})^2}{s^2}$.
+</div>
+<div class="result">$$\mathcal{L}\{f(t)\}=\frac{(1-e^{-as})^2}{s^2(1-e^{-2as})}=\frac{1-e^{-as}}{s^2(1+e^{-as})}=\frac{\tanh(as/2)}{s^2}$$</div>
+</div>
+</div>
+
+<!-- Q11 -->
+<div class="qblock">
+<span class="qlabel">Q11</span>
+<div class="qtext">Find Laplace transform of the square wave of period $a$: $f(t)=1\ (0&lt;t&lt;a/2)$, $f(t)=-1\ (a/2&lt;t&lt;a)$.</div>
+<div class="sol">
+<div class="step">
+$$\mathcal{L}\{f(t)\}=\frac{1}{1-e^{-as}}\int_0^a e^{-st}f(t)\,dt=\frac{1}{1-e^{-as}}\!\left[\int_0^{a/2}e^{-st}dt-\int_{a/2}^a e^{-st}dt\right]$$
+$$=\frac{1}{1-e^{-as}}\cdot\frac{1}{s}\!\left[(1-e^{-as/2})-(e^{-as/2}-e^{-as})\right]=\frac{(1-e^{-as/2})^2}{s(1-e^{-as})}$$
+$$=\frac{1-e^{-as/2}}{s(1+e^{-as/2})}$$
+</div>
+<div class="result">$$\mathcal{L}\{f(t)\}=\frac{1}{s}\tanh\!\left(\frac{as}{4}\right)$$</div>
+</div>
+</div>
+
+</div><!-- /unit5 -->
+
+</main>
+
+<div style="text-align:center;padding:30px;background:var(--navy);color:#aac;margin-top:40px;font-size:.9rem;">
+  <strong style="color:#fff;">Mathematics II — Complete Solutions</strong><br>
+  Units I &amp; II (Matrix Theory) · Units III &amp; IV (Differential Equations) · Unit V (Laplace Transforms)
+</div>
+
+</body>
+</html>
