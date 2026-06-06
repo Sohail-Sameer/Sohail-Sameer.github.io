@@ -153,8 +153,8 @@
     </div>
     <div id="fUp" style="display:none">
       <div class="fg">
-        <label>USERNAME <span style="font-size:.57rem;opacity:.6">(letters, numbers, underscores · min 3)</span></label>
-        <input type="text" id="uName" placeholder="e.g. sohailsameer" autocomplete="off" oninput="liveUN(this.value)"/>
+        <label>USERNAME <span style="font-size:.57rem;opacity:.6">(spaces allowed · min 3 chars)</span></label>
+        <input type="text" id="uName" placeholder="e.g. Sohail Sameer" autocomplete="off" oninput="liveUN(this.value)"/>
         <div class="fhint" id="unHint"></div>
       </div>
       <div class="fg">
@@ -304,7 +304,24 @@ window.switchTab=t=>{
 };
 
 let unT=null;
-window.liveUN=v=>{const h=$('unHint'),i=$('uName');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;if(v.length<3){sh(h,i,'no','✗ At least 3 chars.');return;}if(!/^[a-zA-Z0-9_]+$/.test(v)){sh(h,i,'no','✗ Letters, numbers, underscores only.');return;}sh(h,i,'ld','⏳ Checking...');clearTimeout(unT);unT=setTimeout(async()=>{try{const{data}=await sb.from('usernames').select('username').eq('username',v.toLowerCase()).maybeSingle();if(data)sh(h,i,'no','✗ Already taken.');else sh(h,i,'ok','✓ Available!');}catch(e){sh(h,i,'ok','✓ Looks available!');}},500);};
+window.liveUN=v=>{
+  const h=$('unHint'),i=$('uName');
+  i.classList.remove('good','bad');h.className='fhint';h.textContent='';
+  if(!v)return;
+  // Normalise: collapse spaces → underscores, lowercase
+  const norm=v.trim().replace(/\s+/g,'_').toLowerCase();
+  if(norm.length<3){sh(h,i,'no','✗ At least 3 characters.');return;}
+  if(!/^[a-zA-Z0-9_]+$/.test(norm)){sh(h,i,'no','✗ Letters, numbers and spaces only.');return;}
+  sh(h,i,'ld','⏳ Checking…');
+  clearTimeout(unT);
+  unT=setTimeout(async()=>{
+    try{
+      const{data}=await sb.from('usernames').select('username').eq('username',norm).maybeSingle();
+      if(data)sh(h,i,'no',`✗ Already taken — try a different name.`);
+      else sh(h,i,'ok',`✓ Available!  Saved as: ${norm}`);
+    }catch(e){sh(h,i,'ok',`✓ Looks available!  Saved as: ${norm}`);}
+  },500);
+};
 window.liveEM=v=>{const h=$('emHint'),i=$('uEmail');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))sh(h,i,'no','✗ Invalid email.');else sh(h,i,'ok','✓ Looks good!');};
 window.livePW=v=>{const h=$('pwHint'),i=$('uPass');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;if(v.length<6)sh(h,i,'no','✗ Min 6 chars.');else sh(h,i,'ok','✓ Strong!');if($('uPass2').value)livePW2($('uPass2').value);};
 window.livePW2=v=>{const h=$('pw2Hint'),i=$('uPass2');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;const m=$('uPass').value===v;sh(h,i,m?'ok':'no',m?'✓ Match!':'✗ No match.');};
@@ -313,8 +330,10 @@ function sMsg(id,msg,t='err'){const el=$(id);el.textContent=msg;el.className='am
 function sbE(m){const mp={'Invalid login credentials':'Incorrect email or password.','Email not confirmed':'Confirm your email first.','User already registered':'Account exists with this email.','For security purposes':'Too many attempts. Wait a moment.'};for(const[k,v]of Object.entries(mp))if(m.includes(k))return v;return m||'Something went wrong.';}
 
 window.signup=async()=>{
-  const un=$('uName').value.trim().toLowerCase(),em=$('uEmail').value.trim(),pw=$('uPass').value,pw2=$('uPass2').value;
-  if(!un||!em||!pw||!pw2)return sMsg('uErr','Fill in all fields.');
+  const raw=$('uName').value.trim();
+  const un=raw.replace(/\s+/g,'_').toLowerCase();
+  const em=$('uEmail').value.trim(),pw=$('uPass').value,pw2=$('uPass2').value;
+  if(!raw||!em||!pw||!pw2)return sMsg('uErr','Fill in all fields.');
   if($('unHint').classList.contains('no'))return sMsg('uErr','Fix username first.');
   if($('emHint').classList.contains('no'))return sMsg('uErr','Fix email first.');
   if(pw!==pw2)return sMsg('uErr','Passwords do not match.');
@@ -338,12 +357,14 @@ document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if($('fIn').st
 
 async function loadApp(user){
   const un=user.user_metadata?.username||user.email.split('@')[0];
+  // Display name: replace underscores with spaces for greeting
+  const displayName=un.replace(/_/g,' ');
   await sb.from('profiles').upsert({id:user.id,username:un},{onConflict:'id'});
   $('authWrap').style.display='none';$('app').style.display='block';
-  $('navWho').textContent=un;$('footWho').textContent=un;
+  $('navWho').textContent=displayName;$('footWho').textContent=displayName;
   const h=new Date().getHours();
   $('gTime').textContent=h<12?'GOOD MORNING':h<17?'GOOD AFTERNOON':'GOOD EVENING';
-  $('gName').textContent=un;
+  $('gName').textContent=displayName;
   $('gDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const rO=new IntersectionObserver(es=>{es.forEach((e,i)=>{if(!e.isIntersecting)return;setTimeout(()=>e.target.classList.add('on'),i*80);rO.unobserve(e.target);});},{threshold:.1});
   document.querySelectorAll('.rev').forEach(r=>rO.observe(r));
