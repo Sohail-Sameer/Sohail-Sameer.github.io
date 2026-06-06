@@ -378,8 +378,8 @@ window.addTodo=async()=>{
   if(error){todos=todos.filter(x=>x.id!==tmp.id);renderTodos();toast('Error.','err');return;}
   todos=todos.map(x=>x.id===tmp.id?data:x);updStats();
 };
-window.toggleTodo=async id=>{const t=todos.find(x=>x.id===id);if(!t)return;t.done=!t.done;renderTodos();await sb.from('todos').update({done:t.done}).eq('id',id).eq('user_id',me.id);updStats();};
-window.deleteTodo=async id=>{todos=todos.filter(x=>x.id!==id);renderTodos();await sb.from('todos').delete().eq('id',id).eq('user_id',me.id);updStats();};
+window.toggleTodo=async id=>{const t=todos.find(x=>x.id==id);if(!t)return;t.done=!t.done;renderTodos();await sb.from('todos').update({done:t.done}).eq('id',id).eq('user_id',me.id);updStats();};
+window.deleteTodo=async id=>{todos=todos.filter(x=>x.id!=id);renderTodos();await sb.from('todos').delete().eq('id',id).eq('user_id',me.id);updStats();};
 window.clrDone=async()=>{const ids=todos.filter(t=>t.done).map(t=>t.id);if(!ids.length)return;todos=todos.filter(t=>!t.done);renderTodos();await sb.from('todos').delete().in('id',ids).eq('user_id',me.id);updStats();toast(`🗑️ ${ids.length} cleared.`,'info');};
 window.setF=(f,btn)=>{tf=f;document.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTodos();};
 function renderTodos(){
