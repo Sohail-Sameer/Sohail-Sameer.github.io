@@ -358,7 +358,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if($('fIn').st
 async function loadApp(user){
   const un=user.user_metadata?.username||user.email.split('@')[0];
   // Display name: replace underscores with spaces for greeting
-  const displayName=un.replace(/_/g,' ');
+  const displayName=un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
   await sb.from('profiles').upsert({id:user.id,username:un},{onConflict:'id'});
   $('authWrap').style.display='none';$('app').style.display='block';
   $('navWho').textContent=displayName;$('footWho').textContent=displayName;
