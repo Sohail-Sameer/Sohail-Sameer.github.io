@@ -280,6 +280,15 @@ function ch(el){if(!el||el._c)return;el._c=true;
 document.querySelectorAll('a,button,input,.tile').forEach(ch);
 $('hbg').addEventListener('click',()=>$('mobNav').classList.toggle('open'));
 
+// Event delegation — one handler on the list covers ALL tabs, no per-row onclick needed
+$('tList').addEventListener('click',e=>{
+  const row=e.target.closest('.ti');
+  if(!row||row.dataset.id===undefined)return;
+  const id=row.dataset.id;
+  if(e.target.closest('.tdel'))deleteTodo(id);
+  else toggleTodo(id);
+});
+
 window.addEventListener('load',async()=>{
   const h=window.location.hash;
   if(h.includes('access_token')||h.includes('type=signup')){
@@ -412,8 +421,8 @@ function renderTodos(){
   list.innerHTML='';
   filtered.forEach(t=>{
     const d=document.createElement('div');d.className='ti'+(t.done?' done':'');
-    d.onclick=()=>toggleTodo(t.id);
-    d.innerHTML=`<button class="tchk" onclick="event.stopPropagation();toggleTodo(${t.id})">${t.done?'✓':''}</button><span class="ttxt">${esc(t.text)}</span><button class="tdel" onclick="event.stopPropagation();deleteTodo(${t.id})">✕</button>`;
+    d.dataset.id=t.id;
+    d.innerHTML=`<button class="tchk">${t.done?'✓':''}</button><span class="ttxt">${esc(t.text)}</span><button class="tdel">✕</button>`;
     list.appendChild(d);ch(d);ch(d.querySelector('.tdel'));
   });
 }
