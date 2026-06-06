@@ -105,8 +105,8 @@
     .tlist{display:flex;flex-direction:column;gap:.42rem;max-height:380px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;padding-right:.2rem;}
     .tlist::-webkit-scrollbar{width:3px;}
     .tlist::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-    .ti{display:flex;align-items:flex-start;gap:.62rem;padding:.62rem .78rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;transition:all .2s;animation:fup .22s ease both;}
-    .ti:hover{border-color:rgba(0,229,255,.2);}
+    .ti{display:flex;align-items:flex-start;gap:.62rem;padding:.62rem .78rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;transition:all .2s;animation:fup .22s ease both;cursor:none;user-select:none;}
+    .ti:hover{border-color:rgba(0,229,255,.28);background:rgba(0,229,255,.03);}
     .ti.done{opacity:.4;}
     .tchk{width:16px;height:16px;min-width:16px;border-radius:50%;border:1.5px solid var(--muted);display:flex;align-items:center;justify-content:center;cursor:none;transition:all .18s;background:transparent;margin-top:2px;font-size:.6rem;}
     .tchk:hover{border-color:var(--green);}
@@ -391,8 +391,9 @@ function renderTodos(){
   list.innerHTML='';
   filtered.forEach(t=>{
     const d=document.createElement('div');d.className='ti'+(t.done?' done':'');
-    d.innerHTML=`<button class="tchk" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</button><span class="ttxt">${esc(t.text)}</span><button class="tdel" onclick="deleteTodo('${t.id}')">✕</button>`;
-    list.appendChild(d);[d.querySelector('.tchk'),d.querySelector('.tdel')].forEach(ch);
+    d.onclick=()=>toggleTodo(t.id);
+    d.innerHTML=`<button class="tchk" onclick="event.stopPropagation();toggleTodo(${t.id})">${t.done?'✓':''}</button><span class="ttxt">${esc(t.text)}</span><button class="tdel" onclick="event.stopPropagation();deleteTodo(${t.id})">✕</button>`;
+    list.appendChild(d);ch(d);ch(d.querySelector('.tdel'));
   });
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
