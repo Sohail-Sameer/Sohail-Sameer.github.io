@@ -613,9 +613,10 @@ window.logout=async()=>{ await sb.auth.signOut(); resetState(); };
 // ── LOAD APP ──
 async function loadApp(user){
   const un=user.user_metadata?.username||user.email.split('@')[0];
+  const displayName=un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
   await sb.from('profiles').upsert({id:user.id,username:un},{onConflict:'id'});
   $('authWrap').style.display='none'; $('app').style.display='block';
-  $('navWho').textContent=un; $('footWho').textContent=un;
+  $('navWho').textContent=displayName; $('footWho').textContent=displayName;
   await Promise.all([fetchSection('books'),fetchSection('wishlist'),fetchLists()]);
   renderSection('books');
 }
