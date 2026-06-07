@@ -341,8 +341,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('authWrap').style.
 
 async function loadApp(user){
   const un=user.user_metadata?.username||user.email.split('@')[0];
+  const displayName=un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
   $('authWrap').style.display='none';$('app').style.display='block';
-  $('navWho').textContent=un;$('footWho').textContent=un;
+  $('navWho').textContent=displayName;$('footWho').textContent=displayName;
   await Promise.all([fetchSubjects(),fetchSlots(),fetchSettings()]);
   renderAll();
 }
