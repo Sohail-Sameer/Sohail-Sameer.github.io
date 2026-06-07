@@ -434,39 +434,47 @@
 
     let unT = null;
 
-    window.liveUN = v => {
-      const h=$('unHint'), i=$('uName');
-      i.classList.remove('good','bad');
-      h.className='fhint';
-      h.textContent='';
+    window.liveUN = async (value) => {
+  const input = document.getElementById("uName");
+  const hint = document.getElementById("unHint");
 
-      if(!v) return;
+  input.classList.remove("good", "bad");
+  hint.className = "fhint";
+  hint.textContent = "";
 
-      const norm = v.trim().replace(/\s+/g,'_').toLowerCase();
+  if (!value) return;
 
-      if(norm.length<3){
-        sh(h,i,'no','✗ At least 3 characters.');
-        return;
-      }
+  const username = value.trim().toLowerCase();
 
-      if(!/^[a-zA-Z0-9_]+$/.test(norm)){
-        sh(h,i,'no','✗ Letters, numbers and spaces only.');
-        return;
-      }
+  if (username.length < 3) {
+    show("✗ At least 3 characters", false);
+    return;
+  }
 
-      sh(h,i,'ld','⏳ Checking…');
-      clearTimeout(unT);
+  show("⏳ Checking...", "loading");
 
-      unT = setTimeout(async() => {
-        try{
-          const { data } = await sb.from('usernames').select('username').eq('username',norm).maybeSingle();
-          if(data) sh(h,i,'no','✗ Already taken — try a different name.');
-          else sh(h,i,'ok',`✓ Available! Saved as: ${norm}`);
-        }catch(e){
-          sh(h,i,'ok',`✓ Looks available! Saved as: ${norm}`);
-        }
-      },500);
-    };
+  const { data } = await sb
+    .from("usernames")
+    .select("username")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (data) {
+    show("✗ Username already taken", false);
+  } else {
+    show("✓ Available", true);
+  }
+
+  function show(msg, state) {
+    hint.textContent = msg;
+    hint.className = "fhint " + (
+      state === true ? "ok" :
+      state === false ? "no" : "ld"
+    );
+    input.classList.remove("good", "bad");
+    input.classList.add(state === true ? "good" : "bad");
+  }
+};
 
     window.liveEM = v => {
       const h=$('emHint'), i=$('uEmail');
@@ -530,7 +538,18 @@
     }
 
     window.signup = async () => {
+      const { data: existing } = await sb
+        .from("usernames")
+        .select("username")
+        .eq("username", un)
+        .maybeSingle();
+      
+      if (existing) {
+        return sMsg('uErr', 'Username already taken.');
+      }
+      
       const raw = $('uName').value.trim();
+      const un = raw.replace(/\s+/g, '_').toLowerCase();
       const un = raw.replace(/\s+/g,'_').toLowerCase();
       const em = $('uEmail').value.trim(),
             pw = $('uPass').value,
@@ -544,7 +563,13 @@
       $('uBtn').disabled = true;
       $('uBtn').textContent = 'CREATING...';
 
-      const { error:ue } = await sb.from('usernames').insert([{username:un}]);
+      const { error: ue } = await sb
+        .from("usernames")
+        .insert([{ username: un }]);
+      
+      if (ue) {
+        return sMsg("uErr", "Username already exists.");
+      }
       if(ue){
         $('uBtn').disabled = false;
         $('uBtn').textContent = 'CREATE ACCOUNT →';
@@ -552,13 +577,20 @@
       }
 
       const { error } = await sb.auth.signUp({
-        email:em,
-        password:pw,
-        options:{
-          data:{ username:un },
-          emailRedirectTo:window.location.href.split('#')[0].split('?')[0]
-        }
-      });
+  email: em,
+  password: pw,
+  options: {
+    data: { username: un },
+    emailRedirectTo: window.location.href.split('#')[0]
+  }
+});
+
+if (error) {
+  if (error.message.includes("User already registered")) {
+    return sMsg('uErr', 'Email already exists.');
+  }
+  return sMsg('uErr', error.message);
+}
 
       $('uBtn').disabled = false;
       $('uBtn').textContent = 'CREATE ACCOUNT →';
