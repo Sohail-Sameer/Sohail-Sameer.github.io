@@ -280,14 +280,6 @@ function ch(el){if(!el||el._c)return;el._c=true;
 document.querySelectorAll('a,button,input,.tile').forEach(ch);
 $('hbg').addEventListener('click',()=>$('mobNav').classList.toggle('open'));
 
-// Event delegation — one handler on the list covers ALL tabs, no per-row onclick needed
-$('tList').addEventListener('click',e=>{
-  const row=e.target.closest('.ti');
-  if(!row||row.dataset.id===undefined)return;
-  const id=row.dataset.id;
-  if(e.target.closest('.tdel'))deleteTodo(id);
-  else toggleTodo(id);
-});
 
 window.addEventListener('load',async()=>{
   const h=window.location.hash;
@@ -421,8 +413,10 @@ function renderTodos(){
   list.innerHTML='';
   filtered.forEach(t=>{
     const d=document.createElement('div');d.className='ti'+(t.done?' done':'');
-    d.dataset.id=t.id;
     d.innerHTML=`<button class="tchk">${t.done?'✓':''}</button><span class="ttxt">${esc(t.text)}</span><button class="tdel">✕</button>`;
+    // Wire clicks after innerHTML so child references exist
+    d.querySelector('.tdel').addEventListener('click',e=>{e.stopPropagation();deleteTodo(t.id);});
+    d.addEventListener('click',e=>{if(!e.target.closest('.tdel'))toggleTodo(t.id);});
     list.appendChild(d);ch(d);ch(d.querySelector('.tdel'));
   });
 }
