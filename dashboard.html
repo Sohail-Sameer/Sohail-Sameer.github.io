@@ -233,7 +233,6 @@
           <div class="chip">📚 Books: <span id="cBooks">—</span></div>
           <div class="chip">❤️ Wishlist: <span id="cWish">—</span></div>
           <div class="chip">✅ Done today: <span id="cDone">—</span></div>
-          <div class="chip">👤 Role: <span id="cRole">—</span></div>
         </div>
       </div>
 
@@ -282,7 +281,6 @@
 
             <div class="tlist" id="tList"></div>
 
-
             <div class="tfoot">
               <span class="tcnt" id="tCnt">0 tasks</span>
               <button class="tclr" onclick="clrDone()">Clear completed</button>
@@ -300,92 +298,487 @@
 
   <div class="toast" id="toast"></div>
 
-
-
-
-
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2</script>
-<script>
-const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
-      SB_ANON='YOUR_KEY';
+  <script>
+    const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
+          SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
 
-const { createClient } = supabase;
-const sb = createClient(SB_URL, SB_ANON);
+    const { createClient } = supabase,
+          sb = createClient(SB_URL, SB_ANON),
+          $ = id => document.getElementById(id);
 
+    let me = null, todos = [], tf = 'all';
 
-let me=null, todos=[], userRole='student';
+    const cur = $('cur'), curR = $('curR');
+    let mx = window.innerWidth/2, my = window.innerHeight/2, rx = mx, ry = my, curActive = false;
 
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX;
+      my = e.clientY;
+      if(!curActive){
+        curActive = true;
+        cur.style.opacity = '1';
+        curR.style.opacity = '.45';
+      }
+      cur.style.left = mx+'px';
+      cur.style.top = my+'px';
+    });
 
+    document.addEventListener('mouseleave', () => {
+      cur.style.opacity='0';
+      curR.style.opacity='0';
+    });
 
-// ✅ FETCH ROLE
-async function loadUserRole(){
-  const {data} = await sb
-    .from('profiles')
-    .select('role')
-    .eq('id', me.id)
-    .single();
+    document.addEventListener('mouseenter', () => {
+      if(curActive){
+        cur.style.opacity='1';
+        curR.style.opacity='.45';
+      }
+    });
 
-  userRole = data?.role || 'student';
+    (function loop(){
+      rx += (mx-rx)*.14;
+      ry += (my-ry)*.14;
+      curR.style.left = rx+'px';
+      curR.style.top = ry+'px';
+      requestAnimationFrame(loop);
+    })();
 
-  document.getElementById('cRole').textContent = userRole;
-}
+    function ch(el){
+      if(!el || el._c) return;
+      el._c = true;
+      el.addEventListener('mouseenter', () => {
+        cur.style.transform='translate(-50%,-50%) scale(2.2)';
+        curR.style.width='52px';
+        curR.style.height='52px';
+        curR.style.borderColor='var(--accent2)';
+      });
+      el.addEventListener('mouseleave', () => {
+        cur.style.transform='translate(-50%,-50%) scale(1)';
+        curR.style.width='34px';
+        curR.style.height='34px';
+        curR.style.borderColor='var(--accent)';
+      });
+    }
 
-// ✅ LOAD APP
-async function loadApp(user){
-  me=user;
-  await loadUserRole();
-  await fetchTodos();
-  applyRoleUI();
-}
+    document.querySelectorAll('a,button,input,.tile').forEach(ch);
 
-// ✅ ROLE UI CONTROL
-function applyRoleUI(){
-  if(userRole === 'student'){
-    document.querySelectorAll('.admin-only').forEach(e=>e.remove());
-  }
-}
+    $('hbg').addEventListener('click', () => $('mobNav').classList.toggle('open'));
 
-// ✅ TODOS
-async function fetchTodos(){
-  const {data} = await sb
-    .from('todos')
-    .select('*')
-    .or(`user_id.eq.${me.id},assigned_to.eq.${me.id}`)
-    .order('created_at');
+    /* ✅ FIX: delegated click handling for todo list */
+    $('tList').addEventListener('click', (e) => {
+      const item = e.target.closest('.ti');
+      if (!item) return;
 
-  todos = data || [];
-  renderTodos();
-}
+      const id = item.dataset.id;
 
-// ✅ ADD TODO
-async function addTodo(){
-  const text=document.getElementById('tIn').value.trim();
-  if(!text)return;
+      if (e.target.closest('.tdel')) {
+        deleteTodo(id);
+        return;
+      }
 
-  await sb.from('todos').insert([{
-    text,
-    done:false,
-    user_id: userRole==='student'?me.id:null,
-    assigned_to: me.id,
-    created_by: me.id
-  }]);
+      toggleTodo(id);
+    });
 
-  fetchTodos();
-}
+    window.addEventListener('load', async () => {
+      const h = window.location.hash;
 
-// ✅ RENDER
-function renderTodos(){
-  const list=document.getElementById('tList');
-  list.innerHTML = todos.map(t=>`
-    <div>${t.text} ${t.done?'✅':''}</div>
-  `).join('');
-}
-// INIT
-sb.auth.getUser().then(({data})=>{
-  if(data.user) loadApp(data.user);
-});
-</script>
+      if(h.includes('access_token') || h.includes('type=signup')){
+        await sb.auth.getSession();
+        history.replaceState(null,'',window.location.pathname);
+        $('loader').style.display='none';
+        $('authWrap').style.display='flex';
+        switchTab('in');
+
+        const b = document.createElement('div');
+        b.className='amsg ok';
+        b.style.display='block';
+        b.textContent='✅ Email verified! You can now sign in.';
+        document.querySelector('.auth-card').insertBefore(b, document.querySelector('.atabs'));
+        return;
+      }
+
+      const { data:{ session } } = await sb.auth.getSession();
+      $('loader').style.display='none';
+
+      if(session){
+        me = session.user;
+        loadApp(session.user);
+      } else {
+        $('authWrap').style.display='flex';
+      }
+
+      sb.auth.onAuthStateChange((_,s) => {
+        if(s){
+          me = s.user;
+          loadApp(s.user);
+        } else {
+          me = null;
+          $('app').style.display='none';
+          $('authWrap').style.display='flex';
+        }
+      });
+    });
+
+    window.switchTab = t => {
+      $('fIn').style.display = t==='in' ? 'block' : 'none';
+      $('fUp').style.display = t==='up' ? 'block' : 'none';
+      $('authH').textContent = t==='in' ? 'Welcome Back' : 'Create Account';
+      $('authS').textContent = t==='in'
+        ? 'Sign in to access your personal dashboard.'
+        : 'Create your free account — no credit card needed.';
+      document.querySelectorAll('.atab').forEach((x,i)=>
+        x.classList.toggle('on', (t==='in' && i===0) || (t==='up' && i===1))
+      );
+    };
+
+    let unT = null;
+
+    window.liveUN = v => {
+      const h=$('unHint'), i=$('uName');
+      i.classList.remove('good','bad');
+      h.className='fhint';
+      h.textContent='';
+
+      if(!v) return;
+
+      const norm = v.trim().replace(/\s+/g,'_').toLowerCase();
+
+      if(norm.length<3){
+        sh(h,i,'no','✗ At least 3 characters.');
+        return;
+      }
+
+      if(!/^[a-zA-Z0-9_]+$/.test(norm)){
+        sh(h,i,'no','✗ Letters, numbers and spaces only.');
+        return;
+      }
+
+      sh(h,i,'ld','⏳ Checking…');
+      clearTimeout(unT);
+
+      unT = setTimeout(async() => {
+        try{
+          const { data } = await sb.from('usernames').select('username').eq('username',norm).maybeSingle();
+          if(data) sh(h,i,'no','✗ Already taken — try a different name.');
+          else sh(h,i,'ok',`✓ Available! Saved as: ${norm}`);
+        }catch(e){
+          sh(h,i,'ok',`✓ Looks available! Saved as: ${norm}`);
+        }
+      },500);
+    };
+
+    window.liveEM = v => {
+      const h=$('emHint'), i=$('uEmail');
+      i.classList.remove('good','bad');
+      h.className='fhint';
+      h.textContent='';
+      if(!v) return;
+
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) sh(h,i,'no','✗ Invalid email.');
+      else sh(h,i,'ok','✓ Looks good!');
+    };
+
+    window.livePW = v => {
+      const h=$('pwHint'), i=$('uPass');
+      i.classList.remove('good','bad');
+      h.className='fhint';
+      h.textContent='';
+      if(!v) return;
+
+      if(v.length<6) sh(h,i,'no','✗ Min 6 chars.');
+      else sh(h,i,'ok','✓ Strong!');
+
+      if($('uPass2').value) livePW2($('uPass2').value);
+    };
+
+    window.livePW2 = v => {
+      const h=$('pw2Hint'), i=$('uPass2');
+      i.classList.remove('good','bad');
+      h.className='fhint';
+      h.textContent='';
+      if(!v) return;
+
+      const m = $('uPass').value === v;
+      sh(h,i,m ? 'ok' : 'no', m ? '✓ Match!' : '✗ No match.');
+    };
+
+    function sh(el,inp,t,m){
+      el.textContent = m;
+      el.className = 'fhint ' + t;
+      inp.classList.remove('good','bad');
+      inp.classList.add(t === 'ok' ? 'good' : 'bad');
+    }
+
+    function sMsg(id,msg,t='err'){
+      const el=$(id);
+      el.textContent=msg;
+      el.className='amsg '+t;
+      el.style.display='block';
+      if(t!=='ok') setTimeout(() => el.style.display='none', 5500);
+    }
+
+    function sbE(m){
+      const mp = {
+        'Invalid login credentials':'Incorrect email or password.',
+        'Email not confirmed':'Confirm your email first.',
+        'User already registered':'Account exists with this email.',
+        'For security purposes':'Too many attempts. Wait a moment.'
+      };
+      for(const [k,v] of Object.entries(mp)) if(m.includes(k)) return v;
+      return m || 'Something went wrong.';
+    }
+
+    window.signup = async () => {
+      const raw = $('uName').value.trim();
+      const un = raw.replace(/\s+/g,'_').toLowerCase();
+      const em = $('uEmail').value.trim(),
+            pw = $('uPass').value,
+            pw2 = $('uPass2').value;
+
+      if(!raw || !em || !pw || !pw2) return sMsg('uErr','Fill in all fields.');
+      if($('unHint').classList.contains('no')) return sMsg('uErr','Fix username first.');
+      if($('emHint').classList.contains('no')) return sMsg('uErr','Fix email first.');
+      if(pw !== pw2) return sMsg('uErr','Passwords do not match.');
+
+      $('uBtn').disabled = true;
+      $('uBtn').textContent = 'CREATING...';
+
+      const { error:ue } = await sb.from('usernames').insert([{username:un}]);
+      if(ue){
+        $('uBtn').disabled = false;
+        $('uBtn').textContent = 'CREATE ACCOUNT →';
+        return sMsg('uErr','Username already taken.');
+      }
+
+      const { error } = await sb.auth.signUp({
+        email:em,
+        password:pw,
+        options:{
+          data:{ username:un },
+          emailRedirectTo:window.location.href.split('#')[0].split('?')[0]
+        }
+      });
+
+      $('uBtn').disabled = false;
+      $('uBtn').textContent = 'CREATE ACCOUNT →';
+
+      if(error) return sMsg('uErr', sbE(error.message));
+
+      $('uErr').style.display='none';
+      sMsg('uOk','✓ Account created! Check your email for the confirmation link.','ok');
+    };
+
+    window.login = async () => {
+      const em = $('lEmail').value.trim(),
+            pw = $('lPass').value;
+
+      if(!em || !pw) return sMsg('lErr','Fill in all fields.');
+
+      $('lBtn').disabled = true;
+      $('lBtn').textContent = 'SIGNING IN...';
+
+      const { error } = await sb.auth.signInWithPassword({email:em,password:pw});
+
+      if(error){
+        sMsg('lErr', sbE(error.message));
+        $('lBtn').disabled = false;
+        $('lBtn').textContent = 'SIGN IN →';
+      }
+    };
+
+    window.logout = async () => sb.auth.signOut();
+
+    /* ✅ FIX: only submit auth forms when auth screen is visible */
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      if ($('authWrap').style.display !== 'flex') return;
+
+      if ($('fIn').style.display !== 'none') login();
+      else if ($('fUp').style.display !== 'none') signup();
+    });
+
+    async function loadApp(user){
+      const un = user.user_metadata?.username || user.email.split('@')[0];
+      const displayName = un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+
+      await sb.from('profiles').upsert({id:user.id, username:un},{onConflict:'id'});
+
+      $('authWrap').style.display='none';
+      $('app').style.display='block';
+      $('navWho').textContent=displayName;
+      $('footWho').textContent=displayName;
+
+      const h = new Date().getHours();
+      $('gTime').textContent = h<12 ? 'GOOD MORNING' : h<17 ? 'GOOD AFTERNOON' : 'GOOD EVENING';
+      $('gName').textContent = displayName;
+      $('gDate').textContent = new Date().toLocaleDateString('en-IN',{
+        weekday:'long',
+        year:'numeric',
+        month:'long',
+        day:'numeric'
+      });
+
+      const rO = new IntersectionObserver(es=>{
+        es.forEach((e,i)=>{
+          if(!e.isIntersecting) return;
+          setTimeout(()=>e.target.classList.add('on'), i*80);
+          rO.unobserve(e.target);
+        });
+      },{threshold:.1});
+
+      document.querySelectorAll('.rev').forEach(r=>rO.observe(r));
+
+      await Promise.all([fetchTodos(), fetchStats()]);
+    }
+
+    async function fetchStats(){
+      const [bk,wl,sj] = await Promise.all([
+        sb.from('books').select('id',{count:'exact',head:true}).eq('user_id',me.id),
+        sb.from('wishlist').select('id',{count:'exact',head:true}).eq('user_id',me.id),
+        sb.from('subjects').select('id',{count:'exact',head:true}).eq('user_id',me.id),
+      ]);
+
+      $('sBooks').textContent = bk.count ?? 0;
+      $('sWish').textContent = wl.count ?? 0;
+      $('tBooks').textContent = (bk.count ?? 0) + ' books';
+      $('tSubj').textContent = (sj.count ?? 0) + ' subjects';
+      $('cBooks').textContent = bk.count ?? 0;
+      $('cWish').textContent = wl.count ?? 0;
+
+      updStats();
+    }
+
+    function updStats(){
+      const p = todos.filter(t=>!t.done).length,
+            d = todos.filter(t=>t.done).length;
+
+      $('sPend').textContent = p;
+      $('sDone').textContent = d;
+      $('cDone').textContent = d;
+    }
+
+    async function fetchTodos(){
+      const { data } = await sb.from('todos').select('*').eq('user_id',me.id).order('created_at',{ascending:true});
+      todos = data || [];
+      renderTodos();
+      updStats();
+    }
+
+    window.addTodo = async () => {
+      const text = $('tIn').value.trim();
+      if(!text) return;
+
+      $('tIn').value = '';
+
+      const tmp = { id:'tmp'+Date.now(), text, done:false, user_id:me.id };
+      todos.push(tmp);
+      renderTodos();
+      updStats();
+
+      const { data, error } = await sb.from('todos').insert([{text,done:false,user_id:me.id}]).select().single();
+
+      if(error){
+        todos = todos.filter(x=>x.id!==tmp.id);
+        renderTodos();
+        updStats();
+        toast('Error.','err');
+        return;
+      }
+
+      todos = todos.map(x=>x.id===tmp.id ? data : x);
+      renderTodos();
+      updStats();
+    };
+
+    window.toggleTodo = async id => {
+      const t = todos.find(x => String(x.id) === String(id));
+      if(!t) return;
+
+      t.done = !t.done;
+      renderTodos();
+      updStats();
+
+      await sb.from('todos').update({done:t.done}).eq('id',id).eq('user_id',me.id);
+    };
+
+    window.deleteTodo = async id => {
+      todos = todos.filter(x => String(x.id) !== String(id));
+      renderTodos();
+      updStats();
+
+      await sb.from('todos').delete().eq('id',id).eq('user_id',me.id);
+    };
+
+    window.clrDone = async () => {
+      const ids = todos.filter(t=>t.done).map(t=>t.id);
+      if(!ids.length) return;
+
+      todos = todos.filter(t=>!t.done);
+      renderTodos();
+      updStats();
+
+      await sb.from('todos').delete().in('id',ids).eq('user_id',me.id);
+      toast(`🗑️ ${ids.length} cleared.`,'info');
+    };
+
+    window.setF = (f,btn) => {
+      tf = f;
+      document.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));
+      btn.classList.add('on');
+      renderTodos();
+    };
+
+    /* ✅ FIXED renderTodos() */
+    function renderTodos(){
+      const list = $('tList');
+
+      const filtered =
+        tf === 'active'
+          ? todos.filter(t => !t.done)
+          : tf === 'done'
+          ? todos.filter(t => t.done)
+          : todos;
+
+      const pend = todos.filter(t => !t.done).length;
+      $('tCnt').textContent = `${pend} task${pend !== 1 ? 's' : ''} remaining`;
+
+      if(!filtered.length){
+        list.innerHTML = `<div class="tempty">${
+          tf === 'done'
+            ? 'No completed tasks.'
+            : tf === 'active'
+            ? 'No active tasks!'
+            : 'Add a task above!'
+        }</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(t => `
+        <div class="ti${t.done ? ' done' : ''}" data-id="${t.id}">
+          <button type="button" class="tchk">${t.done ? '✓' : ''}</button>
+          <span class="ttxt">${esc(t.text)}</span>
+          <button type="button" class="tdel">✕</button>
+        </div>
+      `).join('');
+
+      list.querySelectorAll('.ti, .tdel, .tchk').forEach(ch);
+    }
+
+    function esc(s){
+      return String(s || '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+
+    function toast(m,t='ok'){
+      const el = $('toast');
+      el.textContent = m;
+      el.className = 'toast ' + t + ' show';
+      setTimeout(() => el.className = 'toast ' + t, 3200);
+    }
+  </script>
 </body>
 </html>
