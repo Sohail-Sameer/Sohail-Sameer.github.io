@@ -538,68 +538,76 @@
     }
 
     window.signup = async () => {
-      const { data: existing } = await sb
-        .from("usernames")
-        .select("username")
-        .eq("username", un)
-        .maybeSingle();
-      
-      if (existing) {
-        return sMsg('uErr', 'Username already taken.');
-      }
-      
-      const raw = $('uName').value.trim();
-      const un = raw.replace(/\s+/g, '_').toLowerCase();
-      const un = raw.replace(/\s+/g,'_').toLowerCase();
-      const em = $('uEmail').value.trim(),
-            pw = $('uPass').value,
-            pw2 = $('uPass2').value;
 
-      if(!raw || !em || !pw || !pw2) return sMsg('uErr','Fill in all fields.');
-      if($('unHint').classList.contains('no')) return sMsg('uErr','Fix username first.');
-      if($('emHint').classList.contains('no')) return sMsg('uErr','Fix email first.');
-      if(pw !== pw2) return sMsg('uErr','Passwords do not match.');
+  const raw = $('uName').value.trim();
+  const un = raw.replace(/\s+/g,'_').toLowerCase();
 
-      $('uBtn').disabled = true;
-      $('uBtn').textContent = 'CREATING...';
+  const em = $('uEmail').value.trim();
+  const pw = $('uPass').value;
+  const pw2 = $('uPass2').value;
 
-      const { error: ue } = await sb
-        .from("usernames")
-        .insert([{ username: un }]);
-      
-      if (ue) {
-        return sMsg("uErr", "Username already exists.");
-      }
-      if(ue){
-        $('uBtn').disabled = false;
-        $('uBtn').textContent = 'CREATE ACCOUNT →';
-        return sMsg('uErr','Username already taken.');
-      }
+  if(!raw || !em || !pw || !pw2)
+    return sMsg('uErr','Fill in all fields.');
 
-      const { error } = await sb.auth.signUp({
-  email: em,
-  password: pw,
-  options: {
-    data: { username: un },
-    emailRedirectTo: window.location.href.split('#')[0]
+  if($('unHint').classList.contains('no'))
+    return sMsg('uErr','Fix username first.');
+
+  if($('emHint').classList.contains('no'))
+    return sMsg('uErr','Fix email first.');
+
+  if(pw !== pw2)
+    return sMsg('uErr','Passwords do not match.');
+
+  $('uBtn').disabled = true;
+  $('uBtn').textContent = 'CREATING...';
+
+  // ✅ Check username first
+  const { data: existing } = await sb
+    .from('usernames')
+    .select('username')
+    .eq('username', un)
+    .maybeSingle();
+
+  if(existing){
+    $('uBtn').disabled=false;
+    $('uBtn').textContent='CREATE ACCOUNT →';
+    return sMsg('uErr','Username already taken.');
   }
-});
 
-if (error) {
-  if (error.message.includes("User already registered")) {
-    return sMsg('uErr', 'Email already exists.');
+  // ✅ Reserve username
+  const { error: ue } = await sb
+    .from('usernames')
+    .insert([{ username: un }]);
+
+  if(ue){
+    $('uBtn').disabled=false;
+    $('uBtn').textContent='CREATE ACCOUNT →';
+    return sMsg('uErr','Username already exists.');
   }
-  return sMsg('uErr', error.message);
-}
 
-      $('uBtn').disabled = false;
-      $('uBtn').textContent = 'CREATE ACCOUNT →';
+  // ✅ Create account
+  const { error } = await sb.auth.signUp({
+    email: em,
+    password: pw,
+    options: {
+      data: { username: un },
+      emailRedirectTo: window.location.href.split('#')[0]
+    }
+  });
 
-      if(error) return sMsg('uErr', sbE(error.message));
+  $('uBtn').disabled=false;
+  $('uBtn').textContent='CREATE ACCOUNT →';
 
-      $('uErr').style.display='none';
-      sMsg('uOk','✓ Account created! Check your email for the confirmation link.','ok');
-    };
+  if(error){
+    if(error.message.includes('User already')){
+      return sMsg('uErr','Email already exists.');
+    }
+    return sMsg('uErr', error.message);
+  }
+
+  $('uErr').style.display='none';
+  sMsg('uOk','✓ Account created! Check your email.','ok');
+};
 
     window.login = async () => {
       const em = $('lEmail').value.trim(),
