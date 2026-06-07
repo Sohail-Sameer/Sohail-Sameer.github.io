@@ -434,47 +434,42 @@
 
     let unT = null;
 
-    window.liveUN = async (value) => {
-  const input = document.getElementById("uName");
-  const hint = document.getElementById("unHint");
-
-  input.classList.remove("good", "bad");
-  hint.className = "fhint";
-  hint.textContent = "";
-
-  if (!value) return;
-
-  const username = value.trim().toLowerCase();
-
-  if (username.length < 3) {
-    show("✗ At least 3 characters", false);
-    return;
-  }
-
-  show("⏳ Checking...", "loading");
-
-  const { data } = await sb
-    .from("usernames")
-    .select("username")
-    .eq("username", username)
-    .maybeSingle();
-
-  if (data) {
-    show("✗ Username already taken", false);
-  } else {
-    show("✓ Available", true);
-  }
-
-  function show(msg, state) {
-    hint.textContent = msg;
-    hint.className = "fhint " + (
-      state === true ? "ok" :
-      state === false ? "no" : "ld"
-    );
-    input.classList.remove("good", "bad");
-    input.classList.add(state === true ? "good" : "bad");
-  }
-};
+    window.liveUN = v => {
+      const h = $('unHint'), i = $('uName');
+    
+      i.classList.remove('good','bad');
+      h.className = 'fhint';
+      h.textContent = '';
+    
+      if(!v) return;
+    
+      const norm = v.trim().replace(/\s+/g,'_').toLowerCase();
+    
+      if(norm.length < 3){
+        return sh(h,i,'no','✗ At least 3 characters.');
+      }
+    
+      if(!/^[a-zA-Z0-9_]+$/.test(norm)){
+        return sh(h,i,'no','✗ Letters & numbers only.');
+      }
+    
+      sh(h,i,'ld','⏳ Checking...');
+    
+      clearTimeout(unT);
+      unT = setTimeout(async()=>{
+        const { data } = await sb
+          .from('usernames')
+          .select('username')
+          .eq('username', norm)
+          .maybeSingle();
+    
+        if(data){
+          sh(h,i,'no','✗ Already taken');
+        }else{
+          sh(h,i,'ok','✓ Available');
+        }
+      },400);
+    };
 
     window.liveEM = v => {
       const h=$('emHint'), i=$('uEmail');
@@ -806,12 +801,12 @@
     }
 
     function esc(s){
-      return String(s || '')
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;');
-    }
+    return String(s || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+}
 
     function toast(m,t='ok'){
       const el = $('toast');
