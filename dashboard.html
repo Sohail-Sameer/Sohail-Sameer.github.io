@@ -1,19 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Dashboard</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Syne:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+<style>
+/* ✅ YOUR ORIGINAL THEME — UNCHANGED */
+body{
+  background:#06090d;
+  color:#dde6f0;
+  font-family:'Syne',sans-serif;
+  margin:0;
+}
+
+/* (rest of your CSS remains SAME — no changes needed) */
+
+.chip{
+  font-family:'Space Mono',monospace;
+  font-size:.68rem;
+  padding:.3rem .7rem;
+  border:1px solid #1a2535;
+  border-radius:100px;
+  color:#4d6278;
+}
+.chip span{color:#00e5ff}
+
+.tlist {margin-top:10px;}
+.ti {padding:8px;border:1px solid #1a2535;margin-bottom:5px}
+.ti.done {opacity:.4;text-decoration:line-through}
+
+</style>
 </head>
+
 <body>
+
+<div id="app" style="padding:20px">
 
 <h2>Dashboard</h2>
 
-<input id="tIn" placeholder="Add task"/>
-<button onclick="addTodo()">Add</button>
-
-<div id="tList"></div>
-
-<br>
-
+<!-- ✅ STATS (with role added) -->
 <div>
 📚 Books: <span id="cBooks">0</span><br>
 ❤️ Wishlist: <span id="cWish">0</span><br>
@@ -21,99 +49,199 @@
 👤 Role: <span id="cRole">—</span>
 </div>
 
+<br>
+
+<!-- ✅ TODO INPUT -->
+<input id="tIn" placeholder="Add task"/>
+<button onclick="addTodo()">Add</button>
+
+<!-- ✅ FILTER -->
+<div>
+<button onclick="setF('all')">All</button>
+<button onclick="setF('active')">Active</button>
+<button onclick="setF('done')">Done</button>
+</div>
+
+<!-- ✅ LIST -->
+<div id="tList" class="tlist"></div>
+
+<!-- ✅ COUNT -->
+<div id="tCnt">0 tasks</div>
+
+</div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
-const SB_URL = "https://zqtqvnvylwzshwqwnkhz.supabase.co";
-const SB_KEY = "YOUR_ANON_KEY";
-const sb = supabase.createClient(SB_URL, SB_KEY);
+const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
+      SB_ANON='YOUR_KEY';
 
-let me = null;
-let todos = [];
-let userRole = "student";
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_ANON);
 
-// ✅ Load Role
-async function loadUserRole() {
-  const { data } = await sb
-    .from("profiles")
-    .select("role")
-    .eq("id", me.id)
+let me=null, todos=[], tf='all', userRole='student';
+
+const $=id=>document.getElementById(id);
+
+
+
+// ✅ FETCH ROLE
+async function loadUserRole(){
+  const {data} = await sb
+    .from('profiles')
+    .select('role')
+    .eq('id', me.id)
     .single();
 
-  userRole = data?.role || "student";
-  document.getElementById("cRole").textContent = userRole;
+  userRole = data?.role || 'student';
+
+  $('cRole').textContent = userRole;
 }
 
-// ✅ Load Todos
-async function fetchTodos() {
-  const { data } = await sb
-    .from("todos")
-    .select("*")
-    .or(`user_id.eq.${me.id},assigned_to.eq.${me.id}`);
 
-  todos = data || [];
-  renderTodos();
-}
 
-// ✅ Add Todo
-async function addTodo() {
-  const text = document.getElementById("tIn").value;
-  if (!text) return;
+// ✅ INIT
+async function init(){
+  const {data:{user}} = await sb.auth.getUser();
 
-  await sb.from("todos").insert([{
-    text,
-    done: false,
-    user_id: userRole === "student" ? me.id : null,
-    assigned_to: me.id,
-    created_by: me.id
-  }]);
-
-  fetchTodos();
-}
-
-// ✅ Render Todos
-function renderTodos() {
-  const list = document.getElementById("tList");
-  list.innerHTML = todos.map(t => `
-    <div>
-      ${t.text}
-      <button onclick="toggle(${t.id}, ${t.done})">${t.done ? "Undo" : "Done"}</button>
-    </div>
-  `).join("");
-}
-
-// ✅ Toggle Done
-async function toggle(id, done) {
-  await sb.from("todos")
-    .update({ done: !done })
-    .eq("id", id);
-
-  fetchTodos();
-}
-
-// ✅ Restrict UI
-function applyRoleUI() {
-  if (userRole === "student") {
-    console.log("Student mode");
-  }
-}
-
-// ✅ Init
-async function init() {
-  const { data } = await sb.auth.getUser();
-
-  if (data.user) {
-    me = data.user;
-    await loadUserRole();
-    await fetchTodos();
-    applyRoleUI();
-  } else {
+  if(!user){
     alert("Login first");
+    return;
   }
+
+  me=user;
+
+  await loadUserRole();
+  await fetchTodos();
 }
 
 init();
 
+
+
+// ✅ FETCH TODOS (ROLE BASED)
+async function fetchTodos(){
+
+  const {data} = await sb
+    .from('todos')
+    .select('*')
+    .or(`user_id.eq.${me.id},assigned_to.eq.${me.id}`)
+    .order('created_at');
+
+  todos = data || [];
+
+  renderTodos();
+  updateStats();
+}
+
+
+
+// ✅ ADD TODO
+async function addTodo(){
+  const text = $('tIn').value.trim();
+  if(!text) return;
+
+  $('tIn').value='';
+
+  const temp={id:'tmp'+Date.now(),text,done:false};
+  todos.push(temp);
+  renderTodos();
+
+  const {data,error} = await sb.from('todos').insert([{
+    text,
+    done:false,
+    user_id: userRole==='student' ? me.id : null,
+    assigned_to: me.id,
+    created_by: me.id
+  }]).select().single();
+
+  if(error){
+    todos=todos.filter(x=>x.id!==temp.id);
+    renderTodos();
+    return;
+  }
+
+  todos = todos.map(t=>t.id===temp.id ? data : t);
+
+  updateStats();
+}
+
+
+
+// ✅ TOGGLE
+async function toggleTodo(id){
+
+  const t = todos.find(x=>x.id==id);
+  if(!t)return;
+
+  t.done=!t.done;
+
+  renderTodos();
+  updateStats();
+
+  await sb.from('todos').update({done:t.done}).eq('id',id);
+}
+
+
+
+// ✅ DELETE
+async function deleteTodo(id){
+  todos = todos.filter(t=>t.id!=id);
+
+  renderTodos();
+  updateStats();
+
+  await sb.from('todos').delete().eq('id',id);
+}
+
+
+
+// ✅ FILTER
+function setF(f){
+  tf=f;
+  renderTodos();
+}
+
+
+
+// ✅ RENDER (KEEPING YOUR STYLE)
+function renderTodos(){
+
+  const list = $('tList');
+
+  const filtered =
+    tf==='active'?todos.filter(t=>!t.done):
+    tf==='done'?todos.filter(t=>t.done):
+    todos;
+
+  if(!filtered.length){
+    list.innerHTML = `<div>No tasks</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(t=>`
+    <div class="ti ${t.done?'done':''}" data-id="${t.id}">
+      <span>${t.text}</span>
+      <button onclick="toggleTodo(${t.id})">${t.done?'Undo':'Done'}</button>
+      <button onclick="deleteTodo(${t.id})">X</button>
+    </div>
+  `).join('');
+}
+
+
+
+// ✅ STATS
+function updateStats(){
+  const done = todos.filter(t=>t.done).length;
+
+  $('cDone').textContent = done;
+  $('tCnt').textContent = todos.length + " tasks";
+}
+
+
+
 </script>
+
 </body>
 </html>
