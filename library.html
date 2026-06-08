@@ -299,7 +299,11 @@ async function loadApp(user){
   const displayName=un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
   const{data:profile}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
   userRole=profile?.role||'student';
-  await sb.from('profiles').upsert({id:user.id,username:un},{onConflict:'id'});
+  if(!profile){
+    await sb.from('profiles').insert({id:user.id,username:un,role:'student'});
+  } else {
+    await sb.from('profiles').update({username:un}).eq('id',user.id);
+  }
   $('authWrap').style.display='none';$('app').style.display='block';
   $('navWho').textContent=displayName;$('footWho').textContent=displayName;
   const rb=$('roleBadge');rb.textContent=userRole.toUpperCase();rb.className='role-badge role-'+userRole;
