@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Attendance Tracker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Attendance</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-    :root{--bg:#06090d;--surface:#0c1017;--card:#111820;--border:#1a2535;--accent:#00e5ff;--accent2:#6d28d9;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--text:#dde6f0;--muted:#4d6278;--glow:0 0 40px rgba(0,229,255,.12);}
+    :root{--bg:#06090d;--surface:#0c1017;--card:#111820;--border:#1a2535;--accent:#00e5ff;--accent2:#6d28d9;--green:#10b981;--red:#ef4444;--text:#dde6f0;--muted:#4d6278;--glow:0 0 40px rgba(0,229,255,.12);}
     html{scroll-behavior:smooth;}
     body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;cursor:none;}
     body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.022) 1px,transparent 1px);background-size:64px 64px;pointer-events:none;z-index:0;}
@@ -17,142 +17,139 @@
     #loader{position:fixed;inset:0;z-index:600;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;}
     .ld-logo{font-family:'Space Mono',monospace;color:var(--accent);font-size:clamp(.85rem,2vw,1rem);letter-spacing:.1em;}
     .spinner{width:34px;height:34px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;}
-    .spinner.sm{width:14px;height:14px;display:inline-block;vertical-align:middle;border-width:2px;}
     @keyframes spin{to{transform:rotate(360deg)}}
     /* AUTH */
-    #authWrap{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;background:var(--bg);padding:1rem;}
-    .auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:clamp(1.5rem,5vw,2.5rem);width:100%;max-width:420px;box-shadow:0 0 60px rgba(0,229,255,.06);}
+    #authWrap{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;background:var(--bg);padding:1rem;overflow-y:auto;}
+    .auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:clamp(1.5rem,5vw,2.6rem);width:100%;max-width:420px;box-shadow:0 0 60px rgba(0,229,255,.06);position:relative;z-index:1;margin:auto;}
     .auth-logo{font-family:'Space Mono',monospace;color:var(--accent);font-size:.82rem;margin-bottom:1.3rem;letter-spacing:.1em;}
-    .auth-h{font-size:clamp(1.4rem,4vw,1.75rem);font-weight:800;margin-bottom:.35rem;}
-    .auth-sub{color:var(--muted);font-size:clamp(.76rem,2vw,.84rem);margin-bottom:1.6rem;line-height:1.55;}
+    .auth-h{font-size:clamp(1.4rem,4vw,1.8rem);font-weight:800;margin-bottom:.35rem;}
+    .auth-sub{color:var(--muted);font-size:.84rem;margin-bottom:1.6rem;line-height:1.55;}
     .fg{margin-bottom:.95rem;}
-    .fg label{display:block;font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.4vw,.66rem);letter-spacing:.1em;color:var(--muted);margin-bottom:.4rem;}
-    .fg input,.fg select{width:100%;padding:clamp(.62rem,2vw,.76rem) 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:clamp(.83rem,2vw,.92rem);outline:none;transition:border-color .2s;cursor:none;appearance:none;}
-    .fg input:focus,.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.07);}
-    .btn-main{width:100%;padding:.86rem;background:var(--accent);color:#06090d;border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:clamp(.7rem,1.8vw,.8rem);font-weight:700;letter-spacing:.05em;cursor:none;transition:all .22s;margin-top:.3rem;}
+    .fg label{display:flex;align-items:center;gap:.4rem;font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.1em;color:var(--muted);margin-bottom:.4rem;}
+    .fg input{width:100%;padding:.72rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:.92rem;outline:none;transition:border-color .2s;cursor:none;}
+    .fg input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.07);}
+    .btn-main{width:100%;padding:.86rem;background:var(--accent);color:#06090d;border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:.8rem;font-weight:700;letter-spacing:.05em;cursor:none;transition:all .22s;margin-top:.3rem;}
     .btn-main:hover{box-shadow:0 0 32px rgba(0,229,255,.35);transform:translateY(-1px);}
     .btn-main:disabled{opacity:.45;transform:none;box-shadow:none;}
-    .amsg.err{padding:.7rem 1rem;border-radius:8px;font-family:'Space Mono',monospace;font-size:.74rem;margin-top:.85rem;display:none;background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.28);color:#fca5a5;}
+    .amsg{padding:.7rem 1rem;border-radius:8px;font-family:'Space Mono',monospace;font-size:.72rem;margin-top:.85rem;display:none;}
+    .amsg.err{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.28);color:#fca5a5;}
     /* NAV */
     nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:.9rem clamp(1rem,5vw,3rem);background:rgba(6,9,13,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
     .nav-logo{font-family:'Space Mono',monospace;color:var(--accent);font-size:clamp(.7rem,1.8vw,.86rem);}
-    .nav-r{display:flex;align-items:center;gap:clamp(.6rem,2vw,1.2rem);}
-    .nav-who{font-family:'Space Mono',monospace;font-size:clamp(.6rem,1.4vw,.72rem);color:var(--muted);}
-    .nav-who span{color:var(--accent);}
-    .nav-lnk{text-decoration:none;font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.3vw,.68rem);color:var(--muted);transition:color .2s;}
+    .nav-r{display:flex;align-items:center;gap:clamp(.5rem,1.5vw,1rem);}
+    .role-badge{font-family:'Space Mono',monospace;font-size:.58rem;padding:.2rem .6rem;border-radius:100px;letter-spacing:.08em;font-weight:700;}
+    .role-student{background:rgba(0,229,255,.1);color:var(--accent);border:1px solid rgba(0,229,255,.3);}
+    .role-admin{background:rgba(109,40,217,.15);color:#a78bfa;border:1px solid rgba(109,40,217,.4);}
+    .role-master{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.35);}
+    .nav-who{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted);}
+    .nav-lnk{text-decoration:none;font-family:'Space Mono',monospace;font-size:.68rem;color:var(--muted);transition:color .2s;}
     .nav-lnk:hover{color:var(--accent);}
-    .btn-out{padding:.4rem clamp(.55rem,1.8vw,.85rem);background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Space Mono',monospace;font-size:clamp(.56rem,1.3vw,.66rem);cursor:none;transition:all .2s;}
+    .btn-out{padding:.4rem .85rem;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Space Mono',monospace;font-size:.66rem;cursor:none;transition:all .2s;}
     .btn-out:hover{border-color:var(--red);color:var(--red);}
     .hbg{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:none;padding:4px;}
     .hbg span{width:21px;height:2px;background:var(--text);border-radius:2px;display:block;}
     .mob-nav{display:none;position:absolute;top:100%;left:0;right:0;background:rgba(6,9,13,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);flex-direction:column;padding:1.2rem clamp(1rem,5vw,3rem);gap:1rem;}
     .mob-nav.open{display:flex;}
     .mob-nav a{text-decoration:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;transition:color .2s;}
-    .mob-nav a:hover{color:var(--accent);}
     #app{display:none;min-height:100vh;position:relative;z-index:1;}
-    .wrap{padding:clamp(1.5rem,5vw,3rem) clamp(1rem,5vw,3rem);max-width:1180px;margin:0 auto;}
-    /* PAGE HEADER */
-    .pg-hdr{margin-bottom:2rem;}
-    .eyebrow{font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.4vw,.68rem);letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:.55rem;}
-    .pg-title{font-size:clamp(1.7rem,5vw,2.5rem);font-weight:800;letter-spacing:-.022em;margin-bottom:.4rem;}
-    .pg-sub{color:var(--muted);font-size:clamp(.76rem,1.8vw,.86rem);}
-    /* MIN ATTENDANCE BANNER */
-    .min-banner{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem 1.4rem;display:flex;align-items:center;gap:1.2rem;margin-bottom:2rem;flex-wrap:wrap;}
-    .min-lbl{font-family:'Space Mono',monospace;font-size:clamp(.62rem,1.4vw,.72rem);color:var(--muted);white-space:nowrap;}
-    .min-inp{width:80px;padding:.45rem .7rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:.84rem;outline:none;text-align:center;transition:border-color .2s;cursor:none;}
-    .min-inp:focus{border-color:var(--accent);}
-    .min-unit{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted);}
-    .min-save{padding:.45rem 1rem;background:var(--accent);color:#06090d;border:none;border-radius:7px;font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;cursor:none;transition:all .22s;}
-    .min-save:hover{box-shadow:0 0 16px rgba(0,229,255,.3);transform:translateY(-1px);}
-    .min-note{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-left:auto;}
-    /* OVERALL STATS */
-    .overall{display:grid;grid-template-columns:repeat(auto-fit,minmax(clamp(120px,16vw,150px),1fr));gap:.9rem;margin-bottom:2rem;}
-    .ov{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;text-align:center;}
-    .ov-v{font-family:'Space Mono',monospace;font-size:clamp(1.3rem,3vw,1.8rem);font-weight:700;line-height:1;}
-    .ov-l{font-size:clamp(.6rem,1.4vw,.68rem);color:var(--muted);margin-top:.25rem;}
-    .c-safe{color:var(--green);}.c-warn{color:var(--amber);}.c-danger{color:var(--red);}.c-accent{color:var(--accent);}
-    /* TABS */
-    .view-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:2rem;}
-    .vtab{padding:.85rem clamp(.8rem,2.5vw,1.4rem);font-family:'Space Mono',monospace;font-size:clamp(.62rem,1.5vw,.72rem);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:none;transition:all .2s;white-space:nowrap;}
-    .vtab:hover{color:var(--text);}
-    .vtab.on{color:var(--accent);border-bottom-color:var(--accent);}
-    .view{display:none;} .view.on{display:block;}
-    /* TIMETABLE VIEW */
-    .tt-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:.8rem;}
-    .sec-lbl{font-family:'Space Mono',monospace;font-size:clamp(.6rem,1.4vw,.7rem);letter-spacing:.18em;text-transform:uppercase;color:var(--accent);}
-    .btn{display:inline-flex;align-items:center;gap:.4rem;padding:clamp(.46rem,1.5vw,.6rem) clamp(.7rem,2vw,1.1rem);border-radius:7px;font-family:'Space Mono',monospace;font-size:clamp(.6rem,1.4vw,.7rem);font-weight:700;letter-spacing:.04em;cursor:none;transition:all .22s;border:none;white-space:nowrap;}
-    .btn-a{background:var(--accent);color:#06090d;} .btn-a:hover{box-shadow:0 0 20px rgba(0,229,255,.35);transform:translateY(-1px);}
-    .btn-g{background:transparent;border:1px solid var(--border);color:var(--muted);} .btn-g:hover{border-color:var(--accent);color:var(--accent);}
-    .btn-r{background:transparent;border:1px solid rgba(239,68,68,.3);color:#fca5a5;} .btn-r:hover{background:rgba(239,68,68,.08);}
-    /* TIMETABLE GRID */
-    .tt-grid{display:grid;grid-template-columns:80px repeat(7,1fr);gap:2px;background:var(--border);border-radius:12px;overflow:hidden;margin-bottom:2rem;min-width:600px;}
-    .tt-wrap{overflow-x:auto;}
-    .tt-cell{background:var(--surface);padding:.5rem .35rem;min-height:36px;display:flex;align-items:center;justify-content:center;}
-    .tt-head{background:var(--card);font-family:'Space Mono',monospace;font-size:clamp(.55rem,1.2vw,.64rem);letter-spacing:.08em;color:var(--muted);text-align:center;}
-    .tt-time{background:var(--card);font-family:'Space Mono',monospace;font-size:clamp(.52rem,1.1vw,.6rem);color:var(--muted);text-align:center;padding:.45rem .3rem;}
-    .tt-slot{background:var(--surface);cursor:none;transition:all .18s;border:none;width:100%;height:100%;min-height:50px;border-radius:0;padding:.3rem .25rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;font-family:'Syne',sans-serif;}
-    .tt-slot:empty{background:var(--surface);}
-    .tt-slot.has-class{background:rgba(0,229,255,.06);cursor:none;}
-    .tt-slot.has-class:hover{background:rgba(0,229,255,.12);}
-    .slot-name{font-size:clamp(.58rem,1.2vw,.66rem);font-weight:700;color:var(--text);text-align:center;line-height:1.2;}
-    .slot-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
-    /* ADD SLOT FORM */
-    .add-slot-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:clamp(1.2rem,3vw,1.7rem);margin-bottom:2rem;}
-    .add-slot-title{font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.12em;color:var(--accent);margin-bottom:1rem;}
-    .add-slot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem;align-items:end;}
-    .add-slot-grid .fg{margin:0;}
-    .csv-box{background:var(--card);border:2px dashed var(--border);border-radius:14px;padding:clamp(1.5rem,4vw,2.2rem);text-align:center;margin-bottom:1.5rem;transition:border-color .2s;}
-    .csv-box:hover{border-color:rgba(0,229,255,.35);}
-    .csv-icon{font-size:2.2rem;margin-bottom:.8rem;}
-    .csv-title{font-size:clamp(.88rem,2vw,1rem);font-weight:700;margin-bottom:.4rem;}
-    .csv-sub{color:var(--muted);font-size:clamp(.72rem,1.6vw,.8rem);margin-bottom:.9rem;line-height:1.5;}
-    .csv-hint{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-top:.6rem;line-height:1.6;}
-    .file-inp{display:none;}
-    .csv-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.68rem 1.4rem;background:var(--accent);color:#06090d;border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:.7rem;font-weight:700;cursor:none;transition:all .22s;}
-    .csv-btn:hover{box-shadow:0 0 20px rgba(0,229,255,.35);transform:translateY(-1px);}
-    /* SUBJECTS VIEW */
-    .subj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(260px,36vw,340px),1fr));gap:1.1rem;}
-    .sc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:clamp(1.1rem,3vw,1.5rem);transition:all .28s;position:relative;}
-    .sc:hover{border-color:rgba(0,229,255,.22);box-shadow:var(--glow);}
-    .sc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.9rem;gap:.5rem;}
-    .sc-name{font-size:clamp(.9rem,2vw,1.05rem);font-weight:700;line-height:1.3;}
-    .sc-del{width:24px;height:24px;border-radius:50%;border:1px solid rgba(239,68,68,.2);background:transparent;color:#fca5a5;font-size:.62rem;cursor:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .18s;flex-shrink:0;}
-    .sc:hover .sc-del{opacity:1;} .sc-del:hover{background:rgba(239,68,68,.15);}
-    .sc-pct-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem;}
-    .sc-pct{font-family:'Space Mono',monospace;font-size:clamp(1.2rem,3vw,1.55rem);font-weight:700;line-height:1;}
-    .sc-counts{font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.2vw,.66rem);color:var(--muted);}
-    .bar-track{background:var(--border);height:4px;border-radius:2px;overflow:hidden;margin-bottom:.9rem;}
+    .wrap{padding:clamp(2rem,6vw,3.5rem) clamp(1rem,5vw,3rem);max-width:1200px;margin:0 auto;}
+    .sec-lbl{font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:.9rem;}
+    /* VIEW TABS */
+    .vtabs{display:flex;gap:.5rem;margin-bottom:1.8rem;flex-wrap:wrap;}
+    .vtab{padding:.42rem 1.1rem;border-radius:8px;font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.06em;cursor:none;background:transparent;border:1px solid var(--border);color:var(--muted);transition:all .2s;}
+    .vtab.on{background:var(--accent);color:#06090d;font-weight:700;border-color:var(--accent);}
+    .view{display:none;}.view.on{display:block;}
+    /* OVERALL STATS BAR */
+    .ov-bar{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.2rem 1.5rem;display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1.8rem;}
+    .ov-col{text-align:center;}
+    .ov-l{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.3rem;letter-spacing:.08em;}
+    .ov-v{font-family:'Space Mono',monospace;font-size:clamp(1rem,2.5vw,1.4rem);font-weight:700;color:var(--text);}
+    .c-safe{color:#6ee7b7;}.c-warn{color:#fbbf24;}.c-danger{color:#fca5a5;}
+    /* SUBJECT CARDS */
+    .subj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(240px,32vw,300px),1fr));gap:1.1rem;}
+    .sc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.3rem 1.4rem;transition:border-color .25s,transform .25s;}
+    .sc:hover{border-color:rgba(0,229,255,.25);transform:translateY(-3px);box-shadow:var(--glow);}
+    .sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;}
+    .sc-name{font-weight:700;font-size:clamp(.88rem,2vw,1rem);}
+    .sc-del{background:transparent;border:1px solid rgba(239,68,68,.22);color:#fca5a5;border-radius:6px;font-size:.6rem;padding:.2rem .55rem;cursor:none;transition:all .2s;}
+    .sc-del:hover{background:rgba(239,68,68,.12);}
+    .sc-pct{font-family:'Space Mono',monospace;font-size:1.55rem;font-weight:700;margin-bottom:.25rem;}
+    .sc-counts{font-family:'Space Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:.65rem;}
+    .bar-bg{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:.65rem;}
     .bar-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1);}
-    .bar-fill.safe{background:var(--green);}.bar-fill.warn{background:var(--amber);}.bar-fill.danger{background:var(--red);}
-    .sc-actions{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;}
-    .mk{padding:.52rem;border-radius:7px;font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.3vw,.66rem);font-weight:700;cursor:none;border:none;transition:all .2s;text-align:center;}
-    .mk-p{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;} .mk-p:hover{background:rgba(16,185,129,.22);}
-    .mk-a{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;} .mk-a:hover{background:rgba(239,68,68,.2);}
-    .mk-u{background:transparent;border:1px solid rgba(0,229,255,.15);color:var(--muted);font-size:.58rem;} .mk-u:hover{border-color:rgba(0,229,255,.3);color:var(--accent);}
-    .sc-skip{font-family:'Space Mono',monospace;font-size:.62rem;margin-top:.65rem;padding:.38rem .7rem;border-radius:6px;text-align:center;line-height:1.4;}
-    .sc-skip.safe{background:rgba(16,185,129,.07);color:#6ee7b7;}
-    .sc-skip.warn{background:rgba(245,158,11,.07);color:#fcd34d;}
-    .sc-skip.danger{background:rgba(239,68,68,.07);color:#fca5a5;}
-    .sc-schedule{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.65rem;}
-    .sched-chip{font-family:'Space Mono',monospace;font-size:.55rem;padding:.18rem .5rem;border-radius:4px;background:var(--surface);border:1px solid var(--border);color:var(--muted);}
+    .bar-safe{background:linear-gradient(90deg,#10b981,#6ee7b7);}
+    .bar-warn{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+    .bar-danger{background:linear-gradient(90deg,#ef4444,#fca5a5);}
+    /* Mark buttons */
+    .mark-row{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.6rem;}
+    .mbtn{padding:.48rem;border-radius:7px;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;cursor:none;border:none;transition:all .2s;}
+    .mbtn.p{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.35);}
+    .mbtn.p:hover{background:rgba(16,185,129,.28);}
+    .mbtn.a{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.28);}
+    .mbtn.a:hover{background:rgba(239,68,68,.2);}
+    .mbtn:disabled{opacity:.4;cursor:not-allowed;}
+    .undo-row{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.6rem;}
+    .ubtn{padding:.35rem;border-radius:6px;font-family:'Space Mono',monospace;font-size:.58rem;cursor:none;background:transparent;border:1px solid var(--border);color:var(--muted);transition:all .2s;}
+    .ubtn:hover{border-color:var(--accent);color:var(--accent);}
+    .skip-msg{font-family:'Space Mono',monospace;font-size:.64rem;padding:.45rem .7rem;border-radius:6px;line-height:1.5;}
+    .skip-msg.safe{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.22);color:#6ee7b7;}
+    .skip-msg.warn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.22);color:#fbbf24;}
+    .skip-msg.danger{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);color:#fca5a5;}
+    .sc-schedule{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.55rem;}
+    .sched-chip{font-family:'Space Mono',monospace;font-size:.56rem;padding:.18rem .55rem;border-radius:100px;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.18);color:var(--muted);}
+    /* ADMIN: student selector */
+    .stu-sel-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1.8rem;}
+    .stu-sel-wrap select{width:100%;padding:.7rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:.9rem;outline:none;cursor:none;margin-top:.4rem;}
+    /* ADMIN: subject management */
+    .subj-mgmt{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1.8rem;}
+    .subj-mgmt .row{display:flex;gap:.55rem;margin-top:.7rem;}
+    .tin{flex:1;padding:.6rem .9rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;cursor:none;}
+    .tin:focus{border-color:var(--accent);}
+    .tin::placeholder{color:var(--muted);}
+    .tadd{padding:.6rem 1rem;background:var(--accent);color:#06090d;border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:.66rem;font-weight:700;cursor:none;transition:all .22s;white-space:nowrap;}
+    .tadd:hover{box-shadow:0 0 16px rgba(0,229,255,.3);transform:translateY(-1px);}
+    /* TIMETABLE */
+    .tt-controls{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.3rem 1.5rem;margin-bottom:1.8rem;}
+    .tt-form{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:.6rem;align-items:end;margin-top:.8rem;}
+    .tt-form select,.tt-form input{padding:.6rem .9rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:.86rem;outline:none;cursor:none;width:100%;}
+    .tt-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tt-grid{display:grid;min-width:600px;gap:2px;}
+    .tt-cell{padding:.45rem .4rem;background:var(--surface);border-radius:6px;min-height:40px;font-family:'Space Mono',monospace;font-size:.62rem;display:flex;align-items:center;justify-content:center;}
+    .tt-head{background:var(--card);color:var(--accent);font-weight:700;letter-spacing:.08em;font-size:.6rem;}
+    .tt-time{background:var(--card);color:var(--muted);font-size:.58rem;}
+    .tt-slot{width:100%;min-height:36px;background:transparent;border:none;border-radius:5px;cursor:none;transition:all .18s;font-family:'Space Mono',monospace;font-size:.64rem;display:flex;align-items:center;justify-content:center;}
+    .tt-slot.has-class{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.22);color:var(--accent);flex-direction:column;gap:2px;padding:.3rem;}
+    .tt-slot.has-class:hover{background:rgba(0,229,255,.18);}
+    .slot-name{font-size:.62rem;font-weight:700;}
+    .slot-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.6;}
+    /* CSV UPLOAD */
+    .csv-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.3rem 1.5rem;margin-bottom:1.8rem;}
+    .drop-zone{border:2px dashed var(--border);border-radius:10px;padding:1.8rem;text-align:center;transition:border-color .2s;margin-top:.7rem;cursor:pointer;}
+    .drop-zone:hover,.drop-zone.drag{border-color:var(--accent);}
+    .drop-lbl{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted);line-height:1.7;}
+    .drop-btn{display:inline-block;margin-top:.6rem;padding:.4rem .9rem;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:var(--accent);border-radius:6px;font-family:'Space Mono',monospace;font-size:.62rem;cursor:pointer;}
     /* MODAL */
-    .mbg{position:fixed;inset:0;z-index:400;background:rgba(6,9,13,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem;}
-    .mbg.open{display:flex;}
-    .mbox{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:clamp(1.4rem,5vw,2.2rem);width:100%;max-width:500px;position:relative;max-height:90vh;overflow-y:auto;}
-    .mbox h3{font-size:clamp(1rem,3vw,1.3rem);font-weight:800;margin-bottom:.35rem;}
-    .mbox .msub{color:var(--muted);font-size:clamp(.74rem,1.8vw,.82rem);margin-bottom:1.3rem;line-height:1.5;}
-    .m-close{position:absolute;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;color:var(--muted);cursor:none;display:flex;align-items:center;justify-content:center;font-size:.82rem;transition:all .2s;}
-    .m-close:hover{border-color:var(--red);color:var(--red);}
-    .msg-box{padding:.65rem .9rem;border-radius:8px;font-family:'Space Mono',monospace;font-size:.7rem;margin-top:.8rem;display:none;line-height:1.5;}
-    .msg-box.err{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.28);color:#fca5a5;}
-    .msg-box.ok{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.28);color:#6ee7b7;}
-    .toast{position:fixed;bottom:clamp(1rem,3vw,2rem);right:clamp(1rem,3vw,2rem);z-index:999;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.85rem 1.3rem;font-family:'Space Mono',monospace;font-size:clamp(.64rem,1.5vw,.74rem);transform:translateY(80px);opacity:0;transition:all .28s;max-width:min(300px,88vw);pointer-events:none;}
+    .modal{display:none;position:fixed;inset:0;z-index:500;align-items:center;justify-content:center;background:rgba(6,9,13,.8);backdrop-filter:blur(6px);}
+    .modal.open{display:flex;}
+    .modal-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:clamp(1.5rem,4vw,2.2rem);width:90%;max-width:380px;}
+    .modal-h{font-size:1.1rem;font-weight:800;margin-bottom:1rem;}
+    .msg-box{font-family:'Space Mono',monospace;font-size:.68rem;padding:.5rem .75rem;border-radius:6px;margin-top:.6rem;display:none;}
+    .msg-box.ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);color:#6ee7b7;}
+    .msg-box.err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
+    /* MIN PCT */
+    .min-row{display:flex;align-items:center;gap:.7rem;margin-bottom:1.6rem;flex-wrap:wrap;}
+    .min-row input{width:70px;padding:.45rem .7rem;background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'Space Mono',monospace;font-size:.86rem;outline:none;text-align:center;cursor:none;}
+    .min-row input:focus{border-color:var(--accent);}
+    .min-note{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);}
+    /* TOAST */
+    .toast{position:fixed;bottom:clamp(1rem,3vw,2rem);right:clamp(1rem,3vw,2rem);z-index:999;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.85rem 1.3rem;font-family:'Space Mono',monospace;font-size:.72rem;transform:translateY(80px);opacity:0;transition:all .28s;max-width:min(300px,88vw);pointer-events:none;}
     .toast.show{transform:translateY(0);opacity:1;}
     .toast.ok{border-color:rgba(16,185,129,.38);color:#6ee7b7;}.toast.err{border-color:rgba(239,68,68,.38);color:#fca5a5;}.toast.info{border-color:rgba(0,229,255,.38);color:var(--accent);}
-    footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.4rem clamp(1rem,5vw,3rem);display:flex;justify-content:space-between;align-items:center;font-family:'Space Mono',monospace;font-size:clamp(.54rem,1.3vw,.64rem);color:var(--muted);flex-wrap:wrap;gap:.5rem;}
-    @keyframes fup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    @media(max-width:768px){.hbg{display:flex;}.nav-who{display:none;}.sc-actions{grid-template-columns:1fr 1fr;}}
-    @media(max-width:480px){.overall{grid-template-columns:1fr 1fr;}footer{flex-direction:column;text-align:center;}.add-slot-grid{grid-template-columns:1fr;}}
+    footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.4rem clamp(1rem,5vw,3rem);display:flex;justify-content:space-between;align-items:center;font-family:'Space Mono',monospace;font-size:.64rem;color:var(--muted);flex-wrap:wrap;gap:.5rem;}
+    @keyframes fup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .iload{text-align:center;padding:2rem;color:var(--muted);font-family:'Space Mono',monospace;font-size:.72rem;}
+    @media(max-width:768px){.tt-form{grid-template-columns:1fr 1fr;}.ov-bar{grid-template-columns:1fr 1fr;}.hbg{display:flex;}}
+    @media(max-width:480px){.subj-grid{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
@@ -161,9 +158,9 @@
 
 <div id="authWrap">
   <div class="auth-card">
-    <div class="auth-logo">📋 ATTENDANCE TRACKER</div>
+    <div class="auth-logo">📋 ATTENDANCE</div>
     <h1 class="auth-h">Sign In</h1>
-    <p class="auth-sub">Sign in with your account to track attendance.</p>
+    <p class="auth-sub">Access your attendance tracker.</p>
     <div class="fg"><label>EMAIL</label><input type="email" id="lEmail" placeholder="your@email.com" autocomplete="email"/></div>
     <div class="fg"><label>PASSWORD</label><input type="password" id="lPass" placeholder="••••••••" autocomplete="current-password"/></div>
     <button class="btn-main" id="lBtn" onclick="login()">SIGN IN →</button>
@@ -175,7 +172,8 @@
   <nav>
     <div class="nav-logo">📋 ATTENDANCE</div>
     <div class="nav-r">
-      <div class="nav-who">Hey, <span id="navWho"></span></div>
+      <span class="role-badge role-student" id="roleBadge">STUDENT</span>
+      <div class="nav-who" id="navWho"></div>
       <a href="dashboard.html" class="nav-lnk">← DASHBOARD</a>
       <button class="btn-out" onclick="logout()">SIGN OUT</button>
       <button class="hbg" id="hbg"><span></span><span></span><span></span></button>
@@ -188,94 +186,93 @@
   </nav>
 
   <div class="wrap">
-    <div class="pg-hdr">
-      <div class="eyebrow">ACADEMIC TRACKER</div>
-      <h1 class="pg-title">Attendance</h1>
-      <p class="pg-sub">Upload your timetable, mark classes, and see exactly how many you can skip.</p>
+    <!-- MIN PCT + VIEW TABS -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.4rem;">
+      <div class="min-row">
+        <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--muted)">MIN %</span>
+        <input type="number" id="minPct" value="75" min="1" max="100" onchange="saveMin()"/>
+        <button class="tadd" style="padding:.4rem .9rem;font-size:.62rem" onclick="saveMin()">SAVE</button>
+        <span class="min-note" id="minNote">Min: 75%</span>
+      </div>
+      <div class="vtabs">
+        <button class="vtab on" onclick="switchView('subjects')">📊 SUBJECTS</button>
+        <button class="vtab" onclick="switchView('timetable')">🗓️ TIMETABLE</button>
+      </div>
     </div>
 
-    <!-- MIN ATTENDANCE SETTING -->
-    <div class="min-banner">
-      <span class="min-lbl">MINIMUM ATTENDANCE:</span>
-      <input class="min-inp" type="number" id="minPct" value="75" min="1" max="100"/>
-      <span class="min-unit">%</span>
-      <button class="min-save" onclick="saveMin()">SAVE</button>
-      <span class="min-note" id="minNote">Set by institution or yourself</span>
-    </div>
-
-    <!-- OVERALL STATS -->
-    <div class="overall">
-      <div class="ov"><div class="ov-v c-accent" id="ovTotal">0</div><div class="ov-l">Total Classes</div></div>
-      <div class="ov"><div class="ov-v c-safe" id="ovPresent">0</div><div class="ov-l">Present</div></div>
-      <div class="ov"><div class="ov-v c-danger" id="ovAbsent">0</div><div class="ov-l">Absent</div></div>
-      <div class="ov"><div class="ov-v" id="ovPct" style="color:var(--accent)">—</div><div class="ov-l">Overall %</div></div>
-      <div class="ov"><div class="ov-v c-safe" id="ovCanSkip">—</div><div class="ov-l">Can Skip (overall)</div></div>
-    </div>
-
-    <!-- TABS -->
-    <div class="view-tabs">
-      <button class="vtab on" onclick="switchView('subjects')">📊 Subjects</button>
-      <button class="vtab" onclick="switchView('timetable')">🗓️ Timetable</button>
+    <!-- OVERALL BAR -->
+    <div class="ov-bar">
+      <div class="ov-col"><div class="ov-l">TOTAL</div><div class="ov-v" id="ovTotal">0</div></div>
+      <div class="ov-col"><div class="ov-l">PRESENT</div><div class="ov-v c-safe" id="ovPresent">0</div></div>
+      <div class="ov-col"><div class="ov-l">ABSENT</div><div class="ov-v c-danger" id="ovAbsent">0</div></div>
+      <div class="ov-col"><div class="ov-l">OVERALL</div><div class="ov-v" id="ovPct">—</div></div>
     </div>
 
     <!-- SUBJECTS VIEW -->
     <div class="view on" id="vSubjects">
-      <div class="tt-toolbar">
-        <div class="sec-lbl">YOUR SUBJECTS</div>
-        <button class="btn btn-a" onclick="openAddSubject()">+ Add Subject</button>
+      <!-- ADMIN/MASTER: Student selector + Subject management -->
+      <div id="adminControls" style="display:none">
+        <div class="stu-sel-wrap">
+          <div class="sec-lbl" style="margin-bottom:.4rem">SELECT STUDENT</div>
+          <p style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.5rem">Choose a student to view or mark their attendance.</p>
+          <select id="studentSel" onchange="onStudentChange(this.value)">
+            <option value="">— Select a student —</option>
+          </select>
+        </div>
+        <div class="subj-mgmt">
+          <div class="sec-lbl" style="margin-bottom:.4rem">MANAGE SUBJECTS</div>
+          <div class="row">
+            <input class="tin" id="subjNameIn" placeholder="Subject name…" maxlength="60" onkeydown="if(event.key==='Enter')submitSubject()"/>
+            <button class="tadd" onclick="submitSubject()">+ ADD</button>
+          </div>
+          <div class="msg-box" id="subjMsg"></div>
+        </div>
       </div>
+
+      <!-- Subject grid -->
+      <div class="sec-lbl" id="subjGridLabel">MY ATTENDANCE</div>
       <div class="subj-grid" id="subjGrid"></div>
     </div>
 
     <!-- TIMETABLE VIEW -->
     <div class="view" id="vTimetable">
-      <!-- CSV UPLOAD -->
-      <div class="csv-box" id="csvBox" ondrop="handleDrop(event)" ondragover="event.preventDefault()">
-        <div class="csv-icon">📂</div>
-        <div class="csv-title">Upload Your Timetable</div>
-        <div class="csv-sub">Upload a CSV file or add slots manually below.</div>
-        <button class="csv-btn" onclick="$('csvFile').click()">Choose CSV File</button>
-        <input type="file" id="csvFile" class="file-inp" accept=".csv" onchange="handleCSV(event)"/>
-        <div class="csv-hint">
-          CSV format: <strong>Subject, Day, Time</strong> (one slot per row)<br/>
-          Example: Mathematics, Monday, 09:00 AM
+      <!-- Admin slot form -->
+      <div id="ttAdminForm" style="display:none">
+        <div class="tt-controls">
+          <div class="sec-lbl" style="margin-bottom:.4rem">ADD TIMETABLE SLOT</div>
+          <div class="tt-form">
+            <div>
+              <label style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);display:block;margin-bottom:.3rem">SUBJECT</label>
+              <select id="slotSubj"></select>
+            </div>
+            <div>
+              <label style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);display:block;margin-bottom:.3rem">DAY</label>
+              <select id="slotDay">
+                <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);display:block;margin-bottom:.3rem">TIME</label>
+              <input id="slotTime" placeholder="e.g. 09:00 AM" onkeydown="if(event.key==='Enter')addSlot()"/>
+            </div>
+            <button class="tadd" onclick="addSlot()" style="margin-top:auto">+ ADD</button>
+          </div>
+          <div class="msg-box" id="slotMsg" style="margin-top:.6rem"></div>
+        </div>
+        <div class="csv-wrap">
+          <div class="sec-lbl" style="margin-bottom:.4rem">BULK IMPORT CSV</div>
+          <p style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.5rem">Format: <code style="color:var(--accent)">Subject, Day, Time</code> — one slot per line.</p>
+          <div class="drop-zone" id="dropZone" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event);this.classList.remove('drag')" onclick="$('csvFile').click()">
+            <div class="drop-lbl">Drag & drop CSV here<br/>or click to browse</div>
+            <span class="drop-btn">📂 Choose File</span>
+            <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleCSV(event)"/>
+          </div>
+          <button onclick="clearTimetable()" style="margin-top:.8rem;background:transparent;border:1px solid rgba(239,68,68,.25);color:#fca5a5;border-radius:6px;padding:.35rem .85rem;font-family:'Space Mono',monospace;font-size:.62rem;cursor:none;">✕ Clear Timetable</button>
         </div>
       </div>
-
-      <!-- MANUAL ADD SLOT -->
-      <div class="add-slot-box">
-        <div class="add-slot-title">+ ADD TIMETABLE SLOT MANUALLY</div>
-        <div class="add-slot-grid">
-          <div class="fg">
-            <label>SUBJECT</label>
-            <select id="slotSubj">
-              <option value="">— Select subject —</option>
-            </select>
-          </div>
-          <div class="fg">
-            <label>DAY</label>
-            <select id="slotDay">
-              <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
-              <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
-            </select>
-          </div>
-          <div class="fg">
-            <label>TIME (e.g. 09:00 AM)</label>
-            <input type="text" id="slotTime" placeholder="09:00 AM"/>
-          </div>
-          <div class="fg" style="display:flex;align-items:flex-end">
-            <button class="btn btn-a" style="width:100%" onclick="addSlot()">ADD SLOT</button>
-          </div>
-        </div>
-        <div class="msg-box" id="slotMsg"></div>
-      </div>
-
-      <!-- TIMETABLE GRID -->
-      <div class="tt-toolbar">
-        <div class="sec-lbl">WEEKLY TIMETABLE</div>
-        <button class="btn btn-r" onclick="clearTimetable()" style="font-size:.6rem">🗑️ Clear All</button>
-      </div>
-      <div class="tt-wrap"><div class="tt-grid" id="ttGrid"></div></div>
+      <div class="sec-lbl">WEEKLY TIMETABLE</div>
+      <div class="tt-grid-wrap"><div class="tt-grid" id="ttGrid"></div></div>
     </div>
   </div>
 
@@ -284,31 +281,19 @@
     <span>Powered by Supabase</span>
   </footer>
 </div>
-
-<!-- ADD SUBJECT MODAL -->
-<div class="mbg" id="addSubjModal">
-  <div class="mbox">
-    <button class="m-close" onclick="closeAddSubject()">✕</button>
-    <h3>Add a Subject</h3>
-    <p class="msub">Add a subject to start tracking its attendance.</p>
-    <div class="fg"><label>SUBJECT NAME</label><input type="text" id="subjNameIn" placeholder="e.g. Mathematics, Physics..." maxlength="60" onkeydown="if(event.key==='Enter')submitSubject()"/></div>
-    <div class="msg-box err" id="subjMsg"></div>
-    <button class="btn-main" onclick="submitSubject()" style="margin-top:.9rem">ADD SUBJECT →</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co', SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
-const {createClient}=supabase, sb=createClient(SB_URL,SB_ANON);
-const $=id=>document.getElementById(id);
+const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
+      SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
+const {createClient}=supabase, sb=createClient(SB_URL,SB_ANON), $=id=>document.getElementById(id);
 
-let me=null, subjects=[], slots=[], minPct=75;
+let me=null, userRole='student', subjects=[], slots=[], minPct=75;
+let students=[], selectedStudentId=null, attRecords=[];
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
-// CURSOR
+// ── CURSOR ──
 const cur=$('cur'),curR=$('curR');
 let mx=window.innerWidth/2,my=window.innerHeight/2,rx=mx,ry=my,curActive=false;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;if(!curActive){curActive=true;cur.style.opacity='1';curR.style.opacity='.45';}cur.style.left=mx+'px';cur.style.top=my+'px';});
@@ -321,12 +306,12 @@ function ch(el){if(!el||el._c)return;el._c=true;
 document.querySelectorAll('a,button,input,select').forEach(ch);
 $('hbg').addEventListener('click',()=>$('mobNav').classList.toggle('open'));
 
-// AUTH
+// ── AUTH ──
 window.addEventListener('load',async()=>{
   const{data:{session}}=await sb.auth.getSession();
   $('loader').style.display='none';
   if(session){me=session.user;loadApp(session.user);}else $('authWrap').style.display='flex';
-  sb.auth.onAuthStateChange((_,s)=>{if(s){me=s.user;loadApp(s.user);}else{me=null;$('app').style.display='none';$('authWrap').style.display='flex';}});
+  sb.auth.onAuthStateChange((_,s)=>{if(s&&!me){me=s.user;loadApp(s.user);}else if(!s){me=null;$('app').style.display='none';$('authWrap').style.display='flex';}});
 });
 function sbE(m){if(m.includes('Invalid login'))return'Incorrect email or password.';if(m.includes('Email not confirmed'))return'Confirm your email first.';return m||'Error.';}
 window.login=async()=>{
@@ -339,186 +324,253 @@ window.login=async()=>{
 window.logout=async()=>sb.auth.signOut();
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('authWrap').style.display==='flex')login();});
 
+// ── LOAD APP ──
 async function loadApp(user){
   const un=user.user_metadata?.username||user.email.split('@')[0];
   const displayName=un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+  const{data:profile}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+  userRole=profile?.role||'student';
   $('authWrap').style.display='none';$('app').style.display='block';
   $('navWho').textContent=displayName;$('footWho').textContent=displayName;
-  await Promise.all([fetchSubjects(),fetchSlots(),fetchSettings()]);
-  renderAll();
+  const rb=$('roleBadge');rb.textContent=userRole.toUpperCase();rb.className='role-badge role-'+userRole;
+
+  const isAdmin=userRole==='admin'||userRole==='master';
+  $('adminControls').style.display=isAdmin?'':'none';
+  $('ttAdminForm').style.display=isAdmin?'':'none';
+  $('subjGridLabel').textContent=isAdmin?'CLASS ATTENDANCE':'MY ATTENDANCE';
+
+  await Promise.all([fetchSettings(), fetchSubjects(), fetchSlots()]);
+  updateSubjSelect(); // populate timetable subject dropdown
+
+  if(isAdmin){
+    await fetchStudents();
+    renderSubjects(null);
+  } else {
+    await fetchMyAttendance();
+    renderSubjects(me.id);
+    renderOverall();
+  }
+  renderTimetable();
 }
 
-// SETTINGS (min %)
+// ── SETTINGS ──
 async function fetchSettings(){
   const{data}=await sb.from('att_settings').select('*').eq('user_id',me.id).maybeSingle();
   if(data){minPct=data.min_pct||75;$('minPct').value=minPct;}
+  $('minNote').textContent=`Min: ${minPct}%`;
 }
 window.saveMin=async()=>{
   minPct=Math.max(1,Math.min(100,parseInt($('minPct').value)||75));
   $('minPct').value=minPct;
   await sb.from('att_settings').upsert({user_id:me.id,min_pct:minPct},{onConflict:'user_id'});
-  renderAll();toast(`✓ Minimum set to ${minPct}%`,'ok');
+  renderSubjects(selectedStudentId||me.id);renderOverall();
+  toast(`✓ Minimum set to ${minPct}%`,'ok');
   $('minNote').textContent=`Min: ${minPct}% · Saved`;
 };
 
-// FETCH
+// ── FETCH ──
 async function fetchSubjects(){
-  const{data}=await sb.from('subjects').select('*').eq('user_id',me.id).order('created_at',{ascending:true});
+  const{data}=await sb.from('class_subjects').select('*').order('created_at',{ascending:true});
   subjects=data||[];
 }
 async function fetchSlots(){
-  const{data}=await sb.from('timetable_slots').select('*').eq('user_id',me.id);
+  const{data}=await sb.from('class_timetable').select('*');
   slots=data||[];
 }
+async function fetchStudents(){
+  const{data}=await sb.from('profiles').select('id,username,role').order('username');
+  students=data||[];
+  renderStudentSelector();
+}
+async function fetchMyAttendance(){
+  const{data}=await sb.from('attendance_records').select('*').eq('student_id',me.id);
+  attRecords=data||[];
+}
+async function fetchStudentAttendance(studentId){
+  const{data}=await sb.from('attendance_records').select('*').eq('student_id',studentId);
+  attRecords=data||[];
+}
 
-// TABS
-let curView='subjects';
+// ── STUDENT SELECTOR ──
+function renderStudentSelector(){
+  const sel=$('studentSel');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Select a student —</option>';
+  students.filter(s=>s.id!==me.id).forEach(s=>{
+    const dn=s.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+    const o=document.createElement('option');o.value=s.id;o.textContent=dn+' ['+s.role+']';sel.appendChild(o);
+  });
+  if(cur)sel.value=cur;
+}
+window.onStudentChange=async(studentId)=>{
+  selectedStudentId=studentId||null;
+  if(!selectedStudentId){attRecords=[];renderSubjects(null);renderOverall();return;}
+  $('subjGrid').innerHTML=`<div class="iload"><div class="spinner"></div> Loading…</div>`;
+  await fetchStudentAttendance(selectedStudentId);
+  renderSubjects(selectedStudentId);
+  renderOverall();
+};
+
+// ── SUBJECTS RENDER ──
+function getAttendance(subjectId,studentId){
+  if(!studentId)return{present:0,absent:0};
+  const recs=attRecords.filter(r=>r.subject_id==subjectId&&r.student_id===studentId);
+  return{present:recs.filter(r=>r.status==='present').length,absent:recs.filter(r=>r.status==='absent').length};
+}
+
+function pctCls(p){return p>=minPct?'safe':p>=minPct-15?'warn':'danger';}
+function calcSkip(p,a){
+  const total=p+a;if(!total)return null;
+  const pct=p/total*100;
+  if(pct<minPct){let need=0;while(((p+need)/(total+need)*100)<minPct&&need<500)need++;return{type:'need',val:need};}
+  let skip=0;while(((p)/(total+skip+1)*100)>=minPct&&skip<500)skip++;
+  return{type:'skip',val:skip};
+}
+
+function renderSubjects(targetStudentId){
+  const grid=$('subjGrid');
+  if(!subjects.length){
+    grid.innerHTML=`<div style="grid-column:1/-1;color:var(--muted);font-family:'Space Mono',monospace;font-size:.74rem;padding:2rem 0;text-align:center">${userRole==='student'?'No class subjects set up yet.':'No subjects yet. Add one above!'}</div>`;
+    return;
+  }
+  const isAdmin=userRole==='admin'||userRole==='master';
+  grid.innerHTML='';
+  subjects.forEach(s=>{
+    const att=targetStudentId?getAttendance(s.id,targetStudentId):{present:0,absent:0};
+    const tot=att.present+att.absent;
+    const pct=tot?Math.round(att.present/tot*100):0;
+    const cls=tot?pctCls(pct):'safe';
+    const sk=targetStudentId?calcSkip(att.present,att.absent):null;
+    let skipMsg='',skipCls='warn';
+    if(!targetStudentId&&isAdmin){skipMsg='Select a student to see their stats.';skipCls='warn';}
+    else if(!tot){skipMsg='No records yet.';skipCls='warn';}
+    else if(sk.type==='skip'){skipMsg=sk.val>0?`✓ Can skip ${sk.val} more class${sk.val>1?'es':''}.`:`⚠️ At the limit!`;skipCls='safe';}
+    else{skipMsg=`🚨 Attend ${sk.val} more class${sk.val>1?'es':''} to reach ${minPct}%.`;skipCls='danger';}
+    const subjSlots=slots.filter(sl=>sl.subject_id===s.id);
+    const schedHTML=subjSlots.length?`<div class="sc-schedule">${subjSlots.map(sl=>`<span class="sched-chip">${sl.day.slice(0,3)} ${sl.time}</span>`).join('')}</div>`:'';
+    const d=document.createElement('div');d.className='sc';d.style.animation='fup .22s ease both';
+    d.innerHTML=`
+      <div class="sc-top">
+        <div class="sc-name">${esc(s.name)}</div>
+        ${isAdmin?`<button class="sc-del" onclick="deleteSubject(${s.id})">✕ Delete</button>`:''}
+      </div>
+      <div class="sc-pct c-${cls}">${tot?pct+'%':'—'}</div>
+      <div class="sc-counts">✅ ${att.present} Present &nbsp;|&nbsp; ❌ ${att.absent} Absent &nbsp;|&nbsp; Total: ${tot}</div>
+      <div class="bar-bg"><div class="bar-fill bar-${cls}" style="width:${tot?pct:0}%"></div></div>
+      ${targetStudentId?`
+      <div class="mark-row">
+        <button class="mbtn p" onclick="markAtt('${targetStudentId}',${s.id},'present')">✅ Present</button>
+        <button class="mbtn a" onclick="markAtt('${targetStudentId}',${s.id},'absent')">❌ Absent</button>
+      </div>
+      <div class="undo-row">
+        <button class="ubtn" onclick="undoAtt('${targetStudentId}',${s.id},'present')">↩ Undo P</button>
+        <button class="ubtn" onclick="undoAtt('${targetStudentId}',${s.id},'absent')">↩ Undo A</button>
+      </div>`:(!isAdmin?`
+      <div class="mark-row">
+        <button class="mbtn p" onclick="markAtt('${me.id}',${s.id},'present')">✅ Present</button>
+        <button class="mbtn a" onclick="markAtt('${me.id}',${s.id},'absent')">❌ Absent</button>
+      </div>
+      <div class="undo-row">
+        <button class="ubtn" onclick="undoAtt('${me.id}',${s.id},'present')">↩ Undo P</button>
+        <button class="ubtn" onclick="undoAtt('${me.id}',${s.id},'absent')">↩ Undo A</button>
+      </div>`:'')}
+      <div class="skip-msg ${skipCls}">${skipMsg}</div>
+      ${schedHTML}`;
+    grid.appendChild(d);d.querySelectorAll('button').forEach(ch);
+  });
+}
+
+// ── MARK / UNDO ATTENDANCE ──
+window.markAtt=async(studentId,subjectId,status)=>{
+  subjectId=+subjectId;
+  const today=new Date().toISOString().split('T')[0];
+  const exists=attRecords.find(r=>r.student_id===studentId&&r.subject_id===subjectId&&r.date===today);
+  if(exists){toast('Already marked for today. Undo first.','info');return;}
+  const{data,error}=await sb.from('attendance_records').insert([{student_id:studentId,subject_id:subjectId,date:today,status,marked_by:me.id}]).select().single();
+  if(error){toast('Error: '+error.message,'err');return;}
+  attRecords.push(data);
+  renderSubjects(studentId);renderOverall();
+  toast(status==='present'?'✅ Marked Present':'❌ Marked Absent',status==='present'?'ok':'err');
+};
+
+window.undoAtt=async(studentId,subjectId,status)=>{
+  subjectId=+subjectId;
+  const today=new Date().toISOString().split('T')[0];
+  const rec=attRecords.find(r=>r.student_id===studentId&&r.subject_id===subjectId&&r.date===today&&r.status===status);
+  if(!rec){
+    // Undo last of that type regardless of date
+    const last=attRecords.filter(r=>r.student_id===studentId&&r.subject_id===subjectId&&r.status===status).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
+    if(!last){toast('Nothing to undo.','info');return;}
+    await sb.from('attendance_records').delete().eq('id',last.id);
+    attRecords=attRecords.filter(r=>r.id!==last.id);
+  } else {
+    await sb.from('attendance_records').delete().eq('id',rec.id);
+    attRecords=attRecords.filter(r=>r.id!==rec.id);
+  }
+  renderSubjects(studentId);renderOverall();toast('↩ Undone.','info');
+};
+
+// ── OVERALL STATS ──
+function renderOverall(){
+  const targetId=selectedStudentId||(userRole==='student'?me.id:null);
+  if(!targetId){$('ovTotal').textContent='—';$('ovPresent').textContent='—';$('ovAbsent').textContent='—';$('ovPct').textContent='—';return;}
+  const recs=attRecords.filter(r=>r.student_id===targetId);
+  const tot=recs.length,pres=recs.filter(r=>r.status==='present').length,abs=tot-pres;
+  const pct=tot?Math.round(pres/tot*100):0;
+  $('ovTotal').textContent=tot;$('ovPresent').textContent=pres;$('ovAbsent').textContent=abs;
+  $('ovPct').textContent=tot?pct+'%':'—';
+  $('ovPct').className='ov-v '+(tot?'c-'+pctCls(pct):'');
+}
+
+// ── SUBJECT MANAGEMENT (ADMIN) ──
+window.submitSubject=async()=>{
+  const name=$('subjNameIn').value.trim();
+  if(!name){showMsg('subjMsg','Enter a subject name.','err');return;}
+  if(subjects.find(s=>s.name.toLowerCase()===name.toLowerCase())){showMsg('subjMsg','Already exists.','err');return;}
+  const{data,error}=await sb.from('class_subjects').insert([{name,created_by:me.id}]).select().single();
+  if(error){showMsg('subjMsg','Error: '+error.message,'err');return;}
+  subjects.push(data);$('subjNameIn').value='';
+  updateSubjSelect();renderSubjects(selectedStudentId);
+  toast(`📋 "${name}" added!`,'ok');showMsg('subjMsg','Subject added!','ok');
+};
+
+window.deleteSubject=async(id)=>{
+  id=+id;
+  if(!confirm('Delete this subject and all its attendance records?'))return;
+  await sb.from('attendance_records').delete().eq('subject_id',id);
+  await sb.from('class_timetable').delete().eq('subject_id',id);
+  await sb.from('class_subjects').delete().eq('id',id);
+  subjects=subjects.filter(s=>s.id!==id);
+  slots=slots.filter(sl=>sl.subject_id!==id);
+  attRecords=attRecords.filter(r=>r.subject_id!==id);
+  updateSubjSelect();renderSubjects(selectedStudentId);renderTimetable();
+  toast('Subject deleted.','info');
+};
+
+// ── TIMETABLE ──
+function updateSubjSelect(){
+  const sel=$('slotSubj');
+  sel.innerHTML='<option value="">— Subject —</option>';
+  subjects.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
+}
+
 window.switchView=v=>{
-  curView=v;
   document.querySelectorAll('.vtab').forEach((t,i)=>t.classList.toggle('on',['subjects','timetable'][i]===v));
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
   $('v'+v.charAt(0).toUpperCase()+v.slice(1)).classList.add('on');
   if(v==='timetable')renderTimetable();
 };
 
-function renderAll(){renderSubjects();renderOverall();updateSubjSelect();}
-
-// OVERALL
-function pctCls(p){return p>=minPct?'safe':p>=minPct-15?'warn':'danger';}
-function calcSkip(p,a){
-  const total=p+a; if(!total)return null;
-  const pct=p/total*100;
-  if(pct<minPct){
-    let need=0;while(((p+need)/(total+need)*100)<minPct&&need<500)need++;
-    return{type:'need',val:need};
-  }
-  let skip=0;
-  while(((p)/(total+skip+1)*100)>=minPct&&skip<500)skip++;
-  return{type:'skip',val:skip};
-}
-
-function renderOverall(){
-  const tot=subjects.reduce((a,s)=>a+s.present+s.absent,0);
-  const pres=subjects.reduce((a,s)=>a+s.present,0);
-  const abs=tot-pres;
-  const pct=tot?Math.round(pres/tot*100):0;
-  const cls=tot?pctCls(pct):'';
-  $('ovTotal').textContent=tot||0;
-  $('ovPresent').textContent=pres||0;
-  $('ovAbsent').textContent=abs||0;
-  $('ovPct').textContent=tot?pct+'%':'—';
-  $('ovPct').className='ov-v '+(cls?'c-'+cls:'');
-  // overall skip
-  if(tot&&pct>=minPct){
-    let skip=0;while(((pres)/(tot+skip+1)*100)>=minPct&&skip<500)skip++;
-    $('ovCanSkip').textContent=skip;$('ovCanSkip').className='ov-v c-safe';
-  }else if(tot){
-    let need=0;while(((pres+need)/(tot+need)*100)<minPct&&need<500)need++;
-    $('ovCanSkip').textContent=`Need ${need}`;$('ovCanSkip').className='ov-v c-danger';
-  }else{$('ovCanSkip').textContent='—';$('ovCanSkip').className='ov-v';}
-}
-
-function renderSubjects(){
-  const grid=$('subjGrid');
-  if(!subjects.length){
-    grid.innerHTML=`<div style="grid-column:1/-1;color:var(--muted);font-family:'Space Mono',monospace;font-size:.74rem;padding:2rem 0;text-align:center">No subjects yet.<br/>Click <strong>+ Add Subject</strong> to get started, or upload a timetable CSV.</div>`;
-    return;
-  }
-  grid.innerHTML='';
-  subjects.forEach(s=>{
-    const tot=s.present+s.absent, pct=tot?Math.round(s.present/tot*100):0;
-    const cls=tot?pctCls(pct):'safe';
-    const sk=calcSkip(s.present,s.absent);
-    let skipMsg='',skipCls='safe';
-    if(!tot){skipMsg='Mark your first class to see stats.';skipCls='warn';}
-    else if(sk.type==='skip'){skipMsg=sk.val>0?`✓ You can skip ${sk.val} more class${sk.val>1?'es':''} and stay above ${minPct}%.`:`⚠️ At the limit — attend every class!`;skipCls='safe';}
-    else{skipMsg=`🚨 Attend ${sk.val} consecutive class${sk.val>1?'es':''} to reach ${minPct}%.`;skipCls='danger';}
-    // Schedule chips
-    const subjSlots=slots.filter(sl=>sl.subject_id===s.id);
-    const schedHTML=subjSlots.length?`<div class="sc-schedule">${subjSlots.map(sl=>`<span class="sched-chip">${sl.day} ${sl.time}</span>`).join('')}</div>`:'';
-    const d=document.createElement('div');d.className='sc';d.style.animation='fup .25s ease both';
-    d.innerHTML=`
-      <div class="sc-top">
-        <div class="sc-name">${esc(s.name)}</div>
-        <button class="sc-del" onclick="deleteSubject('${s.id}',event)">✕</button>
-      </div>
-      <div class="sc-pct-row">
-        <span class="sc-pct c-${cls}">${tot?pct+'%':'—'}</span>
-        <span class="sc-counts">${s.present}P / ${s.absent}A / ${tot} total</span>
-      </div>
-      <div class="bar-track"><div class="bar-fill ${cls}" style="width:${tot?pct:0}%"></div></div>
-      <div class="sc-actions">
-        <button class="mk mk-p" onclick="mark('${s.id}','p')">✅ Present</button>
-        <button class="mk mk-a" onclick="mark('${s.id}','a')">❌ Absent</button>
-        <button class="mk mk-u" onclick="undo('${s.id}','p')">↩ Undo P</button>
-        <button class="mk mk-u" onclick="undo('${s.id}','a')">↩ Undo A</button>
-      </div>
-      <div class="sc-skip ${skipCls}">${skipMsg}</div>
-      ${schedHTML}`;
-    grid.appendChild(d);d.querySelectorAll('button').forEach(ch);
-  });
-}
-
-window.mark=async(id,type)=>{
-  id=+id; const s=subjects.find(x=>x.id===id);if(!s)return;
-  if(type==='p')s.present++;else s.absent++;
-  renderAll();
-  await sb.from('subjects').update({present:s.present,absent:s.absent}).eq('id',id).eq('user_id',me.id);
-  toast(type==='p'?'✅ Present marked!':'❌ Absent marked.',type==='p'?'ok':'err');
-};
-window.undo=async(id,type)=>{
-  id=+id; const s=subjects.find(x=>x.id===id);if(!s)return;
-  if(type==='p'&&s.present>0)s.present--;else if(type==='a'&&s.absent>0)s.absent--;else{toast('Nothing to undo.','info');return;}
-  renderAll();
-  await sb.from('subjects').update({present:s.present,absent:s.absent}).eq('id',id).eq('user_id',me.id);
-  toast('↩ Undone.','info');
-};
-window.deleteSubject=async(id,e)=>{
-  e.stopPropagation(); id=+id;
-  const s=subjects.find(x=>x.id===id);
-  if(!confirm(`Delete "${s?.name}" and all its data?`))return;
-  subjects=subjects.filter(x=>x.id!==id);
-  await sb.from('subjects').delete().eq('id',id).eq('user_id',me.id);
-  await sb.from('timetable_slots').delete().eq('subject_id',id).eq('user_id',me.id);
-  slots=slots.filter(sl=>sl.subject_id!==id);
-  renderAll();renderTimetable();toast('Subject deleted.','info');
-};
-
-// ADD SUBJECT
-window.openAddSubject=()=>{$('addSubjModal').classList.add('open');$('subjNameIn').value='';$('subjMsg').style.display='none';setTimeout(()=>$('subjNameIn').focus(),120);};
-window.closeAddSubject=()=>$('addSubjModal').classList.remove('open');
-window.submitSubject=async()=>{
-  const name=$('subjNameIn').value.trim();
-  if(!name){$('subjMsg').textContent='Enter a subject name.';$('subjMsg').style.display='block';return;}
-  if(subjects.find(s=>s.name.toLowerCase()===name.toLowerCase())){$('subjMsg').textContent='Subject already exists.';$('subjMsg').style.display='block';return;}
-  const{data,error}=await sb.from('subjects').insert([{name,present:0,absent:0,user_id:me.id}]).select().single();
-  if(error){$('subjMsg').textContent='Error: '+error.message;$('subjMsg').style.display='block';return;}
-  subjects.push(data);closeAddSubject();renderAll();toast(`📋 "${name}" added!`,'ok');
-};
-$('addSubjModal').addEventListener('click',e=>{if(e.target===$('addSubjModal'))closeAddSubject();});
-
-// SUBJECT SELECT
-function updateSubjSelect(){
-  const sel=$('slotSubj');
-  const cur=sel.value;
-  sel.innerHTML='<option value="">— Select subject —</option>';
-  subjects.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
-  if(cur)sel.value=cur;
-}
-
-// ADD SLOT MANUALLY
 window.addSlot=async()=>{
-  const subjId=$('slotSubj').value, day=$('slotDay').value, time=$('slotTime').value.trim();
-  if(!subjId){showSlotMsg('Select a subject.','err');return;}
-  if(!time){showSlotMsg('Enter a time.','err');return;}
-  if(slots.find(sl=>sl.subject_id==subjId&&sl.day===day&&sl.time===time)){showSlotMsg('This slot already exists.','err');return;}
-  const{data,error}=await sb.from('timetable_slots').insert([{subject_id:+subjId,day,time,user_id:me.id}]).select().single();
-  if(error){showSlotMsg('Error: '+error.message,'err');return;}
-  slots.push(data);renderTimetable();renderSubjects();$('slotTime').value='';showSlotMsg('Slot added!','ok');toast('🗓️ Slot added!','ok');
+  const subjId=$('slotSubj').value,day=$('slotDay').value,time=$('slotTime').value.trim();
+  if(!subjId){showMsg('slotMsg','Select a subject.','err');return;}
+  if(!time){showMsg('slotMsg','Enter a time.','err');return;}
+  if(slots.find(sl=>sl.subject_id==subjId&&sl.day===day&&sl.time===time)){showMsg('slotMsg','Slot already exists.','err');return;}
+  const{data,error}=await sb.from('class_timetable').insert([{subject_id:+subjId,day,time,created_by:me.id}]).select().single();
+  if(error){showMsg('slotMsg','Error: '+error.message,'err');return;}
+  slots.push(data);renderTimetable();$('slotTime').value='';showMsg('slotMsg','Slot added!','ok');toast('🗓️ Slot added!','ok');
 };
-function showSlotMsg(m,t){const el=$('slotMsg');el.textContent=m;el.className='msg-box '+t;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
 
-// CSV UPLOAD
 window.handleDrop=e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)parseCSV(f);};
 window.handleCSV=e=>{const f=e.target.files[0];if(f)parseCSV(f);};
 function parseCSV(file){
@@ -529,43 +581,36 @@ function parseCSV(file){
     for(const line of lines){
       const parts=line.split(',').map(p=>p.trim());
       if(parts.length<3)continue;
-      const [subjName,day,time]=parts;
-      if(!subjName||!day||!time)continue;
-      if(!DAYS.includes(day)){skipped++;continue;}
-      // Find or create subject
+      const[subjName,day,time]=parts;
+      if(!subjName||!day||!time||!DAYS.includes(day)){skipped++;continue;}
       let subj=subjects.find(s=>s.name.toLowerCase()===subjName.toLowerCase());
       if(!subj){
-        const{data,error}=await sb.from('subjects').insert([{name:subjName,present:0,absent:0,user_id:me.id}]).select().single();
+        const{data,error}=await sb.from('class_subjects').insert([{name:subjName,created_by:me.id}]).select().single();
         if(error){skipped++;continue;}
         subjects.push(data);subj=data;
       }
       if(slots.find(sl=>sl.subject_id==subj.id&&sl.day===day&&sl.time===time)){skipped++;continue;}
-      const{data:sd,error:se}=await sb.from('timetable_slots').insert([{subject_id:subj.id,day,time,user_id:me.id}]).select().single();
+      const{data:sd,error:se}=await sb.from('class_timetable').insert([{subject_id:subj.id,day,time,created_by:me.id}]).select().single();
       if(se){skipped++;continue;}
       slots.push(sd);added++;
     }
-    renderAll();renderTimetable();
+    updateSubjSelect();renderTimetable();renderSubjects(selectedStudentId);
     toast(`✓ ${added} slots imported${skipped?', '+skipped+' skipped':''}.`,'ok');
     $('csvFile').value='';
   };
   reader.readAsText(file);
 }
 
-// TIMETABLE GRID
 function renderTimetable(){
   const grid=$('ttGrid');grid.innerHTML='';
-  // Collect unique times, sorted
   const times=[...new Set(slots.map(s=>s.time))].sort((a,b)=>{
     const toMin=t=>{const m=t.match(/(\d+):(\d+)\s*(AM|PM)/i);if(!m)return 0;let h=parseInt(m[1]),mn=parseInt(m[2]);if(m[3].toUpperCase()==='PM'&&h!==12)h+=12;if(m[3].toUpperCase()==='AM'&&h===12)h=0;return h*60+mn;};
     return toMin(a)-toMin(b);
   });
-  if(!times.length){grid.innerHTML=`<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--muted);font-family:'Space Mono',monospace;font-size:.72rem">No timetable slots yet. Add them above or upload a CSV.</div>`;grid.style.display='block';return;}
-  grid.style.display='grid';
-  grid.style.gridTemplateColumns=`80px repeat(7,1fr)`;
-  // Header row
+  if(!times.length){grid.innerHTML=`<div style="padding:2rem;text-align:center;color:var(--muted);font-family:'Space Mono',monospace;font-size:.72rem">No timetable slots yet.</div>`;grid.style.display='block';return;}
+  grid.style.display='grid';grid.style.gridTemplateColumns='80px repeat(7,1fr)';
   const corner=document.createElement('div');corner.className='tt-cell tt-head';grid.appendChild(corner);
   DAYS.forEach(d=>{const c=document.createElement('div');c.className='tt-cell tt-head';c.textContent=d.slice(0,3).toUpperCase();grid.appendChild(c);});
-  // Time rows
   times.forEach(time=>{
     const tc=document.createElement('div');tc.className='tt-cell tt-time';tc.textContent=time;grid.appendChild(tc);
     DAYS.forEach(day=>{
@@ -576,10 +621,10 @@ function renderTimetable(){
         const btn=document.createElement('button');
         btn.className='tt-slot has-class';btn.style.cursor='none';
         btn.innerHTML=`<span class="slot-name">${esc(subj?.name||'?')}</span><span class="slot-dot"></span>`;
-        btn.title=`${subj?.name||'?'} — ${day} ${time} · Click to mark`;
-        btn.addEventListener('click',()=>openSlotMark(slot,subj,day,time));
+        btn.title=`${subj?.name||'?'} — ${day} ${time}`;
+        if(userRole!=='student')btn.addEventListener('click',()=>openSlotMark(slot,subj,day,time));
         ch(btn);cell.appendChild(btn);
-      }else{
+      } else {
         const empty=document.createElement('div');empty.className='tt-slot';cell.appendChild(empty);
       }
       grid.appendChild(cell);
@@ -587,24 +632,23 @@ function renderTimetable(){
   });
 }
 
-// Mark directly from timetable slot
 function openSlotMark(slot,subj,day,time){
-  if(!subj)return;
-  // Simple popup-style toast with two options
+  if(!subj||!selectedStudentId){toast('Select a student first.','info');return;}
   const existing=document.getElementById('slotMarkPop');if(existing)existing.remove();
-  const pop=document.createElement('div');
-  pop.id='slotMarkPop';
+  const pop=document.createElement('div');pop.id='slotMarkPop';
   pop.style.cssText='position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(6,9,13,.8);backdrop-filter:blur(6px);';
+  const dn=(students.find(s=>s.id===selectedStudentId)||{username:'Student'}).username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
   pop.innerHTML=`
     <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;max-width:340px;width:90%;text-align:center;">
-      <div style="font-size:1.8rem;margin-bottom:.7rem;">📋</div>
-      <div style="font-size:1rem;font-weight:700;margin-bottom:.25rem;">${esc(subj.name)}</div>
-      <div style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--muted);margin-bottom:1.4rem;">${day} · ${time}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem;">
-        <button onclick="mark('${subj.id}','p');document.getElementById('slotMarkPop').remove();" style="padding:.7rem;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.35);color:#6ee7b7;border-radius:8px;font-family:'Space Mono',monospace;font-size:.68rem;font-weight:700;cursor:none;">✅ Present</button>
-        <button onclick="mark('${subj.id}','a');document.getElementById('slotMarkPop').remove();" style="padding:.7rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:#fca5a5;border-radius:8px;font-family:'Space Mono',monospace;font-size:.68rem;font-weight:700;cursor:none;">❌ Absent</button>
+      <div style="font-size:1.6rem;margin-bottom:.6rem">📋</div>
+      <div style="font-size:1rem;font-weight:700;margin-bottom:.15rem">${esc(subj.name)}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.3rem">${day} · ${time}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.64rem;color:var(--accent);margin-bottom:1.2rem">Student: ${esc(dn)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem">
+        <button onclick="markAtt('${selectedStudentId}','${slot.subject_id}','present');document.getElementById('slotMarkPop').remove();" style="padding:.7rem;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.35);color:#6ee7b7;border-radius:8px;font-family:'Space Mono',monospace;font-size:.68rem;font-weight:700;cursor:none">✅ Present</button>
+        <button onclick="markAtt('${selectedStudentId}','${slot.subject_id}','absent');document.getElementById('slotMarkPop').remove();" style="padding:.7rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);color:#fca5a5;border-radius:8px;font-family:'Space Mono',monospace;font-size:.68rem;font-weight:700;cursor:none">❌ Absent</button>
       </div>
-      <button onclick="this.closest('#slotMarkPop').remove();" style="background:none;border:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:.62rem;cursor:none;">Cancel</button>
+      <button onclick="this.closest('#slotMarkPop').remove();" style="background:none;border:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:.62rem;cursor:none">Cancel</button>
     </div>`;
   document.body.appendChild(pop);
   pop.addEventListener('click',e=>{if(e.target===pop)pop.remove();});
@@ -612,11 +656,12 @@ function openSlotMark(slot,subj,day,time){
 }
 
 window.clearTimetable=async()=>{
-  if(!confirm('Clear all timetable slots? Subject attendance data will be kept.'))return;
-  await sb.from('timetable_slots').delete().eq('user_id',me.id);
-  slots=[];renderTimetable();renderSubjects();toast('Timetable cleared.','info');
+  if(!confirm('Clear all class timetable slots?'))return;
+  await sb.from('class_timetable').delete().neq('id',0);
+  slots=[];renderTimetable();toast('Timetable cleared.','info');
 };
 
+function showMsg(id,msg,t){const el=$(id);el.textContent=msg;el.className='msg-box '+t;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(m,t='ok'){const el=$('toast');el.textContent=m;el.className='toast '+t+' show';setTimeout(()=>el.className='toast '+t,3200);}
 </script>
