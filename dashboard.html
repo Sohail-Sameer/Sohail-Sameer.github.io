@@ -2,24 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-    :root{--bg:#06090d;--surface:#0c1017;--card:#111820;--border:#1a2535;--accent:#00e5ff;--accent2:#6d28d9;--green:#10b981;--red:#ef4444;--text:#dde6f0;--muted:#4d6278;--glow:0 0 40px rgba(0,229,255,0.12);}
+    :root{--bg:#06090d;--surface:#0c1017;--card:#111820;--border:#1a2535;--accent:#00e5ff;--accent2:#6d28d9;--green:#10b981;--red:#ef4444;--text:#dde6f0;--muted:#4d6278;--glow:0 0 40px rgba(0,229,255,.12);}
     html{scroll-behavior:smooth;}
     body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;cursor:none;}
     body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.022) 1px,transparent 1px);background-size:64px 64px;pointer-events:none;z-index:0;}
     body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;}
     .cur{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:screen;top:0;left:0;opacity:0;transform:translate(-50%,-50%);transition:transform .06s,opacity .2s;}
     .curR{position:fixed;width:34px;height:34px;border:1px solid var(--accent);border-radius:50%;pointer-events:none;z-index:9998;opacity:0;top:0;left:0;transform:translate(-50%,-50%);transition:width .18s,height .18s,border-color .18s,opacity .2s;}
+    /* ── LOADER ── */
     #loader{position:fixed;inset:0;z-index:600;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;}
     .ld-logo{font-family:'Space Mono',monospace;color:var(--accent);font-size:clamp(.85rem,2vw,1rem);letter-spacing:.1em;}
     .spinner{width:34px;height:34px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg)}}
-
-    /* AUTH */
+    /* ── AUTH ── */
     #authWrap{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;background:var(--bg);padding:1rem;overflow-y:auto;}
     .auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:clamp(1.5rem,5vw,2.6rem);width:100%;max-width:440px;box-shadow:0 0 60px rgba(0,229,255,.06);position:relative;z-index:1;margin:auto;}
     .auth-logo{font-family:'Space Mono',monospace;color:var(--accent);font-size:.82rem;margin-bottom:1.3rem;letter-spacing:.1em;}
@@ -32,25 +32,24 @@
     .fg label{display:flex;align-items:center;gap:.4rem;font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.4vw,.66rem);letter-spacing:.1em;color:var(--muted);margin-bottom:.4rem;}
     .fg input{width:100%;padding:clamp(.62rem,2vw,.76rem) 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:clamp(.83rem,2vw,.92rem);outline:none;transition:border-color .2s;cursor:none;}
     .fg input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.07);}
-    .fg input.good{border-color:var(--green);}
-    .fg input.bad{border-color:var(--red);}
+    .fg input.good{border-color:var(--green);}.fg input.bad{border-color:var(--red);}
     .fhint{font-family:'Space Mono',monospace;font-size:.63rem;margin-top:.3rem;display:none;line-height:1.4;}
-    .fhint.ok{color:#6ee7b7;display:block;}
-    .fhint.no{color:#fca5a5;display:block;}
-    .fhint.ld{color:var(--muted);display:block;}
+    .fhint.ok{color:#6ee7b7;display:block;}.fhint.no{color:#fca5a5;display:block;}.fhint.ld{color:var(--muted);display:block;}
     .btn-main{width:100%;padding:.86rem;background:var(--accent);color:#06090d;border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:clamp(.7rem,1.8vw,.8rem);font-weight:700;letter-spacing:.05em;cursor:none;transition:all .22s;margin-top:.3rem;}
     .btn-main:hover{box-shadow:0 0 32px rgba(0,229,255,.35);transform:translateY(-1px);}
     .btn-main:disabled{opacity:.45;transform:none;box-shadow:none;}
     .amsg{padding:.7rem 1rem;border-radius:8px;font-family:'Space Mono',monospace;font-size:clamp(.68rem,1.6vw,.76rem);margin-top:.85rem;display:none;line-height:1.55;}
     .amsg.err{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.28);color:#fca5a5;}
     .amsg.ok{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.28);color:#6ee7b7;}
-
-    /* NAV */
+    /* ── NAV ── */
     nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:.9rem clamp(1rem,5vw,3rem);background:rgba(6,9,13,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
     .nav-logo{font-family:'Space Mono',monospace;color:var(--accent);font-size:clamp(.7rem,1.8vw,.86rem);}
-    .nav-r{display:flex;align-items:center;gap:clamp(.6rem,2vw,1.2rem);}
+    .nav-r{display:flex;align-items:center;gap:clamp(.5rem,1.5vw,1rem);}
     .nav-who{font-family:'Space Mono',monospace;font-size:clamp(.6rem,1.4vw,.72rem);color:var(--muted);}
-    .nav-who span{color:var(--accent);}
+    .role-badge{font-family:'Space Mono',monospace;font-size:.58rem;padding:.2rem .6rem;border-radius:100px;letter-spacing:.08em;font-weight:700;}
+    .role-student{background:rgba(0,229,255,.1);color:var(--accent);border:1px solid rgba(0,229,255,.3);}
+    .role-admin{background:rgba(109,40,217,.15);color:#a78bfa;border:1px solid rgba(109,40,217,.4);}
+    .role-master{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.35);}
     .nav-lnk{text-decoration:none;font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.3vw,.68rem);color:var(--muted);transition:color .2s;}
     .nav-lnk:hover{color:var(--accent);}
     .btn-out{padding:.4rem clamp(.55rem,1.8vw,.85rem);background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Space Mono',monospace;font-size:clamp(.56rem,1.3vw,.66rem);cursor:none;transition:all .2s;}
@@ -61,11 +60,10 @@
     .mob-nav.open{display:flex;}
     .mob-nav a{text-decoration:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;transition:color .2s;}
     .mob-nav a:hover{color:var(--accent);}
-
+    /* ── APP ── */
     #app{display:none;min-height:100vh;position:relative;z-index:1;}
     .wrap{padding:clamp(2rem,6vw,3.5rem) clamp(1rem,5vw,3rem);max-width:1200px;margin:0 auto;}
-
-    /* GREETING */
+    /* ── GREETING ── */
     .greet{position:relative;overflow:hidden;margin-bottom:2.5rem;padding:clamp(1.8rem,5vw,2.6rem);background:var(--card);border:1px solid var(--border);border-radius:20px;}
     .gorb{position:absolute;top:-30%;right:-8%;width:clamp(200px,40vw,480px);height:clamp(200px,40vw,480px);background:radial-gradient(circle,rgba(0,229,255,.05) 0%,transparent 68%);pointer-events:none;}
     .gorb2{position:absolute;bottom:-20%;left:-5%;width:clamp(150px,30vw,360px);height:clamp(150px,30vw,360px);background:radial-gradient(circle,rgba(109,40,217,.06) 0%,transparent 68%);pointer-events:none;}
@@ -76,12 +74,10 @@
     .g-chips{display:flex;gap:.8rem;margin-top:1.1rem;flex-wrap:wrap;}
     .chip{font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.3vw,.66rem);padding:.28rem .75rem;border-radius:100px;border:1px solid var(--border);color:var(--muted);}
     .chip span{color:var(--accent);}
-
-    /* GRID */
+    /* ── GRID ── */
     .dash-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(1.2rem,3vw,2rem);align-items:start;}
     .sec-lbl{font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.4vw,.68rem);letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:.9rem;}
-
-    /* TILES */
+    /* ── TILES ── */
     .tiles{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:1.8rem;}
     .tile{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:clamp(1rem,3vw,1.5rem);text-decoration:none;color:var(--text);transition:all .28s;position:relative;overflow:hidden;display:block;cursor:none;}
     .tile::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,255,.04),transparent);opacity:0;transition:opacity .28s;}
@@ -93,14 +89,12 @@
     .tile-stat{font-family:'Space Mono',monospace;font-size:clamp(.58rem,1.3vw,.66rem);color:var(--accent);margin-top:.45rem;}
     .tile-arr{position:absolute;top:.9rem;right:.9rem;font-size:.75rem;color:var(--muted);transition:all .2s;}
     .tile:hover .tile-arr{color:var(--accent);transform:translate(2px,-2px);}
-
-    /* STATS */
+    /* ── STATS ── */
     .stats{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
     .sc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem;}
     .sc-val{font-family:'Space Mono',monospace;font-size:clamp(1.3rem,3vw,1.65rem);font-weight:700;color:var(--accent);line-height:1;}
     .sc-lbl{font-size:clamp(.6rem,1.4vw,.68rem);color:var(--muted);margin-top:.22rem;}
-
-    /* TODO */
+    /* ── TODO BOX ── */
     .tbox{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:clamp(1.2rem,3vw,1.7rem);}
     .tin-row{display:flex;gap:.55rem;margin-bottom:.9rem;}
     .tin{flex:1;padding:.64rem .88rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:clamp(.8rem,1.8vw,.88rem);outline:none;transition:border-color .2s;cursor:none;}
@@ -110,710 +104,480 @@
     .tadd:hover{box-shadow:0 0 16px rgba(0,229,255,.35);transform:translateY(-1px);}
     .tfs{display:flex;gap:.32rem;margin-bottom:.85rem;}
     .tf{padding:.26rem .64rem;border-radius:6px;font-family:'Space Mono',monospace;font-size:.57rem;letter-spacing:.04em;cursor:none;background:transparent;border:1px solid var(--border);color:var(--muted);transition:all .18s;}
-    .tf:hover{border-color:var(--accent);color:var(--accent);}
     .tf.on{background:rgba(0,229,255,.1);border-color:var(--accent);color:var(--accent);}
-    .tlist{display:flex;flex-direction:column;gap:.42rem;max-height:380px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;padding-right:.2rem;}
-    .tlist::-webkit-scrollbar{width:3px;}
-    .tlist::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-    .ti{display:flex;align-items:flex-start;gap:.62rem;padding:.62rem .78rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;transition:all .2s;animation:fup .22s ease both;cursor:none;user-select:none;}
-    .ti:hover{border-color:rgba(0,229,255,.28);background:rgba(0,229,255,.03);}
-    .ti.done{opacity:.4;}
+    .tlist{display:flex;flex-direction:column;gap:.42rem;max-height:400px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;padding-right:.2rem;}
+    .ti{display:flex;align-items:flex-start;gap:.62rem;padding:.62rem .78rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;transition:all .2s;cursor:none;user-select:none;}
+    .ti:hover{border-color:rgba(0,229,255,.25);background:rgba(0,229,255,.03);}
+    .ti.done{opacity:.45;}
     .tchk{width:16px;height:16px;min-width:16px;border-radius:50%;border:1.5px solid var(--muted);display:flex;align-items:center;justify-content:center;cursor:none;transition:all .18s;background:transparent;margin-top:2px;font-size:.6rem;}
-    .tchk:hover{border-color:var(--green);}
     .ti.done .tchk{background:var(--green);border-color:var(--green);color:#06090d;}
     .ttxt{flex:1;font-size:clamp(.77rem,1.8vw,.85rem);line-height:1.45;word-break:break-word;}
     .ti.done .ttxt{text-decoration:line-through;color:var(--muted);}
-    .tdel{width:19px;height:19px;min-width:19px;border-radius:50%;border:1px solid rgba(239,68,68,.2);background:transparent;color:#fca5a5;font-size:.58rem;cursor:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .18s;margin-top:1px;}
-    .ti:hover .tdel{opacity:1;}
-    .tdel:hover{background:rgba(239,68,68,.15);}
+    .tdel{width:19px;height:19px;min-width:19px;border-radius:50%;border:1px solid rgba(239,68,68,.22);background:transparent;color:#fca5a5;font-size:.58rem;cursor:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .18s;margin-top:1px;}
+    .ti:hover .tdel{opacity:1;}.tdel:hover{background:rgba(239,68,68,.15);}
+    /* todo completion bar (admin view) */
+    .t-bar-wrap{flex:1;}
+    .t-bar-bg{height:3px;background:var(--border);border-radius:2px;margin-top:.4rem;overflow:hidden;}
+    .t-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .4s;}
+    .t-comp{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-top:.22rem;}
     .tempty{text-align:center;padding:1.8rem 1rem;color:var(--muted);font-family:'Space Mono',monospace;font-size:.68rem;line-height:1.7;}
     .tfoot{display:flex;justify-content:space-between;align-items:center;margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--border);}
     .tcnt{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);}
     .tclr{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);background:none;border:none;cursor:none;transition:color .18s;padding:0;}
     .tclr:hover{color:var(--red);}
+    /* ── USER MANAGEMENT (MASTER) ── */
+    .user-grid{display:flex;flex-direction:column;gap:.55rem;margin-top:.5rem;}
+    .user-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem 1.1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .u-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff;flex-shrink:0;}
+    .u-name{font-weight:700;font-size:.92rem;}
+    .u-email{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);}
+    .u-actions{margin-left:auto;display:flex;gap:.45rem;flex-wrap:wrap;}
+    .u-btn{padding:.28rem .75rem;border-radius:6px;font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;cursor:none;border:none;transition:all .2s;letter-spacing:.04em;}
+    .u-btn.make-admin{background:rgba(109,40,217,.2);color:#a78bfa;border:1px solid rgba(109,40,217,.4);}
+    .u-btn.make-admin:hover{background:rgba(109,40,217,.35);}
+    .u-btn.make-student{background:rgba(0,229,255,.1);color:var(--accent);border:1px solid rgba(0,229,255,.3);}
+    .u-btn.make-student:hover{background:rgba(0,229,255,.2);}
+    .u-btn.make-master{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.35);}
+    .u-btn.make-master:hover{background:rgba(251,191,36,.22);}
+    .u-btn:disabled{opacity:.35;cursor:not-allowed;}
+    /* ── TOAST ── */
     .toast{position:fixed;bottom:clamp(1rem,3vw,2rem);right:clamp(1rem,3vw,2rem);z-index:999;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.85rem 1.3rem;font-family:'Space Mono',monospace;font-size:clamp(.64rem,1.5vw,.74rem);transform:translateY(80px);opacity:0;transition:all .28s;max-width:min(300px,88vw);pointer-events:none;}
     .toast.show{transform:translateY(0);opacity:1;}
-    .toast.ok{border-color:rgba(16,185,129,.38);color:#6ee7b7;}
-    .toast.err{border-color:rgba(239,68,68,.38);color:#fca5a5;}
-    .toast.info{border-color:rgba(0,229,255,.38);color:var(--accent);}
+    .toast.ok{border-color:rgba(16,185,129,.38);color:#6ee7b7;}.toast.err{border-color:rgba(239,68,68,.38);color:#fca5a5;}.toast.info{border-color:rgba(0,229,255,.38);color:var(--accent);}
+    /* ── FOOTER ── */
     footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.4rem clamp(1rem,5vw,3rem);display:flex;justify-content:space-between;align-items:center;font-family:'Space Mono',monospace;font-size:clamp(.54rem,1.3vw,.64rem);color:var(--muted);flex-wrap:wrap;gap:.5rem;}
     @keyframes fup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     .rev{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;}
     .rev.on{opacity:1;transform:translateY(0);}
-    @media(max-width:860px){.dash-grid{grid-template-columns:1fr;}.hbg{display:flex;}.nav-who{display:none;}}
+    @media(max-width:860px){.dash-grid{grid-template-columns:1fr;}.hbg{display:flex;}.nav-who,.nav-lnk:not(.mob-keep){display:none;}}
     @media(max-width:480px){.tiles{grid-template-columns:1fr;}footer{flex-direction:column;text-align:center;}}
   </style>
 </head>
 <body>
-  <div class="cur" id="cur"></div>
-  <div class="curR" id="curR"></div>
+<div class="cur" id="cur"></div><div class="curR" id="curR"></div>
+<div id="loader"><div class="ld-logo">⚡ DASHBOARD</div><div class="spinner"></div></div>
 
-  <div id="loader">
-    <div class="ld-logo">⚡ DASHBOARD</div>
-    <div class="spinner"></div>
-  </div>
-
-  <div id="authWrap">
-    <div class="auth-card">
-      <div class="auth-logo">⚡ DASHBOARD</div>
-      <h1 class="auth-h" id="authH">Welcome Back</h1>
-      <p class="auth-sub" id="authS">Sign in to access your personal dashboard.</p>
-
-      <div class="atabs">
-        <button class="atab on" onclick="switchTab('in')">SIGN IN</button>
-        <button class="atab" onclick="switchTab('up')">SIGN UP</button>
+<div id="authWrap">
+  <div class="auth-card">
+    <div class="auth-logo">⚡ DASHBOARD</div>
+    <h1 class="auth-h" id="authH">Welcome Back</h1>
+    <p class="auth-sub" id="authS">Sign in to access your dashboard.</p>
+    <div class="atabs">
+      <button class="atab on" onclick="switchTab('in')">SIGN IN</button>
+      <button class="atab" onclick="switchTab('up')">SIGN UP</button>
+    </div>
+    <div id="fIn">
+      <div class="fg"><label>EMAIL</label><input type="email" id="lEmail" placeholder="your@email.com" autocomplete="email"/></div>
+      <div class="fg"><label>PASSWORD</label><input type="password" id="lPass" placeholder="••••••••" autocomplete="current-password"/></div>
+      <button class="btn-main" id="lBtn" onclick="login()">SIGN IN →</button>
+      <div class="amsg err" id="lErr"></div>
+    </div>
+    <div id="fUp" style="display:none">
+      <div class="fg">
+        <label>USERNAME <span style="font-size:.57rem;opacity:.6">(spaces allowed)</span></label>
+        <input type="text" id="uName" placeholder="e.g. Sohail Sameer" autocomplete="off" oninput="liveUN(this.value)"/>
+        <div class="fhint" id="unHint"></div>
       </div>
-
-      <div id="fIn">
-        <div class="fg">
-          <label>EMAIL</label>
-          <input type="email" id="lEmail" placeholder="your@email.com" autocomplete="email"/>
-        </div>
-        <div class="fg">
-          <label>PASSWORD</label>
-          <input type="password" id="lPass" placeholder="••••••••" autocomplete="current-password"/>
-        </div>
-        <button class="btn-main" id="lBtn" onclick="login()">SIGN IN →</button>
-        <div class="amsg err" id="lErr"></div>
-      </div>
-
-      <div id="fUp" style="display:none">
-        <div class="fg">
-          <label>USERNAME <span style="font-size:.57rem;opacity:.6">(spaces allowed · min 3 chars)</span></label>
-          <input type="text" id="uName" placeholder="e.g. Sohail Sameer" autocomplete="off" oninput="liveUN(this.value)"/>
-          <div class="fhint" id="unHint"></div>
-        </div>
-        <div class="fg">
-          <label>EMAIL</label>
-          <input type="email" id="uEmail" placeholder="your@email.com" autocomplete="email" oninput="liveEM(this.value)"/>
-          <div class="fhint" id="emHint"></div>
-        </div>
-        <div class="fg">
-          <label>PASSWORD <span style="font-size:.57rem;opacity:.6">(min 6 chars)</span></label>
-          <input type="password" id="uPass" placeholder="choose a password" autocomplete="new-password" oninput="livePW(this.value)"/>
-          <div class="fhint" id="pwHint"></div>
-        </div>
-        <div class="fg">
-          <label>CONFIRM PASSWORD</label>
-          <input type="password" id="uPass2" placeholder="repeat password" autocomplete="new-password" oninput="livePW2(this.value)"/>
-          <div class="fhint" id="pw2Hint"></div>
-        </div>
-        <button class="btn-main" id="uBtn" onclick="signup()">CREATE ACCOUNT →</button>
-        <div class="amsg err" id="uErr"></div>
-        <div class="amsg ok" id="uOk"></div>
-      </div>
+      <div class="fg"><label>EMAIL</label><input type="email" id="uEmail" placeholder="your@email.com" autocomplete="email" oninput="liveEM(this.value)"/><div class="fhint" id="emHint"></div></div>
+      <div class="fg"><label>PASSWORD <span style="font-size:.57rem;opacity:.6">(min 6)</span></label><input type="password" id="uPass" placeholder="choose a password" autocomplete="new-password" oninput="livePW(this.value)"/><div class="fhint" id="pwHint"></div></div>
+      <div class="fg"><label>CONFIRM PASSWORD</label><input type="password" id="uPass2" placeholder="repeat password" autocomplete="new-password" oninput="livePW2(this.value)"/><div class="fhint" id="pw2Hint"></div></div>
+      <button class="btn-main" id="uBtn" onclick="signup()">CREATE ACCOUNT →</button>
+      <div class="amsg err" id="uErr"></div><div class="amsg ok" id="uOk"></div>
     </div>
   </div>
+</div>
 
-  <div id="app">
-    <nav>
-      <div class="nav-logo">⚡ DASHBOARD</div>
-      <div class="nav-r">
-        <div class="nav-who">Hey, <span id="navWho"></span></div>
-        <a href="index.html" class="nav-lnk">← PORTFOLIO</a>
-        <button class="btn-out" onclick="logout()">SIGN OUT</button>
-        <button class="hbg" id="hbg"><span></span><span></span><span></span></button>
-      </div>
-      <div class="mob-nav" id="mobNav">
-        <a href="index.html">← Portfolio</a>
-        <a href="library.html">📚 Library</a>
-        <a href="attendance.html">📋 Attendance</a>
-        <a href="#" onclick="logout()">Sign Out</a>
-      </div>
-    </nav>
+<div id="app">
+  <nav>
+    <div class="nav-logo">⚡ DASHBOARD</div>
+    <div class="nav-r">
+      <span class="role-badge role-student" id="roleBadge">STUDENT</span>
+      <div class="nav-who" id="navWho"></div>
+      <a href="index.html" class="nav-lnk mob-keep">← PORTFOLIO</a>
+      <a href="attendance.html" class="nav-lnk">ATTENDANCE</a>
+      <a href="library.html" class="nav-lnk">LIBRARY</a>
+      <button class="btn-out" onclick="logout()">SIGN OUT</button>
+      <button class="hbg" id="hbg"><span></span><span></span><span></span></button>
+    </div>
+    <div class="mob-nav" id="mobNav">
+      <a href="index.html">← Portfolio</a>
+      <a href="attendance.html">📋 Attendance</a>
+      <a href="library.html">📚 Library</a>
+      <a href="#" onclick="logout()">Sign Out</a>
+    </div>
+  </nav>
 
-    <div class="wrap">
-      <div class="greet rev">
-        <div class="gorb"></div>
-        <div class="gorb2"></div>
-        <div class="g-time" id="gTime">GOOD MORNING</div>
-        <div class="g-name">Hey, <span id="gName">there</span> 👋</div>
-        <div class="g-date" id="gDate"></div>
-        <div class="g-chips">
-          <div class="chip">📚 Books: <span id="cBooks">—</span></div>
-          <div class="chip">❤️ Wishlist: <span id="cWish">—</span></div>
-          <div class="chip">✅ Done today: <span id="cDone">—</span></div>
-        </div>
+  <div class="wrap">
+    <!-- GREETING -->
+    <div class="greet rev">
+      <div class="gorb"></div><div class="gorb2"></div>
+      <div class="g-time" id="gTime">GOOD MORNING</div>
+      <div class="g-name">Hey, <span id="gName">there</span> 👋</div>
+      <div class="g-date" id="gDate"></div>
+      <div class="g-chips">
+        <div class="chip">Role: <span id="roleChip">—</span></div>
+        <div class="chip" id="chipTasks">✅ Done: <span id="cDone">—</span></div>
+        <div class="chip" id="chipStudents" style="display:none">👥 Students: <span id="cStudents">—</span></div>
       </div>
+    </div>
 
-      <div class="dash-grid">
-        <div>
+    <div class="dash-grid">
+      <!-- LEFT COL -->
+      <div>
+        <!-- Student: App tiles -->
+        <div id="tilesSection">
           <div class="sec-lbl rev">YOUR APPS</div>
           <div class="tiles rev">
-            <a href="library.html" class="tile">
-              <span class="tile-arr">↗</span>
-              <span class="tile-icon">📚</span>
-              <div class="tile-name">Book Library</div>
-              <div class="tile-desc">Books, wishlist &amp; reading lists, cloud-synced.</div>
-              <div class="tile-stat" id="tBooks">— books</div>
-            </a>
-            <a href="attendance.html" class="tile">
-              <span class="tile-arr">↗</span>
-              <span class="tile-icon">📋</span>
-              <div class="tile-name">Attendance</div>
-              <div class="tile-desc">Timetable upload, subject-wise tracking &amp; skip calculator.</div>
-              <div class="tile-stat" id="tSubj">— subjects</div>
-            </a>
-          </div>
-
-          <div class="sec-lbl rev" style="margin-top:1.1rem">QUICK STATS</div>
-          <div class="stats rev">
-            <div class="sc"><div class="sc-val" id="sBooks">—</div><div class="sc-lbl">Books in Library</div></div>
-            <div class="sc"><div class="sc-val" id="sWish">—</div><div class="sc-lbl">On Wishlist</div></div>
-            <div class="sc"><div class="sc-val" id="sPend">—</div><div class="sc-lbl">Tasks Remaining</div></div>
-            <div class="sc"><div class="sc-val" id="sDone">—</div><div class="sc-lbl">Tasks Completed</div></div>
+            <a href="library.html" class="tile"><span class="tile-arr">↗</span><span class="tile-icon">📚</span><div class="tile-name">Class Library</div><div class="tile-desc">Browse recommended books and reading lists.</div><div class="tile-stat" id="tLib">— books</div></a>
+            <a href="attendance.html" class="tile"><span class="tile-arr">↗</span><span class="tile-icon">📋</span><div class="tile-name">Attendance</div><div class="tile-desc">View your attendance and skip calculator.</div><div class="tile-stat" id="tSubj">— subjects</div></a>
           </div>
         </div>
 
-        <div class="rev">
-          <div class="sec-lbl">TO-DO LIST</div>
-          <div class="tbox">
+        <!-- Admin/Master: manage todos form (left side) -->
+        <div id="adminCreateSection" style="display:none">
+          <div class="sec-lbl rev">ADD CLASS TASK</div>
+          <div class="tbox rev" style="margin-bottom:1.5rem">
             <div class="tin-row">
-              <input class="tin" id="tIn" placeholder="Add a task..." maxlength="120" onkeydown="if(event.key==='Enter')addTodo()"/>
-              <button class="tadd" onclick="addTodo()">+ ADD</button>
+              <input class="tin" id="adminTin" placeholder="New task for all students…" maxlength="160" onkeydown="if(event.key==='Enter')adminAddTodo()"/>
+              <button class="tadd" onclick="adminAddTodo()">+ ADD</button>
             </div>
+            <p style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);line-height:1.55">This task will appear in every student's dashboard. Students mark it done themselves.</p>
+          </div>
+        </div>
 
-            <div class="tfs">
-              <button class="tf on" onclick="setF('all',this)">ALL</button>
-              <button class="tf" onclick="setF('active',this)">ACTIVE</button>
-              <button class="tf" onclick="setF('done',this)">DONE</button>
-            </div>
+        <!-- Quick stats -->
+        <div class="sec-lbl rev" style="margin-top:0">QUICK STATS</div>
+        <div class="stats rev">
+          <div class="sc"><div class="sc-val" id="sTodos">—</div><div class="sc-lbl">Class Tasks</div></div>
+          <div class="sc"><div class="sc-val" id="sDone">—</div><div class="sc-lbl" id="sDoneLbl">Tasks Completed</div></div>
+          <div class="sc"><div class="sc-val" id="sStudents">—</div><div class="sc-lbl" id="sStudentsLbl">Students</div></div>
+          <div class="sc"><div class="sc-val" id="sPct">—</div><div class="sc-lbl">Completion Rate</div></div>
+        </div>
 
-            <div class="tlist" id="tList"></div>
+        <!-- MASTER: User Management -->
+        <div id="userMgmtSection" style="display:none;margin-top:2rem">
+          <div class="sec-lbl rev">USER MANAGEMENT</div>
+          <div class="rev" id="userGrid"><div class="tempty">Loading users…</div></div>
+        </div>
+      </div>
 
-            <div class="tfoot">
-              <span class="tcnt" id="tCnt">0 tasks</span>
-              <button class="tclr" onclick="clrDone()">Clear completed</button>
-            </div>
+      <!-- RIGHT COL: Todo list -->
+      <div class="rev">
+        <div id="todoHeader" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem">
+          <div class="sec-lbl" style="margin-bottom:0">CLASS TO-DO LIST</div>
+        </div>
+        <div class="tbox">
+          <div class="tfs" id="filterRow">
+            <button class="tf on" onclick="setF('all',this)">ALL</button>
+            <button class="tf" onclick="setF('active',this)">PENDING</button>
+            <button class="tf" onclick="setF('done',this)">DONE</button>
+          </div>
+          <div class="tlist" id="tList"></div>
+          <div class="tfoot">
+            <span class="tcnt" id="tCnt">0 tasks</span>
+            <span id="tFootNote" style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted)"></span>
           </div>
         </div>
       </div>
     </div>
-
-    <footer>
-      <span>⚡ Dashboard — <span id="footWho"></span></span>
-      <span>Powered by Supabase</span>
-    </footer>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <footer>
+    <span>⚡ Dashboard — <span id="footWho"></span></span>
+    <span>Powered by Supabase</span>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
-          SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
+      SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
+const {createClient}=supabase, sb=createClient(SB_URL,SB_ANON), $=id=>document.getElementById(id);
 
-    const { createClient } = supabase,
-          sb = createClient(SB_URL, SB_ANON),
-          $ = id => document.getElementById(id);
+let me=null, userRole='student', todos=[], completions={}, students=[], tf='all';
 
-    let me = null, todos = [], tf = 'all';
+// ── CURSOR ──
+const cur=$('cur'),curR=$('curR');
+let mx=window.innerWidth/2,my=window.innerHeight/2,rx=mx,ry=my,curActive=false;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;if(!curActive){curActive=true;cur.style.opacity='1';curR.style.opacity='.45';}cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.addEventListener('mouseleave',()=>{cur.style.opacity='0';curR.style.opacity='0';});
+document.addEventListener('mouseenter',()=>{if(curActive){cur.style.opacity='1';curR.style.opacity='.45';}});
+(function loop(){rx+=(mx-rx)*.14;ry+=(my-ry)*.14;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(loop);})();
+function ch(el){if(!el||el._c)return;el._c=true;
+  el.addEventListener('mouseenter',()=>{cur.style.transform='translate(-50%,-50%) scale(2.2)';curR.style.width='52px';curR.style.height='52px';curR.style.borderColor='var(--accent2)';});
+  el.addEventListener('mouseleave',()=>{cur.style.transform='translate(-50%,-50%) scale(1)';curR.style.width='34px';curR.style.height='34px';curR.style.borderColor='var(--accent)';});}
+document.querySelectorAll('a,button,input').forEach(ch);
+$('hbg').addEventListener('click',()=>$('mobNav').classList.toggle('open'));
 
-    const cur = $('cur'), curR = $('curR');
-    let mx = window.innerWidth/2, my = window.innerHeight/2, rx = mx, ry = my, curActive = false;
-
-    document.addEventListener('mousemove', e => {
-      mx = e.clientX;
-      my = e.clientY;
-      if(!curActive){
-        curActive = true;
-        cur.style.opacity = '1';
-        curR.style.opacity = '.45';
-      }
-      cur.style.left = mx+'px';
-      cur.style.top = my+'px';
-    });
-
-    document.addEventListener('mouseleave', () => {
-      cur.style.opacity='0';
-      curR.style.opacity='0';
-    });
-
-    document.addEventListener('mouseenter', () => {
-      if(curActive){
-        cur.style.opacity='1';
-        curR.style.opacity='.45';
-      }
-    });
-
-    (function loop(){
-      rx += (mx-rx)*.14;
-      ry += (my-ry)*.14;
-      curR.style.left = rx+'px';
-      curR.style.top = ry+'px';
-      requestAnimationFrame(loop);
-    })();
-
-    function ch(el){
-      if(!el || el._c) return;
-      el._c = true;
-      el.addEventListener('mouseenter', () => {
-        cur.style.transform='translate(-50%,-50%) scale(2.2)';
-        curR.style.width='52px';
-        curR.style.height='52px';
-        curR.style.borderColor='var(--accent2)';
-      });
-      el.addEventListener('mouseleave', () => {
-        cur.style.transform='translate(-50%,-50%) scale(1)';
-        curR.style.width='34px';
-        curR.style.height='34px';
-        curR.style.borderColor='var(--accent)';
-      });
-    }
-
-    document.querySelectorAll('a,button,input,.tile').forEach(ch);
-
-    $('hbg').addEventListener('click', () => $('mobNav').classList.toggle('open'));
-
-    /* ✅ FIX: delegated click handling for todo list */
-    $('tList').addEventListener('click', (e) => {
-      const item = e.target.closest('.ti');
-      if (!item) return;
-
-      const id = item.dataset.id;
-
-      if (e.target.closest('.tdel')) {
-        deleteTodo(id);
-        return;
-      }
-
-      toggleTodo(id);
-    });
-
-    window.addEventListener('load', async () => {
-      const h = window.location.hash;
-
-      if(h.includes('access_token') || h.includes('type=signup')){
-        await sb.auth.getSession();
-        history.replaceState(null,'',window.location.pathname);
-        $('loader').style.display='none';
-        $('authWrap').style.display='flex';
-        switchTab('in');
-
-        const b = document.createElement('div');
-        b.className='amsg ok';
-        b.style.display='block';
-        b.textContent='✅ Email verified! You can now sign in.';
-        document.querySelector('.auth-card').insertBefore(b, document.querySelector('.atabs'));
-        return;
-      }
-
-      const { data:{ session } } = await sb.auth.getSession();
-      $('loader').style.display='none';
-
-      if(session){
-        me = session.user;
-        loadApp(session.user);
-      } else {
-        $('authWrap').style.display='flex';
-      }
-
-      sb.auth.onAuthStateChange((_,s) => {
-        if(s){
-          me = s.user;
-          loadApp(s.user);
-        } else {
-          me = null;
-          $('app').style.display='none';
-          $('authWrap').style.display='flex';
-        }
-      });
-    });
-
-    window.switchTab = t => {
-      $('fIn').style.display = t==='in' ? 'block' : 'none';
-      $('fUp').style.display = t==='up' ? 'block' : 'none';
-      $('authH').textContent = t==='in' ? 'Welcome Back' : 'Create Account';
-      $('authS').textContent = t==='in'
-        ? 'Sign in to access your personal dashboard.'
-        : 'Create your free account — no credit card needed.';
-      document.querySelectorAll('.atab').forEach((x,i)=>
-        x.classList.toggle('on', (t==='in' && i===0) || (t==='up' && i===1))
-      );
-    };
-
-    let unT = null;
-
-    window.liveUN = v => {
-      const h = $('unHint'), i = $('uName');
-    
-      i.classList.remove('good','bad');
-      h.className = 'fhint';
-      h.textContent = '';
-    
-      if(!v) return;
-    
-      const norm = v.trim().replace(/\s+/g,'_').toLowerCase();
-    
-      if(norm.length < 3){
-        return sh(h,i,'no','✗ At least 3 characters.');
-      }
-    
-      if(!/^[a-zA-Z0-9_]+$/.test(norm)){
-        return sh(h,i,'no','✗ Letters & numbers only.');
-      }
-    
-      sh(h,i,'ld','⏳ Checking...');
-    
-      clearTimeout(unT);
-      unT = setTimeout(async()=>{
-        const { data } = await sb
-          .from('usernames')
-          .select('username')
-          .eq('username', norm)
-          .maybeSingle();
-    
-        if(data){
-          sh(h,i,'no','✗ Already taken');
-        }else{
-          sh(h,i,'ok','✓ Available');
-        }
-      },400);
-    };
-
-    window.liveEM = v => {
-      const h=$('emHint'), i=$('uEmail');
-      i.classList.remove('good','bad');
-      h.className='fhint';
-      h.textContent='';
-      if(!v) return;
-
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) sh(h,i,'no','✗ Invalid email.');
-      else sh(h,i,'ok','✓ Looks good!');
-    };
-
-    window.livePW = v => {
-      const h=$('pwHint'), i=$('uPass');
-      i.classList.remove('good','bad');
-      h.className='fhint';
-      h.textContent='';
-      if(!v) return;
-
-      if(v.length<6) sh(h,i,'no','✗ Min 6 chars.');
-      else sh(h,i,'ok','✓ Strong!');
-
-      if($('uPass2').value) livePW2($('uPass2').value);
-    };
-
-    window.livePW2 = v => {
-      const h=$('pw2Hint'), i=$('uPass2');
-      i.classList.remove('good','bad');
-      h.className='fhint';
-      h.textContent='';
-      if(!v) return;
-
-      const m = $('uPass').value === v;
-      sh(h,i,m ? 'ok' : 'no', m ? '✓ Match!' : '✗ No match.');
-    };
-
-    function sh(el,inp,t,m){
-      el.textContent = m;
-      el.className = 'fhint ' + t;
-      inp.classList.remove('good','bad');
-      inp.classList.add(t === 'ok' ? 'good' : 'bad');
-    }
-
-    function sMsg(id,msg,t='err'){
-      const el=$(id);
-      el.textContent=msg;
-      el.className='amsg '+t;
-      el.style.display='block';
-      if(t!=='ok') setTimeout(() => el.style.display='none', 5500);
-    }
-
-    function sbE(m){
-      const mp = {
-        'Invalid login credentials':'Incorrect email or password.',
-        'Email not confirmed':'Confirm your email first.',
-        'User already registered':'Account exists with this email.',
-        'For security purposes':'Too many attempts. Wait a moment.'
-      };
-      for(const [k,v] of Object.entries(mp)) if(m.includes(k)) return v;
-      return m || 'Something went wrong.';
-    }
-
-    window.signup = async () => {
-
-  const raw = $('uName').value.trim();
-  const un = raw.replace(/\s+/g,'_').toLowerCase();
-
-  const em = $('uEmail').value.trim();
-  const pw = $('uPass').value;
-  const pw2 = $('uPass2').value;
-
-  if(!raw || !em || !pw || !pw2)
-    return sMsg('uErr','Fill in all fields.');
-
-  if($('unHint').classList.contains('no'))
-    return sMsg('uErr','Fix username first.');
-
-  if($('emHint').classList.contains('no'))
-    return sMsg('uErr','Fix email first.');
-
-  if(pw !== pw2)
-    return sMsg('uErr','Passwords do not match.');
-
-  $('uBtn').disabled = true;
-  $('uBtn').textContent = 'CREATING...';
-
-  // ✅ Check username first
-  const { data: existing } = await sb
-    .from('usernames')
-    .select('username')
-    .eq('username', un)
-    .maybeSingle();
-
-  if(existing){
-    $('uBtn').disabled=false;
-    $('uBtn').textContent='CREATE ACCOUNT →';
-    return sMsg('uErr','Username already taken.');
+// ── AUTH ──
+window.addEventListener('load',async()=>{
+  const h=window.location.hash;
+  if(h.includes('access_token')||h.includes('type=signup')){
+    await sb.auth.getSession();history.replaceState(null,'',window.location.pathname);
+    $('loader').style.display='none';$('authWrap').style.display='flex';switchTab('in');
+    const b=document.createElement('div');b.className='amsg ok';b.style.display='block';
+    b.textContent='✅ Email verified! You can now sign in.';
+    document.querySelector('.auth-card').insertBefore(b,document.querySelector('.atabs'));return;
   }
+  const{data:{session}}=await sb.auth.getSession();
+  $('loader').style.display='none';
+  if(session){me=session.user;loadApp(session.user);}else $('authWrap').style.display='flex';
+  sb.auth.onAuthStateChange((_,s)=>{if(s){me=s.user;loadApp(s.user);}else{me=null;$('app').style.display='none';$('authWrap').style.display='flex';}});
+});
 
-  // ✅ Reserve username
-  const { error: ue } = await sb
-    .from('usernames')
-    .insert([{ username: un }]);
-
-  if(ue){
-    $('uBtn').disabled=false;
-    $('uBtn').textContent='CREATE ACCOUNT →';
-    return sMsg('uErr','Username already exists.');
-  }
-
-  // ✅ Create account
-  const { error } = await sb.auth.signUp({
-    email: em,
-    password: pw,
-    options: {
-      data: { username: un },
-      emailRedirectTo: window.location.href.split('#')[0]
-    }
-  });
-
-  $('uBtn').disabled=false;
-  $('uBtn').textContent='CREATE ACCOUNT →';
-
-  if(error){
-    if(error.message.includes('User already')){
-      return sMsg('uErr','Email already exists.');
-    }
-    return sMsg('uErr', error.message);
-  }
-
-  $('uErr').style.display='none';
-  sMsg('uOk','✓ Account created! Check your email.','ok');
+window.switchTab=t=>{
+  $('fIn').style.display=t==='in'?'block':'none';$('fUp').style.display=t==='up'?'block':'none';
+  $('authH').textContent=t==='in'?'Welcome Back':'Create Account';
+  $('authS').textContent=t==='in'?'Sign in to access your dashboard.':'Create your free account.';
+  document.querySelectorAll('.atab').forEach((x,i)=>x.classList.toggle('on',(t==='in'&&i===0)||(t==='up'&&i===1)));
 };
 
-    window.login = async () => {
-      const em = $('lEmail').value.trim(),
-            pw = $('lPass').value;
+let unT=null;
+window.liveUN=v=>{
+  const h=$('unHint'),i=$('uName');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;
+  const norm=v.trim().replace(/\s+/g,'_').toLowerCase();
+  if(norm.length<3){sh(h,i,'no','✗ At least 3 characters.');return;}
+  if(!/^[a-zA-Z0-9_]+$/.test(norm)){sh(h,i,'no','✗ Letters, numbers and spaces only.');return;}
+  sh(h,i,'ld','⏳ Checking…');clearTimeout(unT);
+  unT=setTimeout(async()=>{try{const{data}=await sb.from('usernames').select('username').eq('username',norm).maybeSingle();if(data)sh(h,i,'no',`✗ Already taken.`);else sh(h,i,'ok',`✓ Available! Saved as: ${norm}`);}catch(e){sh(h,i,'ok',`✓ Looks available!`);}},500);
+};
+window.liveEM=v=>{const h=$('emHint'),i=$('uEmail');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))sh(h,i,'no','✗ Invalid email.');else sh(h,i,'ok','✓ Looks good!');};
+window.livePW=v=>{const h=$('pwHint'),i=$('uPass');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;if(v.length<6)sh(h,i,'no','✗ Min 6 chars.');else sh(h,i,'ok','✓ Strong!');if($('uPass2').value)livePW2($('uPass2').value);};
+window.livePW2=v=>{const h=$('pw2Hint'),i=$('uPass2');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;const m=$('uPass').value===v;sh(h,i,m?'ok':'no',m?'✓ Match!':'✗ No match.');};
+function sh(el,inp,t,m){el.textContent=m;el.className='fhint '+t;inp.classList.remove('good','bad');inp.classList.add(t==='ok'?'good':'bad');}
+function sMsg(id,msg,t='err'){const el=$(id);el.textContent=msg;el.className='amsg '+t;el.style.display='block';if(t!=='ok')setTimeout(()=>el.style.display='none',5500);}
+function sbE(m){const mp={'Invalid login credentials':'Incorrect email or password.','Email not confirmed':'Confirm your email first.','User already registered':'Account exists with this email.'};for(const[k,v]of Object.entries(mp))if(m.includes(k))return v;return m||'Something went wrong.';}
 
-      if(!em || !pw) return sMsg('lErr','Fill in all fields.');
+window.signup=async()=>{
+  const raw=$('uName').value.trim(), un=raw.replace(/\s+/g,'_').toLowerCase();
+  const em=$('uEmail').value.trim(),pw=$('uPass').value,pw2=$('uPass2').value;
+  if(!raw||!em||!pw||!pw2)return sMsg('uErr','Fill in all fields.');
+  if($('unHint').classList.contains('no'))return sMsg('uErr','Fix username first.');
+  $('uBtn').disabled=true;$('uBtn').textContent='CREATING...';
+  const{error:ue}=await sb.from('usernames').insert([{username:un}]);
+  if(ue){$('uBtn').disabled=false;$('uBtn').textContent='CREATE ACCOUNT →';return sMsg('uErr','Username already taken.');}
+  const{error}=await sb.auth.signUp({email:em,password:pw,options:{data:{username:un},emailRedirectTo:window.location.href.split('#')[0]}});
+  $('uBtn').disabled=false;$('uBtn').textContent='CREATE ACCOUNT →';
+  if(error)return sMsg('uErr',sbE(error.message));
+  $('uErr').style.display='none';sMsg('uOk','✓ Check your email to confirm your account.','ok');
+};
+window.login=async()=>{
+  const em=$('lEmail').value.trim(),pw=$('lPass').value;
+  if(!em||!pw)return sMsg('lErr','Fill in all fields.');
+  $('lBtn').disabled=true;$('lBtn').textContent='SIGNING IN...';
+  const{error}=await sb.auth.signInWithPassword({email:em,password:pw});
+  if(error){sMsg('lErr',sbE(error.message));$('lBtn').disabled=false;$('lBtn').textContent='SIGN IN →';}
+};
+window.logout=async()=>{appLoaded=false;sb.auth.signOut();};
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if($('authWrap').style.display!=='flex')return;if($('fIn').style.display!=='none')login();else signup();});
 
-      $('lBtn').disabled = true;
-      $('lBtn').textContent = 'SIGNING IN...';
+// ── LOAD APP ──
+let appLoaded=false;
+async function loadApp(user){
+  if(appLoaded)return; appLoaded=true;
+  const un=user.user_metadata?.username||user.email.split('@')[0];
+  const displayName=un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
 
-      const { error } = await sb.auth.signInWithPassword({email:em,password:pw});
+  // Fetch profile + role
+  const{data:profile}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+  userRole=profile?.role||'student';
+  await sb.from('profiles').upsert({id:user.id,username:un},{onConflict:'id'});
 
-      if(error){
-        sMsg('lErr', sbE(error.message));
-        $('lBtn').disabled = false;
-        $('lBtn').textContent = 'SIGN IN →';
-      }
-    };
+  $('authWrap').style.display='none';$('app').style.display='block';
+  $('navWho').textContent=displayName;$('footWho').textContent=displayName;
+  $('gName').textContent=displayName;
+  const roleBadge=$('roleBadge');
+  roleBadge.textContent=userRole.toUpperCase();
+  roleBadge.className='role-badge role-'+userRole;
+  $('roleChip').textContent=userRole.charAt(0).toUpperCase()+userRole.slice(1);
+  const h=new Date().getHours();
+  $('gTime').textContent=h<12?'GOOD MORNING':h<17?'GOOD AFTERNOON':'GOOD EVENING';
+  $('gDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-    window.logout = async () => sb.auth.signOut();
+  // Apply role-based UI
+  applyRoleUI();
 
-    /* ✅ FIX: only submit auth forms when auth screen is visible */
-    document.addEventListener('keydown', e => {
-      if (e.key !== 'Enter') return;
-      if ($('authWrap').style.display !== 'flex') return;
+  const rO=new IntersectionObserver(es=>{es.forEach((e,i)=>{if(!e.isIntersecting)return;setTimeout(()=>e.target.classList.add('on'),i*80);rO.unobserve(e.target);});},{threshold:.1});
+  document.querySelectorAll('.rev').forEach(r=>rO.observe(r));
 
-      if ($('fIn').style.display !== 'none') login();
-      else if ($('fUp').style.display !== 'none') signup();
-    });
-
-    async function loadApp(user){
-      const un = user.user_metadata?.username || user.email.split('@')[0];
-      const displayName = un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
-
-      await sb.from('profiles').upsert({id:user.id, username:un},{onConflict:'id'});
-
-      $('authWrap').style.display='none';
-      $('app').style.display='block';
-      $('navWho').textContent=displayName;
-      $('footWho').textContent=displayName;
-
-      const h = new Date().getHours();
-      $('gTime').textContent = h<12 ? 'GOOD MORNING' : h<17 ? 'GOOD AFTERNOON' : 'GOOD EVENING';
-      $('gName').textContent = displayName;
-      $('gDate').textContent = new Date().toLocaleDateString('en-IN',{
-        weekday:'long',
-        year:'numeric',
-        month:'long',
-        day:'numeric'
-      });
-
-      const rO = new IntersectionObserver(es=>{
-        es.forEach((e,i)=>{
-          if(!e.isIntersecting) return;
-          setTimeout(()=>e.target.classList.add('on'), i*80);
-          rO.unobserve(e.target);
-        });
-      },{threshold:.1});
-
-      document.querySelectorAll('.rev').forEach(r=>rO.observe(r));
-
-      await Promise.all([fetchTodos(), fetchStats()]);
-    }
-
-    async function fetchStats(){
-      const [bk,wl,sj] = await Promise.all([
-        sb.from('books').select('id',{count:'exact',head:true}).eq('user_id',me.id),
-        sb.from('wishlist').select('id',{count:'exact',head:true}).eq('user_id',me.id),
-        sb.from('subjects').select('id',{count:'exact',head:true}).eq('user_id',me.id),
-      ]);
-
-      $('sBooks').textContent = bk.count ?? 0;
-      $('sWish').textContent = wl.count ?? 0;
-      $('tBooks').textContent = (bk.count ?? 0) + ' books';
-      $('tSubj').textContent = (sj.count ?? 0) + ' subjects';
-      $('cBooks').textContent = bk.count ?? 0;
-      $('cWish').textContent = wl.count ?? 0;
-
-      updStats();
-    }
-
-    function updStats(){
-      const p = todos.filter(t=>!t.done).length,
-            d = todos.filter(t=>t.done).length;
-
-      $('sPend').textContent = p;
-      $('sDone').textContent = d;
-      $('cDone').textContent = d;
-    }
-
-    async function fetchTodos(){
-      const { data } = await sb.from('todos').select('*').eq('user_id',me.id).order('created_at',{ascending:true});
-      todos = data || [];
-      renderTodos();
-      updStats();
-    }
-
-    window.addTodo = async () => {
-      const text = $('tIn').value.trim();
-      if(!text) return;
-
-      $('tIn').value = '';
-
-      const tmp = { id:'tmp'+Date.now(), text, done:false, user_id:me.id };
-      todos.push(tmp);
-      renderTodos();
-      updStats();
-
-      const { data, error } = await sb.from('todos').insert([{text,done:false,user_id:me.id}]).select().single();
-
-      if(error){
-        todos = todos.filter(x=>x.id!==tmp.id);
-        renderTodos();
-        updStats();
-        toast('Error.','err');
-        return;
-      }
-
-      todos = todos.map(x=>x.id===tmp.id ? data : x);
-      renderTodos();
-      updStats();
-    };
-
-    window.toggleTodo = async id => {
-      const t = todos.find(x => String(x.id) === String(id));
-      if(!t) return;
-
-      t.done = !t.done;
-      renderTodos();
-      updStats();
-
-      await sb.from('todos').update({done:t.done}).eq('id',id).eq('user_id',me.id);
-    };
-
-    window.deleteTodo = async id => {
-      todos = todos.filter(x => String(x.id) !== String(id));
-      renderTodos();
-      updStats();
-
-      await sb.from('todos').delete().eq('id',id).eq('user_id',me.id);
-    };
-
-    window.clrDone = async () => {
-      const ids = todos.filter(t=>t.done).map(t=>t.id);
-      if(!ids.length) return;
-
-      todos = todos.filter(t=>!t.done);
-      renderTodos();
-      updStats();
-
-      await sb.from('todos').delete().in('id',ids).eq('user_id',me.id);
-      toast(`🗑️ ${ids.length} cleared.`,'info');
-    };
-
-    window.setF = (f,btn) => {
-      tf = f;
-      document.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));
-      btn.classList.add('on');
-      renderTodos();
-    };
-
-    /* ✅ FIXED renderTodos() */
-    function renderTodos(){
-      const list = $('tList');
-
-      const filtered =
-        tf === 'active'
-          ? todos.filter(t => !t.done)
-          : tf === 'done'
-          ? todos.filter(t => t.done)
-          : todos;
-
-      const pend = todos.filter(t => !t.done).length;
-      $('tCnt').textContent = `${pend} task${pend !== 1 ? 's' : ''} remaining`;
-
-      if(!filtered.length){
-        list.innerHTML = `<div class="tempty">${
-          tf === 'done'
-            ? 'No completed tasks.'
-            : tf === 'active'
-            ? 'No active tasks!'
-            : 'Add a task above!'
-        }</div>`;
-        return;
-      }
-
-      list.innerHTML = filtered.map(t => `
-        <div class="ti${t.done ? ' done' : ''}" data-id="${t.id}">
-          <button type="button" class="tchk">${t.done ? '✓' : ''}</button>
-          <span class="ttxt">${esc(t.text)}</span>
-          <button type="button" class="tdel">✕</button>
-        </div>
-      `).join('');
-
-      list.querySelectorAll('.ti, .tdel, .tchk').forEach(ch);
-    }
-
-    function esc(s){
-    return String(s || '')
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;');
+  await Promise.all([fetchTodos(), fetchExtraData()]);
 }
 
-    function toast(m,t='ok'){
-      const el = $('toast');
-      el.textContent = m;
-      el.className = 'toast ' + t + ' show';
-      setTimeout(() => el.className = 'toast ' + t, 3200);
+function applyRoleUI(){
+  const isAdmin=userRole==='admin'||userRole==='master';
+  const isMaster=userRole==='master';
+  $('tilesSection').style.display=isAdmin?'none':'';
+  $('adminCreateSection').style.display=isAdmin?'':'none';
+  $('userMgmtSection').style.display=isMaster?'':'none';
+  $('chipStudents').style.display=isAdmin?'':'none';
+  if(isAdmin){
+    $('sDoneLbl').textContent='Avg Completion';
+    $('sStudentsLbl').textContent='Total Students';
+  }
+}
+
+async function fetchExtraData(){
+  if(userRole==='master'||userRole==='admin'){
+    const{data}=await sb.from('profiles').select('id,username,role').order('username');
+    students=data||[];
+    const studs=students.filter(s=>s.role==='student'||s.role==='admin');
+    $('cStudents').textContent=studs.length;
+    $('sStudents').textContent=studs.length;
+    if(userRole==='master')renderUserGrid();
+  } else {
+    const{data}=await sb.from('class_subjects').select('id',{count:'exact',head:true});
+    $('tSubj').textContent=(data?.length||0)+' subjects';
+    const{count}=await sb.from('class_library').select('id',{count:'exact',head:true});
+    $('tLib').textContent=(count||0)+' books';
+    $('sStudents').textContent='—';
+  }
+}
+
+// ── TODOS ──
+async function fetchTodos(){
+  const{data:tdData}=await sb.from('class_todos').select('*').order('created_at',{ascending:true});
+  todos=tdData||[];
+  $('sTodos').textContent=todos.length;
+  if(todos.length===0){renderTodos();updStats();return;}
+
+  if(userRole==='student'){
+    const{data:cData}=await sb.from('todo_completions').select('*').eq('student_id',me.id);
+    completions={};(cData||[]).forEach(c=>completions[c.todo_id]=c);
+  } else {
+    const{data:cData}=await sb.from('todo_completions').select('*');
+    completions={};
+    (cData||[]).forEach(c=>{
+      if(!completions[c.todo_id])completions[c.todo_id]=[];
+      completions[c.todo_id].push(c);
+    });
+  }
+  renderTodos();updStats();
+}
+
+function updStats(){
+  if(userRole==='student'){
+    const done=todos.filter(t=>completions[t.id]?.done).length;
+    $('cDone').textContent=done;
+    $('sDone').textContent=done;
+    $('sPct').textContent=todos.length?Math.round(done/todos.length*100)+'%':'—';
+  } else {
+    const studs=(students||[]).filter(s=>s.role==='student'||s.role==='admin');
+    const total=todos.length*Math.max(1,studs.length);
+    let done=0;todos.forEach(t=>{done+=(completions[t.id]||[]).filter(c=>c.done).length;});
+    const pct=total?Math.round(done/total*100):0;
+    $('sDone').textContent=pct+'%';
+    $('sPct').textContent=pct+'%';
+    $('cDone').textContent=done;
+  }
+}
+
+window.setF=(f,btn)=>{tf=f;document.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTodos();};
+
+function renderTodos(){
+  const list=$('tList');
+  let filtered;
+  if(userRole==='student'){
+    if(tf==='active') filtered=todos.filter(t=>!completions[t.id]?.done);
+    else if(tf==='done') filtered=todos.filter(t=>completions[t.id]?.done);
+    else filtered=todos;
+  } else {
+    filtered=todos; // admin sees all
+  }
+
+  const pend=userRole==='student'?todos.filter(t=>!completions[t.id]?.done).length:todos.length;
+  $('tCnt').textContent=`${pend} task${pend!==1?'s':''} remaining`;
+
+  if(!filtered.length){
+    list.innerHTML=`<div class="tempty">${todos.length===0?'No class tasks yet. '+(userRole!=='student'?'Add one above!':'Check back later.'):'No tasks in this filter.'}</div>`;
+    return;
+  }
+
+  list.innerHTML='';
+  filtered.forEach(t=>{
+    const done=userRole==='student'?(completions[t.id]?.done||false):(completions[t.id]||[]).filter(c=>c.done).length;
+    const studs=userRole!=='student'?(students||[]).filter(s=>s.role==='student'||s.role==='admin').length:0;
+    const d=document.createElement('div');
+    d.className='ti'+(userRole==='student'&&done?' done':'');
+
+    if(userRole==='student'){
+      d.innerHTML=`<button class="tchk">${done?'✓':''}</button><span class="ttxt">${esc(t.text)}</span>`;
+      d.querySelector('.tdel')?.remove();
+      d.addEventListener('click',()=>toggleCompletion(t.id));
+    } else {
+      // Admin view: show completion bar
+      const doneCount=Array.isArray(completions[t.id])?(completions[t.id]||[]).filter(c=>c.done).length:0;
+      const pct=studs?Math.round(doneCount/studs*100):0;
+      d.innerHTML=`
+        <div class="t-bar-wrap">
+          <span class="ttxt">${esc(t.text)}</span>
+          <div class="t-bar-bg"><div class="t-bar-fill" style="width:${pct}%"></div></div>
+          <div class="t-comp">${doneCount}/${studs} students done (${pct}%)</div>
+        </div>
+        <button class="tdel" title="Delete task">✕</button>`;
+      d.querySelector('.tdel').addEventListener('click',e=>{e.stopPropagation();adminDeleteTodo(t.id);});
     }
-  </script>
+    list.appendChild(d);
+    d.querySelectorAll('button').forEach(ch);
+  });
+}
+
+async function toggleCompletion(todoId){
+  const cur=completions[todoId];
+  const nowDone=cur?!cur.done:true;
+  completions[todoId]={todo_id:todoId,student_id:me.id,done:nowDone,done_at:nowDone?new Date().toISOString():null};
+  renderTodos();updStats();
+  await sb.from('todo_completions').upsert({todo_id:todoId,student_id:me.id,done:nowDone,done_at:nowDone?new Date().toISOString():null},{onConflict:'todo_id,student_id'});
+}
+
+window.adminAddTodo=async()=>{
+  const text=$('adminTin').value.trim();if(!text)return;
+  $('adminTin').value='';
+  const{data,error}=await sb.from('class_todos').insert([{text,created_by:me.id}]).select().single();
+  if(error){toast('Error adding task.','err');return;}
+  todos.push(data);completions[data.id]=[];renderTodos();updStats();toast('✅ Task added for all students!','ok');
+};
+
+async function adminDeleteTodo(id){
+  todos=todos.filter(t=>t.id!==id);delete completions[id];renderTodos();updStats();
+  await sb.from('class_todos').delete().eq('id',id);toast('🗑️ Task removed.','info');
+}
+
+// ── USER MANAGEMENT (MASTER) ──
+function renderUserGrid(){
+  const grid=$('userGrid');grid.innerHTML='';
+  (students||[]).forEach(u=>{
+    const dn=u.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+    const initials=dn.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const isSelf=u.id===me.id;
+    const d=document.createElement('div');d.className='user-card';
+    d.innerHTML=`
+      <div class="u-avatar">${initials}</div>
+      <div>
+        <div class="u-name">${esc(dn)}</div>
+        <div class="u-email"><span class="role-badge role-${u.role}" style="font-size:.55rem">${u.role.toUpperCase()}</span></div>
+      </div>
+      <div class="u-actions">
+        ${u.role==='student'&&!isSelf?`<button class="u-btn make-admin" onclick="changeRole('${u.id}','admin')">Make Admin</button>`:''}
+        ${u.role==='admin'&&!isSelf?`<button class="u-btn make-student" onclick="changeRole('${u.id}','student')">Make Student</button>`:''}
+        ${u.role!=='master'&&!isSelf?`<button class="u-btn make-master" onclick="changeRole('${u.id}','master')">Make Master</button>`:''}
+        ${isSelf?`<span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted)">You</span>`:''}
+      </div>`;
+    grid.appendChild(d);d.querySelectorAll('button').forEach(ch);
+  });
+  if(!students.length)grid.innerHTML='<div class="tempty">No users yet.</div>';
+}
+
+window.changeRole=async(userId,newRole)=>{
+  const{error}=await sb.from('profiles').update({role:newRole}).eq('id',userId);
+  if(error){toast('Error updating role.','err');return;}
+  const u=students.find(s=>s.id===userId);
+  if(u)u.role=newRole;
+  renderUserGrid();toast(`✓ Role changed to ${newRole}.`,'ok');
+};
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(m,t='ok'){const el=$('toast');el.textContent=m;el.className='toast '+t+' show';setTimeout(()=>el.className='toast '+t,3200);}
+</script>
 </body>
 </html>
