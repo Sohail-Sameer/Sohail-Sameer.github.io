@@ -379,10 +379,16 @@ async function loadApp(user){
   const un=user.user_metadata?.username||user.email.split('@')[0];
   const displayName=un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
 
-  // Fetch profile + role
+  // Fetch profile + role — never overwrite role in upsert
   const{data:profile}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
   userRole=profile?.role||'student';
-  await sb.from('profiles').upsert({id:user.id,username:un},{onConflict:'id'});
+  if(!profile){
+    // Brand new user — create profile with default student role
+    await sb.from('profiles').insert({id:user.id,username:un,role:'student'});
+  } else {
+    // Existing user — only update username, NEVER touch role
+    await sb.from('profiles').update({username:un}).eq('id',user.id);
+  }
 
   $('authWrap').style.display='none';$('app').style.display='block';
   $('navWho').textContent=displayName;$('footWho').textContent=displayName;
