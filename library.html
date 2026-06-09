@@ -133,6 +133,19 @@
     .msg-box.err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
     .msg-box.ld{background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.2);color:var(--accent);}
     .modal-cancel{background:none;border:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:.64rem;cursor:none;margin-top:.8rem;display:block;text-align:center;width:100%;}
+    /* WHERE TO BUY */
+    .wtb-section{margin-top:1rem;}
+    .wtb-title{font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:.55rem;}
+    .wtb-grid{display:flex;flex-direction:column;gap:.38rem;}
+    .wtb-row{display:flex;align-items:center;gap:.75rem;padding:.55rem .8rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;transition:all .2s;cursor:none;}
+    .wtb-row:hover{border-color:rgba(0,229,255,.25);transform:translateX(3px);}
+    .wtb-row.cheapest{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.05);}
+    .wtb-icon{font-size:1.2rem;flex-shrink:0;}
+    .wtb-name{font-weight:700;font-size:.82rem;flex:1;}
+    .wtb-price{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--accent);text-align:right;}
+    .wtb-price.free{color:#6ee7b7;}
+    .wtb-badge{font-family:'Space Mono',monospace;font-size:.54rem;padding:.14rem .45rem;border-radius:4px;background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3);}
+    .wtb-fetching{font-family:'Space Mono',monospace;font-size:.66rem;color:var(--muted);text-align:center;padding:.5rem;}
     /* TOAST */
     .toast{position:fixed;bottom:clamp(1rem,3vw,2rem);right:clamp(1rem,3vw,2rem);z-index:999;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.85rem 1.3rem;font-family:'Space Mono',monospace;font-size:.72rem;transform:translateY(80px);opacity:0;transition:all .28s;max-width:min(300px,88vw);pointer-events:none;}
     .toast.show{transform:translateY(0);opacity:1;}
@@ -431,9 +444,9 @@ function openDetail(book,source){
   if(book.isbn)meta.push('ISBN: '+book.isbn);
   $('dpMeta').innerHTML=meta.map(m=>`<span class="dp-tag">${esc(m)}</span>`).join('');
   $('dpDesc').textContent=book.description||'No description available.';
+
+  // ── Actions ──
   const actions=$('dpActions');actions.innerHTML='';
-  const buyLink=book.buy_link||book.cheapest_price?(book.buy_link||`https://www.google.com/search?q=${encodeURIComponent(book.title+' book buy')}`):'';
-  if(buyLink){const a=document.createElement('a');a.className='dp-btn buy';a.href=buyLink;a.target='_blank';a.textContent='🛒 Buy This Book';actions.appendChild(a);ch(a);}
   if(source==='catalog'&&!wishlist.find(w=>w.isbn===book.isbn)){
     const wb=document.createElement('button');wb.className='dp-btn wish';wb.textContent='❤️ Add to My Wishlist';
     wb.addEventListener('click',()=>addToWishlist(book));actions.appendChild(wb);ch(wb);
@@ -446,6 +459,68 @@ function openDetail(book,source){
     const db2=document.createElement('button');db2.className='dp-btn del';db2.textContent='🗑️ Remove from Class Library';
     db2.addEventListener('click',()=>{deleteCatalogBook(book.id);closeDetail();});actions.appendChild(db2);ch(db2);
   }
+
+  // ── Where to Buy ──
+  const isbn=book.isbn||'';
+  const titleQ=encodeURIComponent((book.title||'')+' '+((book.authors||'').split(',')[0]||''));
+  const stores=[
+    {name:'Amazon.in',  icon:'🛍️', url:`https://www.amazon.in/s?k=${encodeURIComponent(isbn||book.title)}`, color:'#FF9900'},
+    {name:'Flipkart',   icon:'🏪', url:`https://www.flipkart.com/search?q=${isbn||titleQ}`,                  color:'#2874F0'},
+    {name:'Google Books',icon:'📖',url:isbn?`https://books.google.com/books?vid=ISBN${isbn}`:`https://books.google.com/books?q=${titleQ}`, color:'#4285F4'},
+    {name:'Google Play', icon:'▶️', url:`https://play.google.com/store/search?q=${titleQ}&c=books`,          color:'#01875F'},
+  ];
+  const wtbSec=document.createElement('div');wtbSec.className='wtb-section';
+  wtbSec.innerHTML=`<div class="wtb-title">Where to Buy</div><div class="wtb-grid" id="wtbGrid"><div class="wtb-fetching"><span class="spinner sm"></span> Fetching prices…</div></div>`;
+  actions.appendChild(wtbSec);
+
+  // Render store rows immediately (with no price), then fetch Google Books price
+  const grid=wtbSec.querySelector('#wtbGrid');
+  let gbPrice=book.price||book.cheapest_price||null;
+
+  function renderStores(gbData){
+    grid.innerHTML='';
+    let cheapestIdx=-1,cheapestAmt=Infinity;
+    // Try to get price from Google Books response
+    if(gbData?.items?.[0]){
+      const si=gbData.items[0].saleInfo;
+      if(si?.saleability==='FOR_SALE'&&si.retailPrice){
+        gbPrice=`₹${Math.round(si.retailPrice.amount)}`;
+      } else if(si?.saleability==='FREE'){
+        gbPrice='Free';
+      }
+      if(gbData.items[0].saleInfo?.buyLink)
+        stores[2].url=gbData.items[0].saleInfo.buyLink;
+    }
+    stores.forEach((s,i)=>{
+      const priceStr=i===2?gbPrice:null;
+      if(priceStr&&priceStr!=='Free'){
+        const amt=parseFloat(priceStr.replace(/[^\d.]/g,''));
+        if(amt<cheapestAmt){cheapestAmt=amt;cheapestIdx=i;}
+      }
+    });
+    stores.forEach((s,i)=>{
+      const isGB=i===2,isCheapest=cheapestIdx===i;
+      const priceStr=isGB?gbPrice:null;
+      const a=document.createElement('a');
+      a.className='wtb-row'+(isCheapest?' cheapest':'');
+      a.href=s.url;a.target='_blank';a.rel='noopener';
+      a.innerHTML=`
+        <span class="wtb-icon">${s.icon}</span>
+        <span class="wtb-name" style="color:${s.color}">${s.name}</span>
+        ${isCheapest?'<span class="wtb-badge">Cheapest</span>':''}
+        <span class="wtb-price${priceStr==='Free'?' free':''}">${priceStr||'Check price →'}</span>`;
+      ch(a);grid.appendChild(a);
+    });
+  }
+
+  // Fetch live Google Books price
+  if(isbn){
+    fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
+      .then(r=>r.json()).then(renderStores).catch(()=>renderStores(null));
+  } else {
+    renderStores(null);
+  }
+
   $('detailPanel').classList.add('open');
   $('detailOverlay').style.display='block';
 }
