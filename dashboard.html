@@ -295,7 +295,7 @@ const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
       SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
 const {createClient}=supabase, sb=createClient(SB_URL,SB_ANON), $=id=>document.getElementById(id);
 
-let me=null, userRole='student', todos=[], completions={}, students=[], tf='all';
+let me=null, userRole='student', todos=[], completions={}, myCompletions={}, students=[], tf='all';
 
 // ── CURSOR ──
 const cur=$('cur'),curR=$('curR');
@@ -449,13 +449,14 @@ async function fetchTodos(){
 
   if(userRole==='student'){
     const{data:cData}=await sb.from('todo_completions').select('*').eq('student_id',me.id);
-    completions={};(cData||[]).forEach(c=>completions[c.todo_id]=c);
+    myCompletions={};(cData||[]).forEach(c=>myCompletions[c.todo_id]=c);completions=myCompletions;
   } else {
     const{data:cData}=await sb.from('todo_completions').select('*');
-    completions={};
+    completions={};myCompletions={};
     (cData||[]).forEach(c=>{
       if(!completions[c.todo_id])completions[c.todo_id]=[];
       completions[c.todo_id].push(c);
+      if(c.student_id===me.id)myCompletions[c.todo_id]=c;
     });
   }
   renderTodos();updStats();
@@ -463,7 +464,7 @@ async function fetchTodos(){
 
 function updStats(){
   if(userRole==='student'){
-    const done=todos.filter(t=>completions[t.id]?.done).length;
+    const done=todos.filter(t=>myCompletions[t.id]?.done).length;
     $('cDone').textContent=done;
     $('sDone').textContent=done;
     $('sPct').textContent=todos.length?Math.round(done/todos.length*100)+'%':'—';
@@ -484,14 +485,14 @@ function renderTodos(){
   const list=$('tList');
   let filtered;
   if(userRole==='student'){
-    if(tf==='active') filtered=todos.filter(t=>!completions[t.id]?.done);
-    else if(tf==='done') filtered=todos.filter(t=>completions[t.id]?.done);
+    if(tf==='active') filtered=todos.filter(t=>!myCompletions[t.id]?.done);
+    else if(tf==='done') filtered=todos.filter(t=>myCompletions[t.id]?.done);
     else filtered=todos;
   } else {
     filtered=todos; // admin sees all
   }
 
-  const pend=userRole==='student'?todos.filter(t=>!completions[t.id]?.done).length:todos.length;
+  const pend=todos.filter(t=>!myCompletions[t.id]?.done).length;
   $('tCnt').textContent=`${pend} task${pend!==1?'s':''} remaining`;
 
   if(!filtered.length){
@@ -501,27 +502,32 @@ function renderTodos(){
 
   list.innerHTML='';
   filtered.forEach(t=>{
-    const done=userRole==='student'?(completions[t.id]?.done||false):(completions[t.id]||[]).filter(c=>c.done).length;
-    const studs=userRole!=='student'?(students||[]).filter(s=>s.role==='student'||s.role==='admin').length:0;
+    const myDone=myCompletions[t.id]?.done||false;
+    const isAdmin=userRole==='admin'||userRole==='master';
     const d=document.createElement('div');
-    d.className='ti'+(userRole==='student'&&done?' done':'');
+    d.className='ti'+(myDone?' done':'');
 
-    if(userRole==='student'){
-      d.innerHTML=`<button class="tchk">${done?'✓':''}</button><span class="ttxt">${esc(t.text)}</span>`;
-      d.querySelector('.tdel')?.remove();
+    if(!isAdmin){
+      // Student: simple checkbox row
+      d.innerHTML=`<button class="tchk">${myDone?'✓':''}</button><span class="ttxt">${esc(t.text)}</span>`;
       d.addEventListener('click',()=>toggleCompletion(t.id));
     } else {
-      // Admin view: show completion bar
-      const doneCount=Array.isArray(completions[t.id])?(completions[t.id]||[]).filter(c=>c.done).length:0;
-      const pct=studs?Math.round(doneCount/studs*100):0;
+      // Admin/Master: own checkbox + class completion stats
+      const studs=students.length||1;
+      const doneCount=(completions[t.id]||[]).filter(c=>c.done).length;
+      const pct=Math.round(doneCount/studs*100);
       d.innerHTML=`
-        <div class="t-bar-wrap">
+        <button class="tchk" title="Mark my own completion">${myDone?'✓':''}</button>
+        <div class="t-bar-wrap" style="flex:1;min-width:0">
           <span class="ttxt">${esc(t.text)}</span>
-          <div class="t-bar-bg"><div class="t-bar-fill" style="width:${pct}%"></div></div>
-          <div class="t-comp">${doneCount}/${studs} students done (${pct}%)</div>
+          <div class="t-bar-bg" style="margin-top:.35rem"><div class="t-bar-fill" style="width:${pct}%"></div></div>
+          <div class="t-comp">${doneCount}/${studs} users done (${pct}%)</div>
         </div>
         <button class="tdel" title="Delete task">✕</button>`;
+      const tchk=d.querySelector('.tchk');
+      tchk.addEventListener('click',e=>{e.stopPropagation();toggleCompletion(t.id);});
       d.querySelector('.tdel').addEventListener('click',e=>{e.stopPropagation();adminDeleteTodo(t.id);});
+      d.addEventListener('click',e=>{if(!e.target.closest('.tchk')&&!e.target.closest('.tdel'))toggleCompletion(t.id);});
     }
     list.appendChild(d);
     d.querySelectorAll('button').forEach(ch);
@@ -529,11 +535,15 @@ function renderTodos(){
 }
 
 async function toggleCompletion(todoId){
-  const cur=completions[todoId];
-  const nowDone=cur?!cur.done:true;
-  completions[todoId]={todo_id:todoId,student_id:me.id,done:nowDone,done_at:nowDone?new Date().toISOString():null};
+  const nowDone=myCompletions[todoId]?!myCompletions[todoId].done:true;
+  const rec={todo_id:todoId,student_id:me.id,done:nowDone,done_at:nowDone?new Date().toISOString():null};
+  myCompletions[todoId]=rec;
+  // Keep allCompletions in sync for admin stats
+  if(!completions[todoId])completions[todoId]=[];
+  const idx=completions[todoId].findIndex(c=>c.student_id===me.id);
+  if(idx>=0)completions[todoId][idx]=rec; else completions[todoId].push(rec);
   renderTodos();updStats();
-  await sb.from('todo_completions').upsert({todo_id:todoId,student_id:me.id,done:nowDone,done_at:nowDone?new Date().toISOString():null},{onConflict:'todo_id,student_id'});
+  await sb.from('todo_completions').upsert(rec,{onConflict:'todo_id,student_id'});
 }
 
 window.adminAddTodo=async()=>{
@@ -541,11 +551,11 @@ window.adminAddTodo=async()=>{
   $('adminTin').value='';
   const{data,error}=await sb.from('class_todos').insert([{text,created_by:me.id}]).select().single();
   if(error){toast('Error adding task.','err');return;}
-  todos.push(data);completions[data.id]=[];renderTodos();updStats();toast('✅ Task added for all students!','ok');
+  todos.push(data);completions[data.id]=[];myCompletions[data.id]=null;renderTodos();updStats();toast('✅ Task added for all students!','ok');
 };
 
 async function adminDeleteTodo(id){
-  todos=todos.filter(t=>t.id!==id);delete completions[id];renderTodos();updStats();
+  todos=todos.filter(t=>t.id!==id);delete completions[id];delete myCompletions[id];renderTodos();updStats();
   await sb.from('class_todos').delete().eq('id',id);toast('🗑️ Task removed.','info');
 }
 
@@ -567,6 +577,7 @@ function renderUserGrid(){
         ${u.role==='student'&&!isSelf?`<button class="u-btn make-admin" onclick="changeRole('${u.id}','admin')">Make Admin</button>`:''}
         ${u.role==='admin'&&!isSelf?`<button class="u-btn make-student" onclick="changeRole('${u.id}','student')">Make Student</button>`:''}
         ${u.role!=='master'&&!isSelf?`<button class="u-btn make-master" onclick="changeRole('${u.id}','master')">Make Master</button>`:''}
+        ${!isSelf?`<button class="u-btn" style="background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.25);" onclick="deleteUser('${u.id}','${u.username}')">🗑️ Delete</button>`:''}
         ${isSelf?`<span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted)">You</span>`:''}
       </div>`;
     grid.appendChild(d);d.querySelectorAll('button').forEach(ch);
@@ -580,6 +591,31 @@ window.changeRole=async(userId,newRole)=>{
   const u=students.find(s=>s.id===userId);
   if(u)u.role=newRole;
   renderUserGrid();toast(`✓ Role changed to ${newRole}.`,'ok');
+};
+
+window.deleteUser=async(userId,rawUsername)=>{
+  const dn=rawUsername.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+  // First confirmation
+  if(!confirm(`⚠️ DELETE USER\n\nYou are about to permanently delete "${dn}" and ALL their data — attendance records, task completions, library, and their account.\n\nThis CANNOT be undone.\n\nAre you sure?`))return;
+  // Second confirmation — type DELETE
+  const typed=window.prompt(`Second confirmation required.\n\nType  DELETE  (all caps) to permanently delete "${dn}":`);
+  if(typed!=='DELETE'){toast('Deletion cancelled.','info');return;}
+  toast('Deleting user…','info');
+  // Delete all app data first
+  await Promise.all([
+    sb.from('todo_completions').delete().eq('student_id',userId),
+    sb.from('attendance_records').delete().eq('student_id',userId),
+    sb.from('wishlist').delete().eq('user_id',userId),
+    sb.from('books').delete().eq('user_id',userId),
+    sb.from('todos').delete().eq('user_id',userId),
+    sb.from('att_settings').delete().eq('user_id',userId),
+  ]);
+  await sb.from('profiles').delete().eq('id',userId);
+  // Try RPC to also delete auth account
+  await sb.rpc('delete_user',{target_id:userId});
+  students=students.filter(s=>s.id!==userId);
+  renderUserGrid();
+  toast(`✓ "${dn}" deleted.`,'ok');
 };
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
