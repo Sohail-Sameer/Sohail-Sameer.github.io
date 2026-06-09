@@ -469,13 +469,17 @@ function updStats(){
     $('sDone').textContent=done;
     $('sPct').textContent=todos.length?Math.round(done/todos.length*100)+'%':'—';
   } else {
-    const studs=(students||[]).filter(s=>s.role==='student'||s.role==='admin');
-    const total=todos.length*Math.max(1,studs.length);
+    // Total possible = every (todo × user) combination
+    const allUsers=Math.max(1,students.length);
+    const total=todos.length*allUsers;
     let done=0;todos.forEach(t=>{done+=(completions[t.id]||[]).filter(c=>c.done).length;});
-    const pct=total?Math.round(done/total*100):0;
-    $('sDone').textContent=pct+'%';
+    const pct=total?Math.min(100,Math.round(done/total*100)):0; // cap at 100 as safety net
+    // "Tasks Completed" = this admin/master's OWN personal completion count
+    const myDone=todos.filter(t=>myCompletions[t.id]?.done).length;
+    $('sDone').textContent=myDone;
+    $('cDone').textContent=myDone;
+    // "Completion Rate" = class-wide percentage across all users
     $('sPct').textContent=pct+'%';
-    $('cDone').textContent=done;
   }
 }
 
@@ -515,7 +519,7 @@ function renderTodos(){
       // Admin/Master: own checkbox + class completion stats
       const studs=students.length||1;
       const doneCount=(completions[t.id]||[]).filter(c=>c.done).length;
-      const pct=Math.round(doneCount/studs*100);
+      const pct=Math.min(100,Math.round(doneCount/studs*100));
       d.innerHTML=`
         <button class="tchk" title="Mark my own completion">${myDone?'✓':''}</button>
         <div class="t-bar-wrap" style="flex:1;min-width:0">
@@ -602,6 +606,8 @@ window.deleteUser=async(userId,rawUsername)=>{
   if(typed!=='DELETE'){toast('Deletion cancelled.','info');return;}
   toast('Deleting user…','info');
   // Delete all app data first
+  // Grab their username before deleting so we can clear the reservation
+  const{data:prof}=await sb.from('profiles').select('username').eq('id',userId).maybeSingle();
   await Promise.all([
     sb.from('todo_completions').delete().eq('student_id',userId),
     sb.from('attendance_records').delete().eq('student_id',userId),
@@ -611,7 +617,9 @@ window.deleteUser=async(userId,rawUsername)=>{
     sb.from('att_settings').delete().eq('user_id',userId),
   ]);
   await sb.from('profiles').delete().eq('id',userId);
-  // Try RPC to also delete auth account
+  // Clear username reservation so it can be reused
+  if(prof?.username)await sb.from('usernames').delete().eq('username',prof.username);
+  // RPC deletes the auth account (SECURITY DEFINER function)
   await sb.rpc('delete_user',{target_id:userId});
   students=students.filter(s=>s.id!==userId);
   renderUserGrid();
