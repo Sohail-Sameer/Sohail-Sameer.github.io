@@ -344,7 +344,12 @@ async function loadApp(user){
 
   if(isAdmin){
     await fetchStudents();
-    renderSubjects(null);
+    // Auto-select Myself so admin sees their own attendance immediately
+    $('studentSel').value=me.id;
+    selectedStudentId=me.id;
+    await fetchStudentAttendance(me.id);
+    renderSubjects(me.id);
+    renderOverall();
   } else {
     await fetchMyAttendance();
     renderSubjects(me.id);
@@ -396,6 +401,10 @@ function renderStudentSelector(){
   const sel=$('studentSel');
   const cur=sel.value;
   sel.innerHTML='<option value="">— Select a student —</option>';
+  // Add "Myself" as the first option for admin/master
+  const myDn=(me.user_metadata?.username||me.email.split('@')[0]).replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+  const myOpt=document.createElement('option');myOpt.value=me.id;myOpt.textContent='👤 Myself ('+myDn+')';sel.appendChild(myOpt);
+  // Then all other users
   students.filter(s=>s.id!==me.id).forEach(s=>{
     const dn=s.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
     const o=document.createElement('option');o.value=s.id;o.textContent=dn+' ['+s.role+']';sel.appendChild(o);
@@ -483,10 +492,7 @@ function renderSubjects(targetStudentId){
 // ── MARK / UNDO ATTENDANCE ──
 window.markAtt=async(studentId,subjectId,status)=>{
   subjectId=+subjectId;
-  const today=new Date().toISOString().split('T')[0];
-  const exists=attRecords.find(r=>r.student_id===studentId&&r.subject_id===subjectId&&r.date===today);
-  if(exists){toast('Already marked for today. Undo first.','info');return;}
-  const{data,error}=await sb.from('attendance_records').insert([{student_id:studentId,subject_id:subjectId,date:today,status,marked_by:me.id}]).select().single();
+  const{data,error}=await sb.from('attendance_records').insert([{student_id:studentId,subject_id:subjectId,status,marked_by:me.id}]).select().single();
   if(error){toast('Error: '+error.message,'err');return;}
   attRecords.push(data);
   renderSubjects(studentId);renderOverall();
@@ -495,18 +501,13 @@ window.markAtt=async(studentId,subjectId,status)=>{
 
 window.undoAtt=async(studentId,subjectId,status)=>{
   subjectId=+subjectId;
-  const today=new Date().toISOString().split('T')[0];
-  const rec=attRecords.find(r=>r.student_id===studentId&&r.subject_id===subjectId&&r.date===today&&r.status===status);
-  if(!rec){
-    // Undo last of that type regardless of date
-    const last=attRecords.filter(r=>r.student_id===studentId&&r.subject_id===subjectId&&r.status===status).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
-    if(!last){toast('Nothing to undo.','info');return;}
-    await sb.from('attendance_records').delete().eq('id',last.id);
-    attRecords=attRecords.filter(r=>r.id!==last.id);
-  } else {
-    await sb.from('attendance_records').delete().eq('id',rec.id);
-    attRecords=attRecords.filter(r=>r.id!==rec.id);
-  }
+  // Always undo the most recent record of that type
+  const last=attRecords
+    .filter(r=>r.student_id===studentId&&r.subject_id===subjectId&&r.status===status)
+    .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
+  if(!last){toast('Nothing to undo.','info');return;}
+  await sb.from('attendance_records').delete().eq('id',last.id);
+  attRecords=attRecords.filter(r=>r.id!==last.id);
   renderSubjects(studentId);renderOverall();toast('↩ Undone.','info');
 };
 
