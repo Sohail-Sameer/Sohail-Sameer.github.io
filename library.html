@@ -447,7 +447,10 @@ function openDetail(book,source){
 
   // ── Actions ──
   const actions=$('dpActions');actions.innerHTML='';
-  if(source==='catalog'&&!wishlist.find(w=>w.isbn===book.isbn)){
+  const alreadyWished=book.isbn
+    ?wishlist.find(w=>w.isbn&&w.isbn===book.isbn)
+    :wishlist.find(w=>w.title===book.title&&w.authors===book.authors);
+  if(source==='catalog'&&!alreadyWished){
     const wb=document.createElement('button');wb.className='dp-btn wish';wb.textContent='❤️ Add to My Wishlist';
     wb.addEventListener('click',()=>addToWishlist(book));actions.appendChild(wb);ch(wb);
   }
@@ -528,11 +531,14 @@ function closeDetail(){$('detailPanel').classList.remove('open');$('detailOverla
 
 // ── WISHLIST ACTIONS ──
 async function addToWishlist(book){
-  if(wishlist.find(w=>w.isbn===book.isbn)){toast('Already in your wishlist.','info');return;}
+  const isDupe=book.isbn
+    ?wishlist.find(w=>w.isbn&&w.isbn===book.isbn)
+    :wishlist.find(w=>w.title===book.title&&w.authors===book.authors);
+  if(isDupe){toast('Already in your wishlist.','info');return;}
   const obj={isbn:book.isbn,title:book.title,authors:book.authors,cover:book.cover,description:book.description,pages:book.pages,published:book.published,publisher:book.publisher,subjects:book.subjects,cheapest_price:book.price||null,user_id:me.id};
   const{data,error}=await sb.from('wishlist').insert([obj]).select().single();
   if(error){toast('Error adding to wishlist.','err');return;}
-  wishlist.unshift(data);renderWishlist();toast('❤️ Added to wishlist!','ok');
+  wishlist.unshift(data);renderWishlist();closeDetail();toast('❤️ Added to wishlist!','ok');
 }
 async function removeFromWishlist(id){
   wishlist=wishlist.filter(w=>w.id!==id);renderWishlist();
@@ -554,10 +560,11 @@ window.openAddModal=target=>{
   setTimeout(()=>$('isbnIn').focus(),120);
 };
 window.closeAddModal=()=>$('addModal').classList.remove('open');
+$('isbnIn').addEventListener('keydown',e=>{if(e.key==='Enter')submitAdd();});
 window.submitAdd=async()=>{
   const isbn=$('isbnIn').value.trim().replace(/[-\s]/g,'');
   if(!isbn)return setAddMsg('Enter an ISBN.','err');
-  if(!/^\d{10}(\d{3})?$/.test(isbn))return setAddMsg('Enter a valid 10 or 13-digit ISBN.','err');
+  if(!/^(\d{9}[\dX]|\d{13})$/i.test(isbn))return setAddMsg('Enter a valid 10 or 13-digit ISBN.','err');
   const target=addTarget==='catalog'?catalog:wishlist;
   if(target.find(b=>b.isbn===isbn))return setAddMsg('This book is already in this collection.','err');
   setAddMsg('<span class="spinner sm"></span> Fetching book details…','ld');
@@ -594,7 +601,8 @@ window.submitAdd=async()=>{
       catalog.unshift(data);renderCatalog();
       closeAddModal();toast(`📚 "${book.title}" added to class library!`,'ok');
     } else {
-      const{data,error}=await sb.from('wishlist').insert([{...book,cheapest_price:price,user_id:me.id}]).select().single();
+      const{isbn,title,authors,cover,description,pages,published,publisher,subjects}=book;
+      const{data,error}=await sb.from('wishlist').insert([{isbn,title,authors,cover,description,pages,published,publisher,subjects,cheapest_price:price,user_id:me.id}]).select().single();
       if(error){setAddMsg('Error saving: '+error.message,'err');$('addBtn').disabled=false;return;}
       wishlist.unshift(data);renderWishlist();
       closeAddModal();toast(`❤️ "${book.title}" added to wishlist!`,'ok');
