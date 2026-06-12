@@ -190,7 +190,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.4rem;">
       <div class="min-row">
         <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--muted)">MIN %</span>
-        <input type="number" id="minPct" value="75" min="1" max="100" onchange="saveMin()"/>
+        <input type="number" id="minPct" value="75" min="1" max="100" onchange="saveMin()" onkeydown="if(event.key==='Enter')saveMin()"/>
         <button class="tadd" style="padding:.4rem .9rem;font-size:.62rem" onclick="saveMin()">SAVE</button>
         <span class="min-note" id="minNote">Min: 75%</span>
       </div>
@@ -452,9 +452,9 @@ function renderSubjects(targetStudentId){
     const sk=targetStudentId?calcSkip(att.present,att.absent):null;
     let skipMsg='',skipCls='warn';
     if(!targetStudentId&&isAdmin){skipMsg='Select a student to see their stats.';skipCls='warn';}
-    else if(!tot){skipMsg='No records yet.';skipCls='warn';}
-    else if(sk.type==='skip'){skipMsg=sk.val>0?`✓ Can skip ${sk.val} more class${sk.val>1?'es':''}.`:`⚠️ At the limit!`;skipCls='safe';}
-    else{skipMsg=`🚨 Attend ${sk.val} more class${sk.val>1?'es':''} to reach ${minPct}%.`;skipCls='danger';}
+    else if(sk&&sk.type==='skip'){skipMsg=sk.val>0?`✓ Can skip ${sk.val} more class${sk.val>1?'es':''}.`:`⚠️ At the limit!`;skipCls='safe';}
+    else if(sk){skipMsg=`🚨 Attend ${sk.val} more class${sk.val>1?'es':''} to reach ${minPct}%.`;skipCls='danger';}
+    else{skipMsg='No records yet.';skipCls='warn';}
     const subjSlots=slots.filter(sl=>sl.subject_id===s.id);
     const schedHTML=subjSlots.length?`<div class="sc-schedule">${subjSlots.map(sl=>`<span class="sched-chip">${sl.day.slice(0,3)} ${sl.time}</span>`).join('')}</div>`:'';
     const d=document.createElement('div');d.className='sc';d.style.animation='fup .22s ease both';
@@ -496,7 +496,7 @@ window.markAtt=async(studentId,subjectId,status)=>{
   if(error){toast('Error: '+error.message,'err');return;}
   attRecords.push(data);
   renderSubjects(studentId);renderOverall();
-  toast(status==='present'?'✅ Marked Present':'❌ Marked Absent',status==='present'?'ok':'err');
+  toast(status==='present'?'✅ Marked Present':'❌ Marked Absent',status==='present'?'ok':'info');
 };
 
 window.undoAtt=async(studentId,subjectId,status)=>{
@@ -605,7 +605,7 @@ function parseCSV(file){
 function renderTimetable(){
   const grid=$('ttGrid');grid.innerHTML='';
   const times=[...new Set(slots.map(s=>s.time))].sort((a,b)=>{
-    const toMin=t=>{const m=t.match(/(\d+):(\d+)\s*(AM|PM)/i);if(!m)return 0;let h=parseInt(m[1]),mn=parseInt(m[2]);if(m[3].toUpperCase()==='PM'&&h!==12)h+=12;if(m[3].toUpperCase()==='AM'&&h===12)h=0;return h*60+mn;};
+    const toMin=t=>{const m12=t.match(/(\d+):(\d+)\s*(AM|PM)/i);if(m12){let h=parseInt(m12[1]),mn=parseInt(m12[2]);if(m12[3].toUpperCase()==='PM'&&h!==12)h+=12;if(m12[3].toUpperCase()==='AM'&&h===12)h=0;return h*60+mn;}const m24=t.match(/^(\d{1,2}):(\d{2})$/);if(m24)return parseInt(m24[1])*60+parseInt(m24[2]);return 0;};
     return toMin(a)-toMin(b);
   });
   if(!times.length){grid.innerHTML=`<div style="padding:2rem;text-align:center;color:var(--muted);font-family:'Space Mono',monospace;font-size:.72rem">No timetable slots yet.</div>`;grid.style.display='block';return;}
