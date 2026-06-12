@@ -418,7 +418,7 @@ function applyRoleUI(){
   $('userMgmtSection').style.display=isMaster?'':'none';
   $('chipStudents').style.display=isAdmin?'':'none';
   if(isAdmin){
-    $('sDoneLbl').textContent='Avg Completion';
+    $('sDoneLbl').textContent='My Completed';
     $('sStudentsLbl').textContent='Total Students';
   }
 }
@@ -432,8 +432,8 @@ async function fetchExtraData(){
     $('sStudents').textContent=studs.length;
     if(userRole==='master')renderUserGrid();
   } else {
-    const{data}=await sb.from('class_subjects').select('id',{count:'exact',head:true});
-    $('tSubj').textContent=(data?.length||0)+' subjects';
+    const{count:subjCount}=await sb.from('class_subjects').select('*',{count:'exact',head:true});
+    $('tSubj').textContent=(subjCount||0)+' subjects';
     const{count}=await sb.from('class_library').select('id',{count:'exact',head:true});
     $('tLib').textContent=(count||0)+' books';
     $('sStudents').textContent='—';
@@ -449,7 +449,11 @@ async function fetchTodos(){
 
   if(userRole==='student'){
     const{data:cData}=await sb.from('todo_completions').select('*').eq('student_id',me.id);
-    myCompletions={};(cData||[]).forEach(c=>myCompletions[c.todo_id]=c);completions=myCompletions;
+    myCompletions={};completions={};
+    (cData||[]).forEach(c=>{
+      myCompletions[c.todo_id]=c;
+      completions[c.todo_id]=[c]; // always array so findIndex works
+    });
   } else {
     const{data:cData}=await sb.from('todo_completions').select('*');
     completions={};myCompletions={};
@@ -493,7 +497,10 @@ function renderTodos(){
     else if(tf==='done') filtered=todos.filter(t=>myCompletions[t.id]?.done);
     else filtered=todos;
   } else {
-    filtered=todos; // admin sees all
+    // Admin/Master: filter by their OWN completion state
+    if(tf==='active') filtered=todos.filter(t=>!myCompletions[t.id]?.done);
+    else if(tf==='done') filtered=todos.filter(t=>myCompletions[t.id]?.done);
+    else filtered=todos;
   }
 
   const pend=todos.filter(t=>!myCompletions[t.id]?.done).length;
@@ -581,7 +588,7 @@ function renderUserGrid(){
         ${u.role==='student'&&!isSelf?`<button class="u-btn make-admin" onclick="changeRole('${u.id}','admin')">Make Admin</button>`:''}
         ${u.role==='admin'&&!isSelf?`<button class="u-btn make-student" onclick="changeRole('${u.id}','student')">Make Student</button>`:''}
         ${u.role!=='master'&&!isSelf?`<button class="u-btn make-master" onclick="changeRole('${u.id}','master')">Make Master</button>`:''}
-        ${!isSelf?`<button class="u-btn" style="background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.25);" onclick="deleteUser('${u.id}','${u.username}')">🗑️ Delete</button>`:''}
+        ${!isSelf&&u.role!=='master'?`<button class="u-btn" style="background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.25);" onclick="deleteUser('${u.id}','${u.username}')">🗑️ Delete</button>`:''}
         ${isSelf?`<span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted)">You</span>`:''}
       </div>`;
     grid.appendChild(d);d.querySelectorAll('button').forEach(ch);
@@ -590,6 +597,8 @@ function renderUserGrid(){
 }
 
 window.changeRole=async(userId,newRole)=>{
+  const target=students.find(s=>s.id===userId);
+  if(target?.role==='master'){toast('Cannot change another master\'s role.','err');return;}
   const{error}=await sb.from('profiles').update({role:newRole}).eq('id',userId);
   if(error){toast('Error updating role.','err');return;}
   const u=students.find(s=>s.id===userId);
@@ -612,8 +621,6 @@ window.deleteUser=async(userId,rawUsername)=>{
     sb.from('todo_completions').delete().eq('student_id',userId),
     sb.from('attendance_records').delete().eq('student_id',userId),
     sb.from('wishlist').delete().eq('user_id',userId),
-    sb.from('books').delete().eq('user_id',userId),
-    sb.from('todos').delete().eq('user_id',userId),
     sb.from('att_settings').delete().eq('user_id',userId),
   ]);
   await sb.from('profiles').delete().eq('id',userId);
