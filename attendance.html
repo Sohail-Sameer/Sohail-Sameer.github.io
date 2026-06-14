@@ -549,10 +549,22 @@ async function fetchSettings(){
 window.saveMin=async()=>{
   minPct=Math.max(1,Math.min(100,parseInt($('minPct').value)||75));
   $('minPct').value=minPct;
-  await sb.from('att_settings').upsert({user_id:me.id,min_pct:minPct},{onConflict:'user_id'});
+  const isAdmin=userRole==='admin'||userRole==='master';
+  if(isAdmin){
+    // Admin/Master: update ALL users so everyone sees the same threshold
+    // 1. Update existing rows
+    await sb.from('att_settings').update({min_pct:minPct}).neq('user_id','00000000-0000-0000-0000-000000000000');
+    // 2. Upsert own row in case it didn't exist
+    await sb.from('att_settings').upsert({user_id:me.id,min_pct:minPct},{onConflict:'user_id'});
+    // 3. Insert for any users who have no row yet (via RPC isn't needed — handled by SQL default)
+    toast(`✓ Minimum set to ${minPct}% for all users`,'ok');
+    $('minNote').textContent=`Min: ${minPct}% · Saved for everyone`;
+  } else {
+    await sb.from('att_settings').upsert({user_id:me.id,min_pct:minPct},{onConflict:'user_id'});
+    toast(`✓ Minimum set to ${minPct}%`,'ok');
+    $('minNote').textContent=`Min: ${minPct}% · Saved`;
+  }
   renderSubjects(selectedStudentId||me.id);renderOverall();
-  toast(`✓ Minimum set to ${minPct}%`,'ok');
-  $('minNote').textContent=`Min: ${minPct}% · Saved`;
 };
 
 // ── FETCH ──
