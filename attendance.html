@@ -69,6 +69,7 @@
     .subj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(240px,32vw,300px),1fr));gap:1.1rem;}
     .sc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.3rem 1.4rem;transition:border-color .25s,transform .25s;}
     .sc:hover{border-color:rgba(0,229,255,.25);transform:translateY(-3px);box-shadow:var(--glow);}
+    .sc.bulk-card:hover{border-color:rgba(0,229,255,.35);cursor:none;}
     .sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;}
     .sc-name{font-weight:700;font-size:clamp(.88rem,2vw,1rem);}
     .sc-del{background:transparent;border:1px solid rgba(239,68,68,.22);color:#fca5a5;border-radius:6px;font-size:.6rem;padding:.2rem .55rem;cursor:none;transition:all .2s;}
@@ -227,8 +228,8 @@
 
   <div class="wrap">
     <!-- MIN PCT + VIEW TABS -->
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.4rem;">
-      <div class="min-row">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.4rem;" id="topBar">
+      <div class="min-row" id="minRow">
         <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--muted)">MIN %</span>
         <input type="number" id="minPct" value="75" min="1" max="100" onchange="saveMin()" onkeydown="if(event.key==='Enter')saveMin()"/>
         <button class="tadd" style="padding:.4rem .9rem;font-size:.62rem" onclick="saveMin()">SAVE</button>
@@ -518,6 +519,7 @@ async function loadApp(user){
   $('adminControls').style.display=isAdmin?'':'none';
   $('ttAdminForm').style.display=isAdmin?'':'none';
   $('subjGridLabel').textContent=isAdmin?'CLASS ATTENDANCE':'MY ATTENDANCE';
+  $('minRow').style.display=isAdmin?'flex':'none'; // students cannot change min %
 
   await Promise.all([fetchSettings(), fetchSubjects(), fetchSlots()]);
   updateSubjSelect(); // populate timetable subject dropdown
@@ -637,13 +639,10 @@ function renderSubjects(targetStudentId){
     else{skipMsg='No records yet.';skipCls='warn';}
     const subjSlots=slots.filter(sl=>sl.subject_id===s.id);
     const schedHTML=subjSlots.length?`<div class="sc-schedule">${subjSlots.map(sl=>`<span class="sched-chip">${sl.day.slice(0,3)} ${sl.time}</span>`).join('')}</div>`:'';
-    const d=document.createElement('div');d.className='sc';d.style.animation='fup .22s ease both';
+    const d=document.createElement('div');d.className='sc'+(isAdmin?' bulk-card':'');d.style.animation='fup .22s ease both';
     d.innerHTML=`
       <div class="sc-top">
-        <div class="sc-name${isAdmin?' clickable':''}" ${isAdmin?`onclick="openBulk(${s.id})"`:''}>
-          ${esc(s.name)}
-          ${isAdmin?'<span style="font-family:Space Mono,monospace;font-size:.52rem;color:var(--muted);margin-left:.5rem;font-weight:400">👥</span>':''}
-        </div>
+        <div class="sc-name">${esc(s.name)}${isAdmin?'<span style="font-family:Space Mono,monospace;font-size:.52rem;color:var(--muted);margin-left:.45rem;vertical-align:middle;opacity:.7">👥 bulk mark</span>':'' }</div>
         ${isAdmin?`<button class="sc-del" onclick="deleteSubject(${s.id})">✕ Delete</button>`:''}
       </div>
       <div class="sc-pct c-${cls}">${tot?pct+'%':'—'}</div>
@@ -668,6 +667,13 @@ function renderSubjects(targetStudentId){
       </div>`:'')}
       <div class="skip-msg ${skipCls}">${skipMsg}</div>
       ${schedHTML}`;
+    if(isAdmin){
+      d.style.cursor='none';
+      d.addEventListener('click',e=>{
+        // Only open bulk if click didn't land on a button or the delete span
+        if(!e.target.closest('button')&&!e.target.closest('.sc-del'))openBulk(s.id);
+      });
+    }
     grid.appendChild(d);d.querySelectorAll('button').forEach(ch);
   });
 }
