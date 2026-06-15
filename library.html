@@ -466,11 +466,13 @@ function openDetail(book,source){
   // ── Where to Buy ──
   const isbn=book.isbn||'';
   const titleQ=encodeURIComponent((book.title||'')+' '+((book.authors||'').split(',')[0]||''));
+  // Build store URLs — use title+author for better results on all platforms
+  const titleOnlyQ=encodeURIComponent(book.title||'');
   const stores=[
-    {name:'Amazon.in',  icon:'🛍️', url:`https://www.amazon.in/s?k=${encodeURIComponent(isbn||book.title)}`, color:'#FF9900'},
-    {name:'Flipkart',   icon:'🏪', url:`https://www.flipkart.com/search?q=${isbn||titleQ}`,                  color:'#2874F0'},
-    {name:'Google Books',icon:'📖',url:isbn?`https://books.google.com/books?vid=ISBN${isbn}`:`https://books.google.com/books?q=${titleQ}`, color:'#4285F4'},
-    {name:'Google Play', icon:'▶️', url:`https://play.google.com/store/search?q=${titleQ}&c=books`,          color:'#01875F'},
+    {name:'Amazon.in',   icon:'🛍️', url:`https://www.amazon.in/s?k=${titleOnlyQ}&i=stripbooks`, color:'#FF9900'},
+    {name:'Flipkart',    icon:'🏪', url:`https://www.flipkart.com/search?q=${titleOnlyQ}&sid=bks`, color:'#2874F0'},
+    {name:'Google Books', icon:'📖', url:isbn?`https://books.google.com/books?vid=ISBN${isbn}`:`https://books.google.com/books?q=${titleQ}`, color:'#4285F4'},
+    {name:'Google Play',  icon:'▶️', url:`https://play.google.com/store/search?q=${titleOnlyQ}&c=books`, color:'#01875F'},
   ];
   const wtbSec=document.createElement('div');wtbSec.className='wtb-section';
   wtbSec.innerHTML=`<div class="wtb-title">Where to Buy</div><div class="wtb-grid" id="wtbGrid"><div class="wtb-fetching"><span class="spinner sm"></span> Fetching prices…</div></div>`;
