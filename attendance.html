@@ -342,129 +342,7 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// ── BULK MARK PANEL ──
-let bulkSubjectId=null, allStudentsCache=[];
-
-async function openBulk(subjectId){
-  bulkSubjectId=+subjectId;
-  const subj=subjects.find(s=>s.id===bulkSubjectId);
-  $('bulkTitle').textContent=subj?subj.name:'Mark Attendance';
-  // Load ALL student records for this subject at once
-  $('bulkList').innerHTML='<div class="bulk-empty"><div class="spinner"></div></div>';
-  $('bulkPanel').classList.add('open');
-  $('bulkOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-  // Fetch all records for this subject across all students
-  const{data}=await sb.from('attendance_records')
-    .select('*').eq('subject_id',bulkSubjectId);
-  // Store in attRecords without duplicating
-  (data||[]).forEach(r=>{if(!attRecords.find(x=>x.id===r.id))attRecords.push(r);});
-  // Build student list — all users except master-only? No: everyone
-  allStudentsCache=[...students];
-  $('bulkSearch').value='';
-  $('bulkSub').textContent=`${allStudentsCache.length} student${allStudentsCache.length!==1?'s':''}`;
-  renderBulkList();
-}
-
-window.closeBulk=()=>{
-  $('bulkPanel').classList.remove('open');
-  $('bulkOverlay').classList.remove('open');
-  document.body.style.overflow='';
-  // Refresh the main subject grid for the currently selected student
-  renderSubjects(selectedStudentId);
-  renderOverall();
-};
-
-window.renderBulkList=()=>{
-  const q=($('bulkSearch').value||''). toLowerCase();
-  const filtered=allStudentsCache.filter(s=>
-    s.username.replace(/_/g,' ').toLowerCase().includes(q)
-  );
-  const list=$('bulkList');list.innerHTML='';
-  if(!filtered.length){list.innerHTML='<div class="bulk-empty">No students match.</div>';return;}
-  filtered.forEach(s=>{
-    const dn=s.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
-    const initials=dn.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const recs=attRecords.filter(r=>r.student_id===s.id&&r.subject_id===bulkSubjectId);
-    const pres=recs.filter(r=>r.status==='present').length;
-    const abs=recs.filter(r=>r.status==='absent').length;
-    const tot=pres+abs;
-    const pct=tot?Math.round(pres/tot*100):null;
-    const pctCss=pct===null?'':(pct>=minPct?'c-safe':pct>=minPct-15?'c-warn':'c-danger');
-    const row=document.createElement('div');row.className='bulk-row';
-    row.innerHTML=`
-      <div class="bulk-avatar">${esc(initials)}</div>
-      <div style="flex:1;min-width:0">
-        <div class="bulk-name">${esc(dn)}${pct!==null?`<span class="bulk-pct-pill ${pctCss}">${pct}%</span>`:''}</div>
-        <div class="bulk-counts">✅ ${pres} P &nbsp;❌ ${abs} A &nbsp;Total: ${tot}</div>
-      </div>
-      <div class="bulk-btns">
-        <button class="bk-p" onclick="bulkMark('${s.id}','present',this)">✅ P</button>
-        <button class="bk-a" onclick="bulkMark('${s.id}','absent',this)">❌ A</button>
-        <button class="bk-u bk-up" onclick="bulkUndo('${s.id}','present',this)">↩P</button>
-        <button class="bk-u bk-ua" onclick="bulkUndo('${s.id}','absent',this)">↩A</button>
-      </div>`;
-    list.appendChild(row);
-    row.querySelectorAll('button').forEach(ch);
-  });
-};
-
-window.bulkMark=async(studentId,status,btn)=>{
-  btn.disabled=true;btn.textContent='…';
-  const{data,error}=await sb.from('attendance_records')
-    .insert([{student_id:studentId,subject_id:bulkSubjectId,status,marked_by:me.id}])
-    .select().single();
-  btn.disabled=false;btn.textContent=status==='present'?'✅ P':'❌ A';
-  if(error){toast('Error: '+error.message,'err');return;}
-  attRecords.push(data);
-  renderBulkList();
-  toast(status==='present'?'✅ Marked Present':'❌ Marked Absent',status==='present'?'ok':'info');
-};
-
-window.bulkUndo=async(studentId,status,btn)=>{
-  btn.disabled=true;btn.textContent='…';
-  const last=attRecords
-    .filter(r=>r.student_id===studentId&&r.subject_id===bulkSubjectId&&r.status===status)
-    .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
-  btn.disabled=false;btn.textContent=status==='present'?'↩P':'↩A';
-  if(!last){toast('Nothing to undo.','info');return;}
-  await sb.from('attendance_records').delete().eq('id',last.id);
-  attRecords=attRecords.filter(r=>r.id!==last.id);
-  renderBulkList();
-  toast('↩ Undone.','info');
-};
-
-window.markAllBulk=async(status)=>{
-  const btn=document.querySelector(status==='present'?'.bulk-tb-btn.all-p':'.bulk-tb-btn.all-a');
-  if(btn){btn.disabled=true;btn.textContent='Marking…';}
-  const inserts=allStudentsCache.map(s=>({
-    student_id:s.id,subject_id:bulkSubjectId,status,marked_by:me.id
-  }));
-  const{data,error}=await sb.from('attendance_records').insert(inserts).select();
-  if(btn){btn.disabled=false;btn.textContent=status==='present'?'✅ All Present':'❌ All Absent';}
-  if(error){toast('Error: '+error.message,'err');return;}
-  (data||[]).forEach(r=>attRecords.push(r));
-  renderBulkList();
-  toast(`${status==='present'?'✅':'❌'} All ${allStudentsCache.length} students marked ${status}.`,'ok');
-};
-
-window.undoAllBulk=async()=>{
-  // Undo the last record (any status) per student for this subject
-  const toDelete=[];
-  allStudentsCache.forEach(s=>{
-    const last=attRecords
-      .filter(r=>r.student_id===s.id&&r.subject_id===bulkSubjectId)
-      .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
-    if(last)toDelete.push(last.id);
-  });
-  if(!toDelete.length){toast('Nothing to undo.','info');return;}
-  await sb.from('attendance_records').delete().in('id',toDelete);
-  attRecords=attRecords.filter(r=>!toDelete.includes(r.id));
-  renderBulkList();
-  toast(`↩ Undone for ${toDelete.length} student${toDelete.length!==1?'s':''}.`,'info');
-};
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
       SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
@@ -495,12 +373,21 @@ window.addEventListener('load',async()=>{
   sb.auth.onAuthStateChange((_,s)=>{if(s&&!me){me=s.user;loadApp(s.user);}else if(!s){me=null;$('app').style.display='none';$('authWrap').style.display='flex';}});
 });
 function sbE(m){if(m.includes('Invalid login'))return'Incorrect email or password.';if(m.includes('Email not confirmed'))return'Confirm your email first.';return m||'Error.';}
+function resetLoginBtn(){const btn=$('lBtn');if(btn){btn.disabled=false;btn.textContent='SIGN IN →';}}
+let _loginTimeout=null;
+window.addEventListener('pageshow',e=>{if(e.persisted)resetLoginBtn();});
+window.addEventListener('pagehide',()=>resetLoginBtn());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('authWrap')&&$('authWrap').style.display==='flex')resetLoginBtn();});
+
 window.login=async()=>{
   const em=$('lEmail').value.trim(),pw=$('lPass').value;
   if(!em||!pw){$('lErr').textContent='Fill in all fields.';$('lErr').style.display='block';return;}
   $('lBtn').disabled=true;$('lBtn').textContent='SIGNING IN...';
+  clearTimeout(_loginTimeout);
+  _loginTimeout=setTimeout(()=>{resetLoginBtn();$('lErr').textContent='Request timed out. Please try again.';$('lErr').style.display='block';},10000);
   const{error}=await sb.auth.signInWithPassword({email:em,password:pw});
-  if(error){$('lErr').textContent=sbE(error.message);$('lErr').style.display='block';$('lBtn').disabled=false;$('lBtn').textContent='SIGN IN →';}
+  clearTimeout(_loginTimeout);
+  if(error){$('lErr').textContent=sbE(error.message);$('lErr').style.display='block';resetLoginBtn();}
 };
 window.logout=async()=>sb.auth.signOut();
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('authWrap').style.display==='flex')login();});
