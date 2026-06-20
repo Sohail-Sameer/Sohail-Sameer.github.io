@@ -333,116 +333,7 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// ── PASSWORD FUNCTIONS ──
-
-// Strength checker for new password
-window.liveNewPw=v=>{
-  const h=$('newPwHint'),bar=$('pwStr');
-  h.className='fhint';h.textContent='';
-  if(!v){bar.style.width='0';return;}
-  let score=0;
-  if(v.length>=8)score++;
-  if(v.length>=12)score++;
-  if(/[0-9]/.test(v))score++;
-  if(/[A-Z]/.test(v))score++;
-  if(/[^a-zA-Z0-9]/.test(v))score++;
-  const pcts=['0','20%','40%','65%','85%','100%'];
-  const cols=['var(--red)','var(--red)','#f59e0b','#f59e0b','var(--green)','var(--green)'];
-  const lbls=['','Too short','Weak','Fair','Good','Strong'];
-  bar.style.width=pcts[score];bar.style.background=cols[score];
-  if(v.length<8){h.textContent='✗ Min 8 characters.';h.className='fhint no';}
-  else if(!/[0-9]/.test(v)){h.textContent='✗ Must include at least one number.';h.className='fhint no';}
-  else{h.textContent='✓ '+lbls[score];h.className='fhint ok';}
-  if($('newPw2').value)liveNewPw2($('newPw2').value);
-};
-window.liveNewPw2=v=>{
-  const h=$('newPw2Hint');h.className='fhint';h.textContent='';
-  if(!v)return;
-  const match=$('newPw').value===v;
-  h.textContent=match?'✓ Passwords match.':'✗ Passwords do not match.';
-  h.className='fhint '+(match?'ok':'no');
-};
-
-// Send password reset email
-window.sendReset=async()=>{
-  const em=$('fgEmail').value.trim();
-  if(!em)return sMsg('fgErr','Enter your email address.');
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em))return sMsg('fgErr','Enter a valid email address.');
-  $('fgBtn').disabled=true;$('fgBtn').textContent='SENDING...';
-  const redirectTo=window.location.href.split('#')[0].split('?')[0];
-  const{error}=await sb.auth.resetPasswordForEmail(em,{redirectTo});
-  $('fgBtn').disabled=false;$('fgBtn').textContent='SEND RESET LINK →';
-  if(error)return sMsg('fgErr',error.message||'Could not send reset email.');
-  // Always show success — never reveal whether the email exists (security)
-  $('fgErr').style.display='none';
-  sMsg('fgOk','✅ If an account exists with that email, a reset link has been sent. Check your inbox (and spam folder).','ok');
-  $('fgBtn').disabled=true;
-  setTimeout(()=>{ $('fgBtn').disabled=false; },60000); // rate-limit re-send to 60s
-};
-
-// Change password (authenticated user OR after recovery link)
-let _isRecoveryFlow=false;
-window.changePassword=async()=>{
-  const newPw=$('newPw').value,newPw2=$('newPw2').value;
-  if(!newPw||!newPw2)return sMsg('newPwErr','Fill in all fields.');
-  if(newPw!==newPw2)return sMsg('newPwErr','Passwords do not match.');
-  if(newPw.length<8)return sMsg('newPwErr','Password must be at least 8 characters.');
-  if(!/[0-9]/.test(newPw))return sMsg('newPwErr','Password must include at least one number.');
-
-  const curPwField=$('curPw');
-  const needCurPw=$('curPwWrap').style.display!=='none';
-
-  // If current password field is visible, re-authenticate first
-  if(needCurPw){
-    const curPw=curPwField.value;
-    if(!curPw)return sMsg('newPwErr','Enter your current password to confirm your identity.');
-    // Re-sign-in to verify current password before allowing change
-    $('newPwBtn').disabled=true;$('newPwBtn').textContent='VERIFYING...';
-    const{data:session}=await sb.auth.getSession();
-    const email=session?.session?.user?.email;
-    if(!email){$('newPwBtn').disabled=false;$('newPwBtn').textContent='SET NEW PASSWORD →';return sMsg('newPwErr','Session expired. Please sign in again.');}
-    const{error:reErr}=await sb.auth.signInWithPassword({email,password:curPw});
-    if(reErr){$('newPwBtn').disabled=false;$('newPwBtn').textContent='SET NEW PASSWORD →';return sMsg('newPwErr','Current password is incorrect.');}
-  }
-
-  $('newPwBtn').disabled=true;$('newPwBtn').textContent='UPDATING...';
-  const{error}=await sb.auth.updateUser({password:newPw});
-  $('newPwBtn').disabled=false;$('newPwBtn').textContent='SET NEW PASSWORD →';
-  if(error)return sMsg('newPwErr',error.message||'Could not update password.');
-
-  $('newPwErr').style.display='none';
-  sMsg('newPwOk','✅ Password updated successfully!','ok');
-  $('newPw').value='';$('newPw2').value='';$('curPw').value='';
-  $('pwStr').style.width='0';
-  // Sign out all other sessions for maximum security
-  await sb.auth.signOut({scope:'others'});
-  setTimeout(()=>switchTab('in'),2200);
-};
-
-// Add "Change Password" button to the app nav area (authenticated users)
-// Injected into DOM on loadApp
-function injectChangePwLink(){
-  if($('changePwNavBtn'))return;
-  const btn=document.createElement('button');
-  btn.id='changePwNavBtn';btn.className='nav-lnk';
-  btn.style.cssText='background:none;border:none;cursor:none;';
-  btn.textContent='🔑 Change PW';
-  btn.addEventListener('click',()=>{
-    $('app').style.display='none';
-    $('authWrap').style.display='flex';
-    $('curPwWrap').style.display=''; // show current pw field
-    $('newPwSub').textContent='Choose a new password. You must confirm your current password first.';
-    $('newPw').value='';$('newPw2').value='';$('curPw').value='';
-    $('pwStr').style.width='0';
-    switchTab('newpw');
-  });
-  ch(btn);
-  // Insert before sign-out button
-  const signOutBtn=document.querySelector('.btn-out');
-  signOutBtn.parentNode.insertBefore(btn,signOutBtn);
-}
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
       SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
@@ -484,7 +375,7 @@ window.addEventListener('load',async()=>{
   const{data:{session}}=await sb.auth.getSession();
   $('loader').style.display='none';
   if(session){me=session.user;loadApp(session.user);}else $('authWrap').style.display='flex';
-  sb.auth.onAuthStateChange((_,s)=>{if(s){me=s.user;loadApp(s.user);}else{me=null;$('app').style.display='none';$('authWrap').style.display='flex';}});
+  sb.auth.onAuthStateChange((_,s)=>{if(s){me=s.user;loadApp(s.user);}else{me=null;appLoaded=false;$('app').style.display='none';$('authWrap').style.display='flex';}});
 });
 
 window.switchTab=t=>{
@@ -532,12 +423,24 @@ window.signup=async()=>{
   if(error)return sMsg('uErr',sbE(error.message));
   $('uErr').style.display='none';sMsg('uOk','✓ Check your email to confirm your account.','ok');
 };
+function resetLoginBtn(){const btn=$('lBtn');if(btn){btn.disabled=false;btn.textContent='SIGN IN →';}}
+let _loginTimeout=null;
+// Reset on bfcache restore (back/forward navigation)
+window.addEventListener('pageshow',e=>{if(e.persisted)resetLoginBtn();});
+// Reset before navigating away so bfcache stores clean state
+window.addEventListener('pagehide',()=>resetLoginBtn());
+// Reset if user switches back to this tab
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('authWrap')&&$('authWrap').style.display==='flex')resetLoginBtn();});
+
 window.login=async()=>{
   const em=$('lEmail').value.trim(),pw=$('lPass').value;
   if(!em||!pw)return sMsg('lErr','Fill in all fields.');
   $('lBtn').disabled=true;$('lBtn').textContent='SIGNING IN...';
+  clearTimeout(_loginTimeout);
+  _loginTimeout=setTimeout(()=>{resetLoginBtn();sMsg('lErr','Request timed out. Please try again.');},10000);
   const{error}=await sb.auth.signInWithPassword({email:em,password:pw});
-  if(error){sMsg('lErr',sbE(error.message));$('lBtn').disabled=false;$('lBtn').textContent='SIGN IN →';}
+  clearTimeout(_loginTimeout);
+  if(error){sMsg('lErr',sbE(error.message));resetLoginBtn();}
 };
 window.logout=async()=>{appLoaded=false;sb.auth.signOut();};
 document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if($('authWrap').style.display!=='flex')return;if($('fIn').style.display!=='none')login();else if($('fUp').style.display!=='none')signup();else if($('fForgot').style.display!=='none')sendReset();else if($('fNewPw').style.display!=='none')changePassword();});
