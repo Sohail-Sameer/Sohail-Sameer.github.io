@@ -296,12 +296,21 @@ window.addEventListener('load',async()=>{
   if(session){me=session.user;loadApp(session.user);}else $('authWrap').style.display='flex';
   sb.auth.onAuthStateChange((_,s)=>{if(s&&!me){me=s.user;loadApp(s.user);}else if(!s){me=null;$('app').style.display='none';$('authWrap').style.display='flex';}});
 });
+function resetLoginBtn(){const btn=$('lBtn');if(btn){btn.disabled=false;btn.textContent='SIGN IN →';}}
+let _loginTimeout=null;
+window.addEventListener('pageshow',e=>{if(e.persisted)resetLoginBtn();});
+window.addEventListener('pagehide',()=>resetLoginBtn());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('authWrap')&&$('authWrap').style.display==='flex')resetLoginBtn();});
+
 window.login=async()=>{
   const em=$('lEmail').value.trim(),pw=$('lPass').value;
   if(!em||!pw){$('lErr').textContent='Fill in all fields.';$('lErr').style.display='block';return;}
   $('lBtn').disabled=true;$('lBtn').textContent='SIGNING IN...';
+  clearTimeout(_loginTimeout);
+  _loginTimeout=setTimeout(()=>{resetLoginBtn();$('lErr').textContent='Request timed out. Please try again.';$('lErr').style.display='block';},10000);
   const{error}=await sb.auth.signInWithPassword({email:em,password:pw});
-  if(error){$('lErr').textContent=error.message.includes('Invalid')?'Incorrect email or password.':error.message;$('lErr').style.display='block';$('lBtn').disabled=false;$('lBtn').textContent='SIGN IN →';}
+  clearTimeout(_loginTimeout);
+  if(error){$('lErr').textContent=error.message.includes('Invalid')?'Incorrect email or password.':error.message;$('lErr').style.display='block';resetLoginBtn();}
 };
 window.logout=async()=>sb.auth.signOut();
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('authWrap').style.display==='flex')login();});
