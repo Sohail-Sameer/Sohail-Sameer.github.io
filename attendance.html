@@ -182,6 +182,35 @@
     .bulk-empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-family:'Space Mono',monospace;font-size:.7rem;}
     .sc-name.clickable{cursor:none;transition:color .18s;}
     .sc-name.clickable:hover{color:var(--accent);}
+    /* BATCH MANAGEMENT */
+    .batch-mgmt{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1.4rem;}
+    .batch-list{display:flex;flex-direction:column;gap:.55rem;margin-top:.8rem;}
+    .batch-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+    .batch-header{display:flex;align-items:center;gap:.7rem;padding:.6rem .9rem;cursor:none;}
+    .batch-header:hover{background:rgba(0,229,255,.04);}
+    .batch-color{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .batch-hname{font-weight:700;font-size:.9rem;flex:1;}
+    .batch-count{font-family:"Space Mono",monospace;font-size:.6rem;color:var(--muted);}
+    .batch-toggle{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:.2rem .55rem;font-family:"Space Mono",monospace;font-size:.6rem;cursor:none;transition:all .18s;}
+    .batch-toggle:hover{border-color:var(--accent);color:var(--accent);}
+    .batch-del{background:transparent;border:1px solid rgba(239,68,68,.22);color:#fca5a5;border-radius:5px;padding:.2rem .55rem;font-family:"Space Mono",monospace;font-size:.6rem;cursor:none;transition:all .18s;}
+    .batch-del:hover{background:rgba(239,68,68,.15);}
+    .batch-body{display:none;padding:.6rem .9rem;border-top:1px solid var(--border);}
+    .batch-body.open{display:block;}
+    .batch-assign-row{display:flex;gap:.45rem;margin-bottom:.6rem;}
+    .batch-assign-sel{flex:1;padding:.38rem .7rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:"Syne",sans-serif;font-size:.82rem;outline:none;cursor:none;}
+    .batch-assign-btn{padding:.38rem .8rem;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:var(--accent);border-radius:6px;font-family:"Space Mono",monospace;font-size:.62rem;font-weight:700;cursor:none;white-space:nowrap;}
+    .batch-assign-btn:hover{background:rgba(0,229,255,.2);}
+    .batch-members-list{display:flex;flex-wrap:wrap;gap:.35rem;}
+    .batch-member-chip{display:flex;align-items:center;gap:.4rem;background:var(--card);border:1px solid var(--border);border-radius:100px;padding:.2rem .6rem .2rem .45rem;font-size:.76rem;}
+    .batch-member-rm{background:transparent;border:none;color:var(--muted);font-size:.7rem;cursor:none;line-height:1;padding:0;}
+    .batch-member-rm:hover{color:#fca5a5;}
+    /* Batch filter in bulk panel */
+    .bulk-batch-row{padding:.45rem 1.5rem .0rem;display:flex;gap:.35rem;flex-wrap:wrap;flex-shrink:0;}
+    .bulk-bf-btn{padding:.22rem .65rem;border-radius:100px;font-family:"Space Mono",monospace;font-size:.58rem;cursor:none;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .18s;}
+    .bulk-bf-btn.on{color:#06090d;font-weight:700;}
+    /* Batch pill on timetable slots */
+    .slot-batch{font-size:.5rem;padding:.08rem .35rem;border-radius:100px;margin-top:.15rem;font-family:"Space Mono",monospace;opacity:.85;}
     /* TOAST */
     .toast{position:fixed;bottom:clamp(1rem,3vw,2rem);right:clamp(1rem,3vw,2rem);z-index:999;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.85rem 1.3rem;font-family:'Space Mono',monospace;font-size:.72rem;transform:translateY(80px);opacity:0;transition:all .28s;max-width:min(300px,88vw);pointer-events:none;}
     .toast.show{transform:translateY(0);opacity:1;}
@@ -268,6 +297,18 @@
           </div>
           <div class="msg-box" id="subjMsg"></div>
         </div>
+
+        <!-- BATCH MANAGEMENT -->
+        <div class="batch-mgmt">
+          <div class="sec-lbl" style="margin-bottom:.4rem">MANAGE BATCHES</div>
+          <p style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.6rem">Create batches and assign students. Lab slots in the timetable can then be tagged to a specific batch.</p>
+          <div class="row">
+            <input class="tin" id="batchNameIn" placeholder="Batch name (e.g. Batch 1)…" maxlength="40" onkeydown="if(event.key==='Enter')createBatch()"/>
+            <button class="tadd" onclick="createBatch()">+ CREATE</button>
+          </div>
+          <div class="msg-box" id="batchMsg"></div>
+          <div class="batch-list" id="batchList"></div>
+        </div>
       </div>
 
       <!-- Subject grid -->
@@ -296,6 +337,12 @@
             <div>
               <label style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);display:block;margin-bottom:.3rem">TIME</label>
               <input id="slotTime" placeholder="e.g. 09:00 AM" onkeydown="if(event.key==='Enter')addSlot()"/>
+            </div>
+            <div>
+              <label style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);display:block;margin-bottom:.3rem">BATCH (optional)</label>
+              <select id="slotBatch">
+                <option value="">All Students</option>
+              </select>
             </div>
             <button class="tadd" onclick="addSlot()" style="margin-top:auto">+ ADD</button>
           </div>
@@ -332,6 +379,7 @@
     </div>
     <button class="bulk-close" onclick="closeBulk()">✕</button>
   </div>
+  <div class="bulk-batch-row" id="bulkBatchRow"></div>
   <div class="bulk-toolbar">
     <button class="bulk-tb-btn all-p" onclick="markAllBulk('present')">✅ All Present</button>
     <button class="bulk-tb-btn all-a" onclick="markAllBulk('absent')">❌ All Absent</button>
@@ -350,6 +398,7 @@ const {createClient}=supabase, sb=createClient(SB_URL,SB_ANON), $=id=>document.g
 
 let me=null, userRole='student', subjects=[], slots=[], minPct=75;
 let students=[], selectedStudentId=null, attRecords=[];
+let batches=[], batchMembers={}, activeBatchFilter=null; // batch state
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
 // ── CURSOR ──
@@ -408,8 +457,8 @@ async function loadApp(user){
   $('subjGridLabel').textContent=isAdmin?'CLASS ATTENDANCE':'MY ATTENDANCE';
   $('minRow').style.display=isAdmin?'flex':'none'; // students cannot change min %
 
-  await Promise.all([fetchSettings(), fetchSubjects(), fetchSlots()]);
-  updateSubjSelect(); // populate timetable subject dropdown
+  await Promise.all([fetchSettings(), fetchSubjects(), fetchSlots(), fetchBatches()]);
+  updateSubjSelect();updateBatchSelects(); // populate dropdown
 
   if(isAdmin){
     await fetchStudents();
@@ -438,18 +487,23 @@ window.saveMin=async()=>{
   $('minPct').value=minPct;
   const isAdmin=userRole==='admin'||userRole==='master';
   if(isAdmin){
-    // Admin/Master: update ALL users so everyone sees the same threshold
-    // 1. Update existing rows
-    await sb.from('att_settings').update({min_pct:minPct}).neq('user_id','00000000-0000-0000-0000-000000000000');
-    // 2. Upsert own row in case it didn't exist
+    // Use RPC to update ALL users (including those with no existing row)
+    const{error}=await sb.rpc('set_global_min_pct',{new_pct:minPct});
+    if(error){
+      // Fallback: update existing rows + insert for missing users
+      await sb.from('att_settings').update({min_pct:minPct}).neq('user_id','00000000-0000-0000-0000-000000000000');
+      const{data:profs}=await sb.from('profiles').select('id');
+      const{data:existing}=await sb.from('att_settings').select('user_id');
+      const existingIds=new Set((existing||[]).map(r=>r.user_id));
+      const missing=(profs||[]).filter(p=>!existingIds.has(p.id));
+      if(missing.length)await sb.from('att_settings').insert(missing.map(p=>({user_id:p.id,min_pct:minPct})));
+    }
+    toast('Minimum set to '+minPct+'% for all users','ok');
+    $('minNote').textContent='Min: '+minPct+'% · Saved for everyone';
+  }else{
     await sb.from('att_settings').upsert({user_id:me.id,min_pct:minPct},{onConflict:'user_id'});
-    // 3. Insert for any users who have no row yet (via RPC isn't needed — handled by SQL default)
-    toast(`✓ Minimum set to ${minPct}% for all users`,'ok');
-    $('minNote').textContent=`Min: ${minPct}% · Saved for everyone`;
-  } else {
-    await sb.from('att_settings').upsert({user_id:me.id,min_pct:minPct},{onConflict:'user_id'});
-    toast(`✓ Minimum set to ${minPct}%`,'ok');
-    $('minNote').textContent=`Min: ${minPct}% · Saved`;
+    toast('Minimum set to '+minPct+'%','ok');
+    $('minNote').textContent='Min: '+minPct+'% · Saved';
   }
   renderSubjects(selectedStudentId||me.id);renderOverall();
 };
@@ -638,9 +692,16 @@ window.deleteSubject=async(id)=>{
 
 // ── TIMETABLE ──
 function updateSubjSelect(){
-  const sel=$('slotSubj');
+  const sel=$('slotSubj');if(!sel)return;
   sel.innerHTML='<option value="">— Subject —</option>';
   subjects.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o);});
+}
+function updateBatchSelects(){
+  const bSel=$('slotBatch');
+  if(bSel){
+    bSel.innerHTML='<option value="">All Students</option>';
+    batches.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=b.name;bSel.appendChild(o);});
+  }
 }
 
 window.switchView=v=>{
@@ -651,11 +712,11 @@ window.switchView=v=>{
 };
 
 window.addSlot=async()=>{
-  const subjId=$('slotSubj').value,day=$('slotDay').value,time=$('slotTime').value.trim();
+  const subjId=$('slotSubj').value,day=$('slotDay').value,time=$('slotTime').value.trim(),batchId=$('slotBatch').value||null;
   if(!subjId){showMsg('slotMsg','Select a subject.','err');return;}
   if(!time){showMsg('slotMsg','Enter a time.','err');return;}
   if(slots.find(sl=>sl.subject_id==subjId&&sl.day===day&&sl.time===time)){showMsg('slotMsg','Slot already exists.','err');return;}
-  const{data,error}=await sb.from('class_timetable').insert([{subject_id:+subjId,day,time,created_by:me.id}]).select().single();
+  const{data,error}=await sb.from('class_timetable').insert([{subject_id:+subjId,day,time,batch_id:batchId?+batchId:null,created_by:me.id}]).select().single();
   if(error){showMsg('slotMsg','Error: '+error.message,'err');return;}
   slots.push(data);renderTimetable();$('slotTime').value='';showMsg('slotMsg','Slot added!','ok');toast('🗓️ Slot added!','ok');
 };
@@ -709,7 +770,8 @@ function renderTimetable(){
         const subj=subjects.find(s=>s.id===slot.subject_id);
         const btn=document.createElement('button');
         btn.className='tt-slot has-class';btn.style.cursor='none';
-        btn.innerHTML=`<span class="slot-name">${esc(subj?.name||'?')}</span><span class="slot-dot"></span>`;
+        const bLabel=slot.batch_id?batches.find(b=>b.id===slot.batch_id)?.name:'';
+        btn.innerHTML=`<span class="slot-name">${esc(subj?.name||'?')}</span>${bLabel?`<span class="slot-batch" style="background:var(--accent2);color:#fff">${esc(bLabel)}</span>`:''}<span class="slot-dot"></span>`;
         btn.title=`${subj?.name||'?'} — ${day} ${time}`;
         if(userRole!=='student')btn.addEventListener('click',()=>openSlotMark(slot,subj,day,time));
         ch(btn);cell.appendChild(btn);
@@ -863,7 +925,12 @@ window.markAllBulk=async(status)=>{
 window.undoAllBulk=async()=>{
   // Undo the last record (any status) per student for this subject
   const toDelete=[];
-  allStudentsCache.forEach(s=>{
+  let undoTargets=allStudentsCache;
+  if(activeBatchFilter!==null){
+    const memberIds=new Set((batchMembers[activeBatchFilter]||[]).map(m=>m.student_id));
+    undoTargets=allStudentsCache.filter(s=>memberIds.has(s.id));
+  }
+  undoTargets.forEach(s=>{
     const last=attRecords
       .filter(r=>r.student_id===s.id&&r.subject_id===bulkSubjectId)
       .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
@@ -875,6 +942,143 @@ window.undoAllBulk=async()=>{
   renderBulkList();
   toast(`↩ Undone for ${toDelete.length} student${toDelete.length!==1?'s':''}.`,'info');
 };
+
+// ── BATCH SYSTEM ──────────────────────────────────────────────
+
+async function fetchBatches(){
+  const{data:bd}=await sb.from('batches').select('*').order('created_at',{ascending:true});
+  batches=bd||[];
+  const{data:bmd}=await sb.from('batch_members').select('*');
+  batchMembers={};
+  (bmd||[]).forEach(m=>{
+    if(!batchMembers[m.batch_id])batchMembers[m.batch_id]=[];
+    batchMembers[m.batch_id].push(m);
+  });
+  const isAdmin=userRole==='admin'||userRole==='master';
+  if(isAdmin)renderBatchMgmt();
+}
+
+const BATCH_COLORS=['#00e5ff','#a78bfa','#10b981','#fbbf24','#ef4444','#f97316','#ec4899'];
+
+function renderBatchMgmt(){
+  const list=$('batchList');if(!list)return;
+  list.innerHTML='';
+  if(!batches.length){list.innerHTML='<div style="font-family:Space Mono,monospace;font-size:.66rem;color:var(--muted);padding:.4rem 0">No batches yet. Create one above.</div>';return;}
+  batches.forEach((b,bi)=>{
+    const color=BATCH_COLORS[bi%BATCH_COLORS.length];
+    const members=(batchMembers[b.id]||[]);
+    const item=document.createElement('div');item.className='batch-item';
+    // Header
+    const hdr=document.createElement('div');hdr.className='batch-header';
+    hdr.innerHTML='<div class="batch-color" style="background:'+color+'"></div>'
+      +'<div class="batch-hname">'+esc(b.name)+'</div>'
+      +'<span class="batch-count">'+members.length+' student'+(members.length!==1?'s':'')+'</span>';
+    const togBtn=document.createElement('button');togBtn.className='batch-toggle';togBtn.textContent='Manage';
+    const delBtn=document.createElement('button');delBtn.className='batch-del';delBtn.textContent='Delete';
+    delBtn.addEventListener('click',e=>{e.stopPropagation();deleteBatch(b.id,b.name);});
+    hdr.appendChild(togBtn);hdr.appendChild(delBtn);
+    // Body
+    const body=document.createElement('div');body.className='batch-body';
+    // Assign row
+    const assignRow=document.createElement('div');assignRow.className='batch-assign-row';
+    const sel=document.createElement('select');sel.className='batch-assign-sel';
+    sel.innerHTML='<option value="">— Assign a student —</option>';
+    const assignedIds=new Set(members.map(m=>m.student_id));
+    students.filter(s=>!assignedIds.has(s.id)).forEach(s=>{
+      const dn=s.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+      const o=document.createElement('option');o.value=s.id;o.textContent=dn+' ['+s.role+']';sel.appendChild(o);
+    });
+    const assignBtn=document.createElement('button');assignBtn.className='batch-assign-btn';assignBtn.textContent='+ Assign';
+    assignBtn.addEventListener('click',()=>{if(sel.value)assignToBatch(b.id,sel.value);});
+    assignRow.appendChild(sel);assignRow.appendChild(assignBtn);
+    // Members list
+    const mList=document.createElement('div');mList.className='batch-members-list';
+    if(!members.length){mList.innerHTML='<span style="font-family:Space Mono,monospace;font-size:.64rem;color:var(--muted)">No members yet.</span>';}
+    members.forEach(m=>{
+      const student=students.find(s=>s.id===m.student_id);
+      if(!student)return;
+      const dn=student.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+      const chip=document.createElement('div');chip.className='batch-member-chip';
+      chip.innerHTML='<span>'+esc(dn)+'</span>';
+      const rm=document.createElement('button');rm.className='batch-member-rm';rm.textContent='✕';rm.title='Remove from batch';
+      rm.addEventListener('click',()=>removeFromBatch(b.id,m.student_id));
+      chip.appendChild(rm);mList.appendChild(chip);ch(rm);
+    });
+    body.appendChild(assignRow);body.appendChild(mList);
+    // Toggle expand
+    togBtn.addEventListener('click',e=>{e.stopPropagation();body.classList.toggle('open');togBtn.textContent=body.classList.contains('open')?'Close':'Manage';});
+    item.appendChild(hdr);item.appendChild(body);
+    list.appendChild(item);
+    [togBtn,delBtn,sel,assignBtn].forEach(ch);
+  });
+}
+
+window.createBatch=async()=>{
+  const name=$('batchNameIn').value.trim();
+  if(!name){showMsg('batchMsg','Enter a batch name.','err');return;}
+  if(batches.find(b=>b.name.toLowerCase()===name.toLowerCase())){showMsg('batchMsg','Batch already exists.','err');return;}
+  const{data,error}=await sb.from('batches').insert([{name,created_by:me.id}]).select().single();
+  if(error){showMsg('batchMsg','Error: '+error.message,'err');return;}
+  batches.push(data);batchMembers[data.id]=[];
+  $('batchNameIn').value='';
+  updateBatchSelects();renderBatchMgmt();
+  showMsg('batchMsg','"'+name+'" created!','ok');toast('"'+name+'" batch created!','ok');
+};
+
+window.deleteBatch=async(batchId,name)=>{
+  if(!confirm('Delete batch "'+name+'" and remove all its members?\nTimetable slots tagged to this batch will become untagged (available to all).'))return;
+  await sb.from('batches').delete().eq('id',batchId);
+  batches=batches.filter(b=>b.id!==batchId);
+  delete batchMembers[batchId];
+  // Clear from slots
+  slots.forEach(s=>{if(s.batch_id===batchId)s.batch_id=null;});
+  updateBatchSelects();renderBatchMgmt();renderTimetable();
+  toast('Batch deleted.','info');
+};
+
+window.assignToBatch=async(batchId,studentId)=>{
+  batchId=+batchId;
+  const{error}=await sb.from('batch_members').insert([{batch_id:batchId,student_id:studentId}]);
+  if(error){toast('Error: '+error.message,'err');return;}
+  if(!batchMembers[batchId])batchMembers[batchId]=[];
+  batchMembers[batchId].push({batch_id:batchId,student_id:studentId});
+  renderBatchMgmt();toast('Student assigned.','ok');
+};
+
+window.removeFromBatch=async(batchId,studentId)=>{
+  batchId=+batchId;
+  await sb.from('batch_members').delete().eq('batch_id',batchId).eq('student_id',studentId);
+  batchMembers[batchId]=(batchMembers[batchId]||[]).filter(m=>m.student_id!==studentId);
+  renderBatchMgmt();toast('Student removed from batch.','info');
+};
+
+// ── BULK PANEL BATCH FILTER ────────────────────────────────────
+
+function renderBulkBatchFilter(){
+  const row=$('bulkBatchRow');if(!row)return;
+  row.innerHTML='';
+  // "All" button
+  const allBtn=document.createElement('button');
+  allBtn.className='bulk-bf-btn'+(activeBatchFilter===null?' on':'');
+  allBtn.style.background=activeBatchFilter===null?'var(--accent)':'';
+  allBtn.textContent='All Students';
+  allBtn.addEventListener('click',()=>{activeBatchFilter=null;renderBulkBatchFilter();renderBulkList();});
+  row.appendChild(allBtn);ch(allBtn);
+  // One button per batch
+  batches.forEach((b,bi)=>{
+    const color=BATCH_COLORS[bi%BATCH_COLORS.length];
+    const active=activeBatchFilter===b.id;
+    const btn=document.createElement('button');
+    btn.className='bulk-bf-btn'+(active?' on':'');
+    btn.style.background=active?color:'';
+    btn.style.borderColor=active?color:'';
+    if(!active)btn.style.color=color;
+    btn.textContent=b.name;
+    btn.addEventListener('click',()=>{activeBatchFilter=b.id;renderBulkBatchFilter();renderBulkList();});
+    row.appendChild(btn);ch(btn);
+  });
+}
+
 </script>
 </body>
 </html>
