@@ -683,28 +683,50 @@ window.changeRole=async(userId,newRole)=>{
 window.deleteUser=async(userId,rawUsername)=>{
   const dn=rawUsername.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
   // First confirmation
-  if(!confirm(`⚠️ DELETE USER\n\nYou are about to permanently delete "${dn}" and ALL their data — attendance records, task completions, library, and their account.\n\nThis CANNOT be undone.\n\nAre you sure?`))return;
-  // Second confirmation — type DELETE
-  const typed=window.prompt(`Second confirmation required.\n\nType  DELETE  (all caps) to permanently delete "${dn}":`);
+  if(!confirm('DELETE USER\n\nYou are about to permanently delete "'+dn+'" and ALL their data.\n\nThis CANNOT be undone. Are you sure?'))return;
+  // Second confirmation
+  const typed=window.prompt('Type DELETE (all caps) to confirm deletion of "'+dn+'":');
   if(typed!=='DELETE'){toast('Deletion cancelled.','info');return;}
-  toast('Deleting user…','info');
-  // Delete all app data first
-  // Grab their username before deleting so we can clear the reservation
+
+  toast('Deleting user...','info');
+
+  // Step 1: Grab username BEFORE deleting anything
   const{data:prof}=await sb.from('profiles').select('username').eq('id',userId).maybeSingle();
-  await Promise.all([
+  const username=prof?.username||null;
+
+  // Step 2: Delete app data (all use RLS — these always work)
+  const appDeletes=await Promise.all([
     sb.from('todo_completions').delete().eq('student_id',userId),
     sb.from('attendance_records').delete().eq('student_id',userId),
     sb.from('wishlist').delete().eq('user_id',userId),
     sb.from('att_settings').delete().eq('user_id',userId),
+    sb.from('batch_members').delete().eq('student_id',userId),
   ]);
-  await sb.from('profiles').delete().eq('id',userId);
-  // Clear username reservation so it can be reused
-  if(prof?.username)await sb.from('usernames').delete().eq('username',prof.username);
-  // RPC deletes the auth account (SECURITY DEFINER function)
-  await sb.rpc('delete_user',{target_id:userId});
+  const appErrors=appDeletes.filter(r=>r.error).map(r=>r.error.message);
+  if(appErrors.length)console.warn('Some app data delete errors:',appErrors);
+
+  // Step 3: Try RPC — this deletes auth.users which cascades to profiles
+  // Also handles username cleanup inside the SQL function
+  const{error:rpcErr}=await sb.rpc('delete_user',{target_id:userId});
+
+  if(rpcErr){
+    // RPC failed — clean up profiles and usernames manually as fallback
+    console.error('RPC delete_user failed:',rpcErr.message);
+    await sb.from('profiles').delete().eq('id',userId);
+    if(username)await sb.from('usernames').delete().eq('username',username);
+    // Show warning — auth account may still exist
+    toast('Data deleted, but auth account may remain. Go to Supabase → Authentication → Users and delete "'+dn+'" manually.','err');
+    students=students.filter(s=>s.id!==userId);
+    renderUserGrid();
+    return;
+  }
+
+  // Step 4: Also clear username (RPC may have missed it if profile was not found)
+  if(username)await sb.from('usernames').delete().eq('username',username);
+
   students=students.filter(s=>s.id!==userId);
   renderUserGrid();
-  toast(`✓ "${dn}" deleted.`,'ok');
+  toast('"'+dn+'" fully deleted.','ok');
 };
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
