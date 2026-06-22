@@ -705,17 +705,20 @@ window.deleteUser=async(userId,rawUsername)=>{
   const appErrors=appDeletes.filter(r=>r.error).map(r=>r.error.message);
   if(appErrors.length)console.warn('Some app data delete errors:',appErrors);
 
-  // Step 3: Try RPC — this deletes auth.users which cascades to profiles
-  // Also handles username cleanup inside the SQL function
-  const{error:rpcErr}=await sb.rpc('delete_user',{target_id:userId});
+  // Step 3: RPC deletes auth.users (cascades to profiles) + cleans usernames
+  const{data:rpcData,error:rpcErr}=await sb.rpc('delete_user',{target_id:userId});
+  const rpcFailed=rpcErr||(rpcData&&rpcData.ok===false);
 
-  if(rpcErr){
-    // RPC failed — clean up profiles and usernames manually as fallback
-    console.error('RPC delete_user failed:',rpcErr.message);
+  if(rpcFailed){
+    const reason=rpcErr?.message||(rpcData?.reason)||'Unknown error';
+    console.error('RPC delete_user failed:',reason);
+    // Fallback: clean up profiles + usernames manually
     await sb.from('profiles').delete().eq('id',userId);
     if(username)await sb.from('usernames').delete().eq('username',username);
-    // Show warning — auth account may still exist
-    toast('Data deleted, but auth account may remain. Go to Supabase → Authentication → Users and delete "'+dn+'" manually.','err');
+    // Auth account may still exist — tell user
+    if(confirm('App data deleted, but the auth account could not be removed automatically.\n\nReason: '+reason+'\n\nWould you like instructions to delete it manually from Supabase?')){
+      alert('1. Go to app.supabase.com\n2. Open your project\n3. Click Authentication → Users\n4. Find "'+dn+'" and click the 3-dot menu → Delete user');
+    }
     students=students.filter(s=>s.id!==userId);
     renderUserGrid();
     return;
