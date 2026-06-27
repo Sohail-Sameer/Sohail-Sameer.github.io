@@ -182,6 +182,17 @@
     .bulk-empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-family:'Space Mono',monospace;font-size:.7rem;}
     .sc-name.clickable{cursor:none;transition:color .18s;}
     .sc-name.clickable:hover{color:var(--accent);}
+    /* BULK BATCH SELECTION SCREEN */
+    .bulk-batch-card{display:flex;align-items:center;gap:.9rem;padding:.9rem 1.1rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:none;transition:all .22s;user-select:none;}
+    .bulk-batch-card:hover{border-color:rgba(0,229,255,.35);transform:translateX(4px);background:rgba(0,229,255,.04);}
+    .bulk-batch-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+    .bulk-batch-info{flex:1;}
+    .bulk-batch-card-name{font-weight:700;font-size:.95rem;margin-bottom:.12rem;}
+    .bulk-batch-card-count{font-family:"Space Mono",monospace;font-size:.62rem;color:var(--muted);}
+    .bulk-batch-arrow{font-size:1rem;color:var(--muted);transition:color .18s;}
+    .bulk-batch-card:hover .bulk-batch-arrow{color:var(--accent);}
+    .bulk-back-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:.22rem .65rem;font-family:"Space Mono",monospace;font-size:.62rem;cursor:none;transition:all .18s;margin-right:.6rem;}
+    .bulk-back-btn:hover{border-color:var(--accent);color:var(--accent);}
     /* BATCH MANAGEMENT */
     .batch-mgmt{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1.4rem;}
     .batch-list{display:flex;flex-direction:column;gap:.55rem;margin-top:.8rem;}
@@ -380,7 +391,7 @@
     <button class="bulk-close" onclick="closeBulk()">✕</button>
   </div>
   <div class="bulk-batch-row" id="bulkBatchRow"></div>
-  <div class="bulk-toolbar">
+  <div class="bulk-toolbar" id="bulkToolbar">
     <button class="bulk-tb-btn all-p" onclick="markAllBulk('present')">✅ All Present</button>
     <button class="bulk-tb-btn all-a" onclick="markAllBulk('absent')">❌ All Absent</button>
     <button class="bulk-tb-btn undo-all" onclick="undoAllBulk()">↩ Undo All</button>
@@ -398,7 +409,7 @@ const {createClient}=supabase, sb=createClient(SB_URL,SB_ANON), $=id=>document.g
 
 let me=null, userRole='student', subjects=[], slots=[], minPct=75;
 let students=[], selectedStudentId=null, attRecords=[];
-let batches=[], batchMembers={}, activeBatchFilter=null; // batch state
+let batches=[], batchMembers={}, activeBatchFilter=null, bulkScreen='batches'; // batch state
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
 // ── CURSOR ──
@@ -822,22 +833,109 @@ let bulkSubjectId=null, allStudentsCache=[];
 async function openBulk(subjectId){
   bulkSubjectId=+subjectId;
   const subj=subjects.find(s=>s.id===bulkSubjectId);
-  $('bulkTitle').textContent=subj?subj.name:'Mark Attendance';
-  // Load ALL student records for this subject at once
+  bulkSubjName=subj?subj.name:'Mark Attendance';
+  $('bulkTitle').textContent=bulkSubjName;
+  $('bulkSub').textContent='Loading…';
   $('bulkList').innerHTML='<div class="bulk-empty"><div class="spinner"></div></div>';
+  $('bulkToolbar').style.display='none';
+  $('bulkBatchRow').innerHTML='';
   $('bulkPanel').classList.add('open');
   $('bulkOverlay').classList.add('open');
   document.body.style.overflow='hidden';
-  // Fetch all records for this subject across all students
+
+  // Fetch attendance records for this subject
   const{data}=await sb.from('attendance_records')
     .select('*').eq('subject_id',bulkSubjectId);
-  // Store in attRecords without duplicating
   (data||[]).forEach(r=>{if(!attRecords.find(x=>x.id===r.id))attRecords.push(r);});
-  // Build student list — all users except master-only? No: everyone
   allStudentsCache=[...students];
+
+  // If batches exist → show batch selection screen first
+  // If no batches → go straight to student list (all students)
+  if(batches.length>0){
+    activeBatchFilter=null;
+    showBulkBatchScreen();
+  } else {
+    activeBatchFilter=null;
+    showBulkStudentScreen(null);
+  }
+}
+
+let bulkSubjName=''; // store subject name for header updates
+
+function showBulkBatchScreen(){
+  bulkScreen='batches';
+  $('bulkTitle').textContent=bulkSubjName;
+  $('bulkSub').textContent='Select a batch to mark attendance';
+  $('bulkToolbar').style.display='none';
+  $('bulkBatchRow').innerHTML=''; // clear back button
+  renderBulkBatches();
+}
+
+function showBulkStudentScreen(batchId){
+  bulkScreen='students';
+  activeBatchFilter=batchId;
+
+  // Update header with back button (only if batches exist)
+  const batchName=batchId!==null?(batches.find(b=>b.id===batchId)?.name||'Batch'):'All Students';
+  $('bulkTitle').textContent=bulkSubjName;
+  $('bulkSub').textContent=batchName;
+
+  // Show back button in batch row area (if batches exist)
+  const row=$('bulkBatchRow');row.innerHTML='';
+  if(batches.length>0){
+    const backBtn=document.createElement('button');
+    backBtn.className='bulk-back-btn';
+    backBtn.innerHTML='← Batches';
+    backBtn.addEventListener('click',showBulkBatchScreen);
+    row.appendChild(backBtn);ch(backBtn);
+    row.style.paddingBottom='.5rem';
+  }
+
+  $('bulkToolbar').style.display='';
   $('bulkSearch').value='';
-  $('bulkSub').textContent=`${allStudentsCache.length} student${allStudentsCache.length!==1?'s':''}`;
+
+  // Update student count for this batch
+  let pool=allStudentsCache;
+  if(batchId!==null){
+    const memberIds=new Set((batchMembers[batchId]||[]).map(m=>m.student_id));
+    pool=allStudentsCache.filter(s=>memberIds.has(s.id));
+  }
+  $('bulkSub').textContent=batchName+' · '+pool.length+' student'+(pool.length!==1?'s':'');
+
   renderBulkList();
+}
+
+function renderBulkBatches(){
+  const list=$('bulkList');list.innerHTML='';
+  const COLORS=['#00e5ff','#a78bfa','#10b981','#fbbf24','#ef4444','#f97316','#ec4899'];
+
+  // "All Students" option at top
+  const allCard=document.createElement('div');allCard.className='bulk-batch-card';
+  const totalCount=allStudentsCache.length;
+  allCard.innerHTML='<div class="bulk-batch-dot" style="background:var(--muted)"></div>'
+    +'<div class="bulk-batch-info"><div class="bulk-batch-card-name">All Students</div>'
+    +'<div class="bulk-batch-card-count">'+totalCount+' student'+(totalCount!==1?'s':'')+'</div></div>'
+    +'<span class="bulk-batch-arrow">→</span>';
+  allCard.addEventListener('click',()=>showBulkStudentScreen(null));
+  list.appendChild(allCard);ch(allCard);
+
+  // One card per batch
+  batches.forEach((b,bi)=>{
+    const color=COLORS[bi%COLORS.length];
+    const members=(batchMembers[b.id]||[]);
+    const count=members.filter(m=>allStudentsCache.find(s=>s.id===m.student_id)).length;
+    const card=document.createElement('div');card.className='bulk-batch-card';
+    card.innerHTML='<div class="bulk-batch-dot" style="background:'+color+'"></div>'
+      +'<div class="bulk-batch-info"><div class="bulk-batch-card-name">'+esc(b.name)+'</div>'
+      +'<div class="bulk-batch-card-count">'+count+' student'+(count!==1?'s':'')+'</div></div>'
+      +'<span class="bulk-batch-arrow">→</span>';
+    card.addEventListener('click',()=>showBulkStudentScreen(b.id));
+    list.appendChild(card);ch(card);
+  });
+
+  if(!batches.length){
+    list.innerHTML='<div class="bulk-empty">No batches configured.<br><span style="font-size:.7rem">Add batches in the Manage Batches section.</span></div>';
+  }
 }
 
 window.closeBulk=()=>{
@@ -850,8 +948,15 @@ window.closeBulk=()=>{
 };
 
 window.renderBulkList=()=>{
-  const q=($('bulkSearch').value||''). toLowerCase();
-  const filtered=allStudentsCache.filter(s=>
+  if(bulkScreen==='batches'){renderBulkBatches();return;}
+  const q=($('bulkSearch').value||'').toLowerCase();
+  // Filter by active batch first
+  let pool=allStudentsCache;
+  if(activeBatchFilter!==null){
+    const memberIds=new Set((batchMembers[activeBatchFilter]||[]).map(m=>m.student_id));
+    pool=allStudentsCache.filter(s=>memberIds.has(s.id));
+  }
+  const filtered=pool.filter(s=>
     s.username.replace(/_/g,' ').toLowerCase().includes(q)
   );
   const list=$('bulkList');list.innerHTML='';
@@ -911,7 +1016,13 @@ window.bulkUndo=async(studentId,status,btn)=>{
 window.markAllBulk=async(status)=>{
   const btn=document.querySelector(status==='present'?'.bulk-tb-btn.all-p':'.bulk-tb-btn.all-a');
   if(btn){btn.disabled=true;btn.textContent='Marking…';}
-  const inserts=allStudentsCache.map(s=>({
+  // Use batch-filtered pool
+  let bPool=allStudentsCache;
+  if(activeBatchFilter!==null){
+    const mIds=new Set((batchMembers[activeBatchFilter]||[]).map(m=>m.student_id));
+    bPool=allStudentsCache.filter(s=>mIds.has(s.id));
+  }
+  const inserts=bPool.map(s=>({
     student_id:s.id,subject_id:bulkSubjectId,status,marked_by:me.id
   }));
   const{data,error}=await sb.from('attendance_records').insert(inserts).select();
@@ -919,7 +1030,7 @@ window.markAllBulk=async(status)=>{
   if(error){toast('Error: '+error.message,'err');return;}
   (data||[]).forEach(r=>attRecords.push(r));
   renderBulkList();
-  toast(`${status==='present'?'✅':'❌'} All ${allStudentsCache.length} students marked ${status}.`,'ok');
+  toast(`${status==='present'?'✅':'❌'} All ${bPool.length} students marked ${status}.`,'ok');
 };
 
 window.undoAllBulk=async()=>{
@@ -1055,28 +1166,7 @@ window.removeFromBatch=async(batchId,studentId)=>{
 // ── BULK PANEL BATCH FILTER ────────────────────────────────────
 
 function renderBulkBatchFilter(){
-  const row=$('bulkBatchRow');if(!row)return;
-  row.innerHTML='';
-  // "All" button
-  const allBtn=document.createElement('button');
-  allBtn.className='bulk-bf-btn'+(activeBatchFilter===null?' on':'');
-  allBtn.style.background=activeBatchFilter===null?'var(--accent)':'';
-  allBtn.textContent='All Students';
-  allBtn.addEventListener('click',()=>{activeBatchFilter=null;renderBulkBatchFilter();renderBulkList();});
-  row.appendChild(allBtn);ch(allBtn);
-  // One button per batch
-  batches.forEach((b,bi)=>{
-    const color=BATCH_COLORS[bi%BATCH_COLORS.length];
-    const active=activeBatchFilter===b.id;
-    const btn=document.createElement('button');
-    btn.className='bulk-bf-btn'+(active?' on':'');
-    btn.style.background=active?color:'';
-    btn.style.borderColor=active?color:'';
-    if(!active)btn.style.color=color;
-    btn.textContent=b.name;
-    btn.addEventListener('click',()=>{activeBatchFilter=b.id;renderBulkBatchFilter();renderBulkList();});
-    row.appendChild(btn);ch(btn);
-  });
+  // Replaced by showBulkBatchScreen / showBulkStudentScreen
 }
 
 </script>
