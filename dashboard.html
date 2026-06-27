@@ -705,24 +705,36 @@ window.deleteUser=async(userId,rawUsername)=>{
   const appErrors=appDeletes.filter(r=>r.error).map(r=>r.error.message);
   if(appErrors.length)console.warn('Some app data delete errors:',appErrors);
 
-  // Step 3: RPC deletes auth.users (cascades to profiles) + cleans usernames
+  // Step 3: RPC — pre-cleans auth sub-tables then deletes auth.users
   const{data:rpcData,error:rpcErr}=await sb.rpc('delete_user',{target_id:userId});
   const rpcFailed=rpcErr||(rpcData&&rpcData.ok===false);
 
   if(rpcFailed){
     const reason=rpcErr?.message||(rpcData?.reason)||'Unknown error';
-    console.error('RPC delete_user failed:',reason);
-    // Fallback: clean up profiles + usernames manually
-    await sb.from('profiles').delete().eq('id',userId);
-    if(username)await sb.from('usernames').delete().eq('username',username);
-    // Auth account may still exist — tell user
-    if(confirm('App data deleted, but the auth account could not be removed automatically.\n\nReason: '+reason+'\n\nWould you like instructions to delete it manually from Supabase?')){
-      alert('1. Go to app.supabase.com\n2. Open your project\n3. Click Authentication → Users\n4. Find "'+dn+'" and click the 3-dot menu → Delete user');
+    console.error('delete_user RPC failed:',reason);
+
+    // Auto-fallback: try soft-disable (randomises email+password, bans account)
+    toast('Hard delete failed — trying to disable account...','info');
+    const{error:disableErr}=await sb.rpc('disable_user',{target_id:userId});
+
+    if(disableErr){
+      // Both approaches failed — user must act manually
+      const msg='Could not delete or disable the account automatically.\n\nReason: '+reason
+        +'\n\nPlease go to:\nSupabase Dashboard → Authentication → Users\nFind the user and delete them manually.';
+      alert(msg);
+      students=students.filter(s=>s.id!==userId);
+      renderUserGrid();
+      toast('App data deleted. Please remove auth account manually.','err');
+      return;
     }
+
+    // Soft-disable succeeded — account can no longer log in
     students=students.filter(s=>s.id!==userId);
     renderUserGrid();
+    toast('"'+dn+'" disabled — account permanently blocked from logging in.','ok');
     return;
   }
+
 
   // Step 4: Also clear username (RPC may have missed it if profile was not found)
   if(username)await sb.from('usernames').delete().eq('username',username);
