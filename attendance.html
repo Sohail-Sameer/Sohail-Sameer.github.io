@@ -726,7 +726,8 @@ window.addSlot=async()=>{
   const subjId=$('slotSubj').value,day=$('slotDay').value,time=$('slotTime').value.trim(),batchId=$('slotBatch').value||null;
   if(!subjId){showMsg('slotMsg','Select a subject.','err');return;}
   if(!time){showMsg('slotMsg','Enter a time.','err');return;}
-  if(slots.find(sl=>sl.subject_id==subjId&&sl.day===day&&sl.time===time)){showMsg('slotMsg','Slot already exists.','err');return;}
+  const batchIdNum=batchId?+batchId:null;
+  if(slots.find(sl=>sl.subject_id==subjId&&sl.day===day&&sl.time===time&&sl.batch_id===batchIdNum)){showMsg('slotMsg','Slot already exists for this batch.','err');return;}
   const{data,error}=await sb.from('class_timetable').insert([{subject_id:+subjId,day,time,batch_id:batchId?+batchId:null,created_by:me.id}]).select().single();
   if(error){showMsg('slotMsg','Error: '+error.message,'err');return;}
   slots.push(data);renderTimetable();$('slotTime').value='';showMsg('slotMsg','Slot added!','ok');toast('🗓️ Slot added!','ok');
@@ -742,16 +743,25 @@ function parseCSV(file){
     for(const line of lines){
       const parts=line.split(',').map(p=>p.trim());
       if(parts.length<3)continue;
-      const[subjName,day,time]=parts;
+      const[subjName,day,time,batchNameRaw]=parts;
+      const batchName=(batchNameRaw||'').trim();
       if(!subjName||!day||!time||!DAYS.includes(day)){skipped++;continue;}
+      // Resolve optional batch name → batch_id
+      let csvBatchId=null;
+      if(batchName){
+        const found=batches.find(b=>b.name.toLowerCase()===batchName.toLowerCase());
+        if(!found){skipped++;continue;} // batch name given but doesn't exist → skip
+        csvBatchId=found.id;
+      }
       let subj=subjects.find(s=>s.name.toLowerCase()===subjName.toLowerCase());
       if(!subj){
         const{data,error}=await sb.from('class_subjects').insert([{name:subjName,created_by:me.id}]).select().single();
         if(error){skipped++;continue;}
         subjects.push(data);subj=data;
       }
-      if(slots.find(sl=>sl.subject_id==subj.id&&sl.day===day&&sl.time===time)){skipped++;continue;}
-      const{data:sd,error:se}=await sb.from('class_timetable').insert([{subject_id:subj.id,day,time,created_by:me.id}]).select().single();
+      // Duplicate check includes batch_id
+      if(slots.find(sl=>sl.subject_id==subj.id&&sl.day===day&&sl.time===time&&sl.batch_id===csvBatchId)){skipped++;continue;}
+      const{data:sd,error:se}=await sb.from('class_timetable').insert([{subject_id:subj.id,day,time,batch_id:csvBatchId,created_by:me.id}]).select().single();
       if(se){skipped++;continue;}
       slots.push(sd);added++;
     }
@@ -764,29 +774,84 @@ function parseCSV(file){
 
 function renderTimetable(){
   const grid=$('ttGrid');grid.innerHTML='';
-  const times=[...new Set(slots.map(s=>s.time))].sort((a,b)=>{
-    const toMin=t=>{const m12=t.match(/(\d+):(\d+)\s*(AM|PM)/i);if(m12){let h=parseInt(m12[1]),mn=parseInt(m12[2]);if(m12[3].toUpperCase()==='PM'&&h!==12)h+=12;if(m12[3].toUpperCase()==='AM'&&h===12)h=0;return h*60+mn;}const m24=t.match(/^(\d{1,2}):(\d{2})$/);if(m24)return parseInt(m24[1])*60+parseInt(m24[2]);return 0;};
-    return toMin(a)-toMin(b);
+  const isAdmin=userRole==='admin'||userRole==='master';
+
+  // Time sort helper
+  const toMin=t=>{
+    const m12=t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if(m12){let h=parseInt(m12[1]),mn=parseInt(m12[2]);if(m12[3].toUpperCase()==='PM'&&h!==12)h+=12;if(m12[3].toUpperCase()==='AM'&&h===12)h=0;return h*60+mn;}
+    const m24=t.match(/^(\d{1,2}):(\d{2})$/);if(m24)return parseInt(m24[1])*60+parseInt(m24[2]);return 0;
+  };
+
+  // Work out which batches the current student belongs to
+  const myBatchIds=new Set();
+  if(!isAdmin&&me){
+    Object.entries(batchMembers).forEach(([bId,members])=>{
+      if(members.some(m=>m.student_id===me.id))myBatchIds.add(+bId);
+    });
+  }
+
+  // Determine which slots are relevant for this viewer
+  const relevantSlots=isAdmin?slots:slots.filter(sl=>{
+    if(sl.batch_id===null)return true;       // unassigned → everyone
+    return myBatchIds.has(sl.batch_id);       // only student's own batch
   });
-  if(!times.length){grid.innerHTML=`<div style="padding:2rem;text-align:center;color:var(--muted);font-family:'Space Mono',monospace;font-size:.72rem">No timetable slots yet.</div>`;grid.style.display='block';return;}
+
+  // Build time rows from relevant slots (students skip irrelevant times)
+  const times=[...new Set(relevantSlots.map(s=>s.time))].sort((a,b)=>toMin(a)-toMin(b));
+
+  if(!times.length){
+    grid.innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:.72rem">No timetable slots yet'+((!isAdmin&&myBatchIds.size===0&&slots.some(sl=>sl.batch_id!==null))?' — you are not assigned to a batch.':'.')+'</div>';
+    grid.style.display='block';return;
+  }
   grid.style.display='grid';grid.style.gridTemplateColumns='80px repeat(7,1fr)';
+
+  // Header
   const corner=document.createElement('div');corner.className='tt-cell tt-head';grid.appendChild(corner);
-  DAYS.forEach(d=>{const c=document.createElement('div');c.className='tt-cell tt-head';c.textContent=d.slice(0,3).toUpperCase();grid.appendChild(c);});
+  DAYS.forEach(d=>{const hc=document.createElement('div');hc.className='tt-cell tt-head';hc.textContent=d.slice(0,3).toUpperCase();grid.appendChild(hc);});
+
+  // Rows
   times.forEach(time=>{
     const tc=document.createElement('div');tc.className='tt-cell tt-time';tc.textContent=time;grid.appendChild(tc);
     DAYS.forEach(day=>{
-      const slot=slots.find(sl=>sl.day===day&&sl.time===time);
       const cell=document.createElement('div');cell.className='tt-cell';
-      if(slot){
+
+      // All slots in this cell
+      const cellSlots=slots.filter(sl=>sl.day===day&&sl.time===time);
+
+      let displaySlots=[];
+      if(isAdmin){
+        // Admin sees ALL slots stacked (one per batch + unassigned)
+        displaySlots=cellSlots;
+      } else {
+        // Student: priority → own batch slot > unassigned slot > empty
+        const mySlot=cellSlots.find(sl=>sl.batch_id!==null&&myBatchIds.has(sl.batch_id));
+        const unassigned=cellSlots.find(sl=>sl.batch_id===null);
+        if(mySlot)displaySlots=[mySlot];
+        else if(unassigned)displaySlots=[unassigned];
+        // else: only other-batch slots → cell stays empty
+      }
+
+      if(displaySlots.length>1){
+        cell.style.cssText='flex-direction:column;gap:3px;justify-content:flex-start;padding:.3rem .4rem;align-items:stretch;';
+      }
+
+      displaySlots.forEach(slot=>{
         const subj=subjects.find(s=>s.id===slot.subject_id);
+        const bIdx=slot.batch_id?batches.findIndex(b=>b.id===slot.batch_id):-1;
+        const bLabel=bIdx>=0?batches[bIdx]?.name:'';
+        const bColor=bIdx>=0?BATCH_COLORS[bIdx%BATCH_COLORS.length]:'var(--accent2)';
         const btn=document.createElement('button');
         btn.className='tt-slot has-class';btn.style.cursor='none';
-        const bLabel=slot.batch_id?batches.find(b=>b.id===slot.batch_id)?.name:'';
-        btn.innerHTML=`<span class="slot-name">${esc(subj?.name||'?')}</span>${bLabel?`<span class="slot-batch" style="background:var(--accent2);color:#fff">${esc(bLabel)}</span>`:''}<span class="slot-dot"></span>`;
-        btn.title=`${subj?.name||'?'} — ${day} ${time}`;
-        if(userRole!=='student')btn.addEventListener('click',()=>openSlotMark(slot,subj,day,time));
+        btn.innerHTML='<span class="slot-name">'+esc(subj?.name||'?')+'</span>'
+          +(bLabel?'<span class="slot-batch" style="background:'+bColor+';color:#fff">'+esc(bLabel)+'</span>':'')
+          +'<span class="slot-dot"></span>';
+        btn.title=(subj?.name||'?')+(bLabel?' ('+bLabel+')':'')+' — '+day+' '+time;
+        if(isAdmin&&selectedStudentId)btn.addEventListener('click',()=>openSlotMark(slot,subj,day,time));
         ch(btn);cell.appendChild(btn);
-      } else {
+      });
+
+      if(!displaySlots.length){
         const empty=document.createElement('div');empty.className='tt-slot';cell.appendChild(empty);
       }
       grid.appendChild(cell);
