@@ -425,13 +425,9 @@ window.signup=async()=>{
 };
 function resetLoginBtn(){const btn=$('lBtn');if(btn){btn.disabled=false;btn.textContent='SIGN IN →';}}
 let _loginTimeout=null;
-// Reset on bfcache restore (back/forward navigation)
 window.addEventListener('pageshow',e=>{if(e.persisted)resetLoginBtn();});
-// Reset before navigating away so bfcache stores clean state
 window.addEventListener('pagehide',()=>resetLoginBtn());
-// Reset if user switches back to this tab
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('authWrap')&&$('authWrap').style.display==='flex')resetLoginBtn();});
-
 window.login=async()=>{
   const em=$('lEmail').value.trim(),pw=$('lPass').value;
   if(!em||!pw)return sMsg('lErr','Fill in all fields.');
@@ -682,19 +678,17 @@ window.changeRole=async(userId,newRole)=>{
 
 window.deleteUser=async(userId,rawUsername)=>{
   const dn=rawUsername.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
-  // First confirmation
-  if(!confirm('DELETE USER\n\nYou are about to permanently delete "'+dn+'" and ALL their data.\n\nThis CANNOT be undone. Are you sure?'))return;
-  // Second confirmation
+  if(!confirm('DELETE USER\n\nPermanently delete "'+dn+'" and ALL their data?\n\nThis CANNOT be undone.'))return;
   const typed=window.prompt('Type DELETE (all caps) to confirm deletion of "'+dn+'":');
   if(typed!=='DELETE'){toast('Deletion cancelled.','info');return;}
 
   toast('Deleting user...','info');
 
-  // Step 1: Grab username BEFORE deleting anything
+  // Step 1: Grab username before touching anything
   const{data:prof}=await sb.from('profiles').select('username').eq('id',userId).maybeSingle();
   const username=prof?.username||null;
 
-  // Step 2: Delete app data (all use RLS — these always work)
+  // Step 2: Delete all app data
   const appDeletes=await Promise.all([
     sb.from('todo_completions').delete().eq('student_id',userId),
     sb.from('attendance_records').delete().eq('student_id',userId),
@@ -702,10 +696,15 @@ window.deleteUser=async(userId,rawUsername)=>{
     sb.from('att_settings').delete().eq('user_id',userId),
     sb.from('batch_members').delete().eq('student_id',userId),
   ]);
-  const appErrors=appDeletes.filter(r=>r.error).map(r=>r.error.message);
-  if(appErrors.length)console.warn('Some app data delete errors:',appErrors);
+  if(appDeletes.some(r=>r.error))console.warn('Some app data errors:',appDeletes.filter(r=>r.error).map(r=>r.error.message));
 
-  // Step 3: RPC — pre-cleans auth sub-tables then deletes auth.users
+  // Step 3: Delete profile + username BEFORE RPC
+  // This clears the FK constraint profiles.id → auth.users.id
+  // so the RPC can delete from auth.users without a constraint error
+  await sb.from('profiles').delete().eq('id',userId);
+  if(username)await sb.from('usernames').delete().eq('username',username);
+
+  // Step 4: RPC — pre-cleans auth sub-tables then deletes auth.users
   const{data:rpcData,error:rpcErr}=await sb.rpc('delete_user',{target_id:userId});
   const rpcFailed=rpcErr||(rpcData&&rpcData.ok===false);
 
@@ -713,31 +712,20 @@ window.deleteUser=async(userId,rawUsername)=>{
     const reason=rpcErr?.message||(rpcData?.reason)||'Unknown error';
     console.error('delete_user RPC failed:',reason);
 
-    // Auto-fallback: try soft-disable (randomises email+password, bans account)
-    toast('Hard delete failed — trying to disable account...','info');
+    // Auto-fallback: soft-disable (randomises email+password, bans account)
+    toast('Hard delete failed — disabling account...','info');
     const{error:disableErr}=await sb.rpc('disable_user',{target_id:userId});
 
     if(disableErr){
-      // Both approaches failed — user must act manually
-      const msg='Could not delete or disable the account automatically.\n\nReason: '+reason
-        +'\n\nPlease go to:\nSupabase Dashboard → Authentication → Users\nFind the user and delete them manually.';
-      alert(msg);
-      students=students.filter(s=>s.id!==userId);
-      renderUserGrid();
-      toast('App data deleted. Please remove auth account manually.','err');
+      alert('Could not delete or disable the account automatically.\n\nReason: '+reason+'\n\nGo to Supabase → Authentication → Users and delete "'+dn+'" manually.');
+      students=students.filter(s=>s.id!==userId);renderUserGrid();
+      toast('App data deleted. Remove auth account from Supabase manually.','err');
       return;
     }
-
-    // Soft-disable succeeded — account can no longer log in
-    students=students.filter(s=>s.id!==userId);
-    renderUserGrid();
-    toast('"'+dn+'" disabled — account permanently blocked from logging in.','ok');
+    students=students.filter(s=>s.id!==userId);renderUserGrid();
+    toast('"'+dn+'" disabled — permanently blocked from logging in.','ok');
     return;
   }
-
-
-  // Step 4: Also clear username (RPC may have missed it if profile was not found)
-  if(username)await sb.from('usernames').delete().eq('username',username);
 
   students=students.filter(s=>s.id!==userId);
   renderUserGrid();
