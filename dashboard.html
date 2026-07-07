@@ -154,6 +154,24 @@
     .rev.on{opacity:1;transform:translateY(0);}
     @media(max-width:860px){.dash-grid{grid-template-columns:1fr;}.hbg{display:flex;}.nav-who,.nav-lnk:not(.mob-keep){display:none;}}
     @media(max-width:480px){.tiles{grid-template-columns:1fr;}footer{flex-direction:column;text-align:center;}}
+    /* ── TOUCH DEVICES: disable custom cursor ─────────────────────
+       (hover:none)(pointer:coarse) matches phones + tablets precisely */
+    @media (hover:none) and (pointer:coarse){
+      .cur,.curR{display:none!important;opacity:0!important;}
+      body{cursor:auto!important;}
+      *,*::before,*::after{cursor:auto!important;}
+      a,button,input,select,textarea,[role="button"]{cursor:pointer!important;}
+    }
+    /* ── MOBILE NAV: collapse to logo + hamburger only ────────────
+       Everything else is accessible via the hamburger menu */
+    @media(max-width:480px){
+      .role-badge{display:none!important;}
+      .nav-who{display:none!important;}
+      .nav-lnk{display:none!important;}
+      .btn-out{display:none!important;}
+      .hbg{display:flex!important;}
+      nav{padding:.75rem 1rem!important;}
+    }
   </style>
 </head>
 <body>
