@@ -231,6 +231,24 @@
     .iload{text-align:center;padding:2rem;color:var(--muted);font-family:'Space Mono',monospace;font-size:.72rem;}
     @media(max-width:768px){.tt-form{grid-template-columns:1fr 1fr;}.tt-form>button.tadd{grid-column:1/-1;}.ov-bar{grid-template-columns:1fr 1fr;}.hbg{display:flex;}}
     @media(max-width:480px){.subj-grid{grid-template-columns:1fr;}}
+    /* ── TOUCH DEVICES: disable custom cursor ─────────────────────
+       (hover:none)(pointer:coarse) matches phones + tablets precisely */
+    @media (hover:none) and (pointer:coarse){
+      .cur,.curR{display:none!important;opacity:0!important;}
+      body{cursor:auto!important;}
+      *,*::before,*::after{cursor:auto!important;}
+      a,button,input,select,textarea,[role="button"]{cursor:pointer!important;}
+    }
+    /* ── MOBILE NAV: collapse to logo + hamburger only ────────────
+       Everything else is accessible via the hamburger menu */
+    @media(max-width:480px){
+      .role-badge{display:none!important;}
+      .nav-who{display:none!important;}
+      .nav-lnk{display:none!important;}
+      .btn-out{display:none!important;}
+      .hbg{display:flex!important;}
+      nav{padding:.75rem 1rem!important;}
+    }
   </style>
 </head>
 <body>
