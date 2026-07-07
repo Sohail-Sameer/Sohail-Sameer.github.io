@@ -129,7 +129,16 @@
     .tclr{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);background:none;border:none;cursor:none;transition:color .18s;padding:0;}
     .tclr:hover{color:var(--red);}
     /* ── USER MANAGEMENT (MASTER) ── */
-    .user-grid{display:flex;flex-direction:column;gap:.55rem;margin-top:.5rem;}
+    .user-mgmt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;}
+    .user-count-tag{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);padding:.2rem .6rem;border-radius:100px;border:1px solid var(--border);}
+    .user-grid-scroll{max-height:384px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--muted) transparent;padding-right:.35rem;}
+    .user-grid-scroll::-webkit-scrollbar{width:3px;}
+    .user-grid-scroll::-webkit-scrollbar-track{background:transparent;}
+    .user-grid-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+    .user-grid-scroll::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+    .user-grid{display:flex;flex-direction:column;gap:.55rem;}
+    .user-grid-fade{position:relative;}
+    .user-grid-fade::after{content:'';position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(transparent,var(--surface));pointer-events:none;border-radius:0 0 12px 12px;}
     .user-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem 1.1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
     .u-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff;flex-shrink:0;}
     .u-name{font-weight:700;font-size:.92rem;}
@@ -318,8 +327,15 @@
 
         <!-- MASTER: User Management -->
         <div id="userMgmtSection" style="display:none;margin-top:2rem">
-          <div class="sec-lbl rev">USER MANAGEMENT</div>
-          <div class="rev" id="userGrid"><div class="tempty">Loading users…</div></div>
+          <div class="user-mgmt-header rev">
+            <div class="sec-lbl" style="margin-bottom:0">USER MANAGEMENT</div>
+            <span class="user-count-tag" id="userCountTag">— users</span>
+          </div>
+          <div class="user-grid-fade rev">
+            <div class="user-grid-scroll">
+              <div class="user-grid" id="userGrid"><div class="tempty">Loading users…</div></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -661,6 +677,7 @@ async function adminDeleteTodo(id){
 // ── USER MANAGEMENT (MASTER) ──
 function renderUserGrid(){
   const grid=$('userGrid');grid.innerHTML='';
+  const countTag=$('userCountTag');if(countTag)countTag.textContent=(students||[]).length+' user'+((students||[]).length!==1?'s':'');
   (students||[]).forEach(u=>{
     const dn=u.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
     const initials=dn.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
