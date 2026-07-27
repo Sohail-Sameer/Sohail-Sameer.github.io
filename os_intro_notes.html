@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Introduction to Operating Systems — Notes</title>
+<style>
+:root{
+  --bg:#f7f8fa;
+  --panel:#ffffff;
+  --ink:#1b222c;
+  --sub:#525b68;
+  --line:#dde1e7;
+  --accent:#0f6e6e;
+  --accent-soft:#e3f1f1;
+  --amber:#b5760a;
+  --amber-soft:#faf1e0;
+  --mono-bg:#1b222c;
+  --mono-ink:#dfe7e7;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Georgia","Iowan Old Style",serif;
+  line-height:1.55;
+}
+.wrap{
+  display:grid;
+  grid-template-columns:230px 1fr;
+  max-width:1180px;
+  margin:0 auto;
+}
+nav{
+  position:sticky;
+  top:0;
+  align-self:start;
+  height:100vh;
+  overflow-y:auto;
+  padding:28px 18px;
+  border-right:1px solid var(--line);
+  font-family:"Segoe UI",system-ui,sans-serif;
+}
+nav .tag{
+  font-size:11px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:700;
+  margin-bottom:6px;
+}
+nav h1{
+  font-family:"Georgia",serif;
+  font-size:19px;
+  margin:0 0 20px;
+  line-height:1.3;
+}
+nav a{
+  display:block;
+  font-size:13.5px;
+  color:var(--sub);
+  text-decoration:none;
+  padding:7px 10px;
+  border-radius:6px;
+  margin-bottom:2px;
+  border-left:2px solid transparent;
+}
+nav a span{
+  color:var(--accent);
+  font-weight:700;
+  margin-right:6px;
+  font-family:"Segoe UI",monospace;
+}
+nav a:hover{background:var(--accent-soft);color:var(--ink);}
+main{padding:36px 48px 80px;}
+header.top{margin-bottom:36px;}
+header.top .eyebrow{
+  font-family:"Segoe UI",system-ui,sans-serif;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--amber);font-weight:700;margin-bottom:8px;
+}
+header.top h1{font-size:34px;margin:0 0 8px;}
+header.top p{color:var(--sub);font-size:15.5px;max-width:640px;margin:0;}
+
+section{margin-bottom:56px;padding-top:6px;}
+section h2{
+  font-size:24px;
+  margin:0 0 4px;
+  padding-bottom:10px;
+  border-bottom:2px solid var(--ink);
+  display:flex;align-items:baseline;gap:10px;
+}
+section h2 .num{
+  font-family:"Segoe UI",monospace;
+  color:var(--accent);
+  font-size:16px;
+  font-weight:700;
+}
+h3{font-size:17px;margin:26px 0 8px;color:var(--ink);}
+h3 .dot{color:var(--accent);}
+p{margin:8px 0;font-size:15.5px;}
+ul,ol{margin:8px 0;padding-left:22px;font-size:15.5px;}
+li{margin-bottom:5px;}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px 20px;
+  margin:16px 0;
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:900px){.grid2{grid-template-columns:1fr;}}
+.diagram{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:16px;
+  margin:18px 0;
+  text-align:center;
+}
+.diagram figcaption{
+  font-family:"Segoe UI",system-ui,sans-serif;
+  font-size:12.5px;color:var(--sub);margin-top:8px;font-style:italic;
+}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px;font-family:"Segoe UI",system-ui,sans-serif;}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+th{background:var(--accent-soft);font-weight:700;color:var(--ink);}
+tr:nth-child(even) td{background:#fbfcfd;}
+code, .mono{font-family:"Consolas","SFMono-Regular",monospace;font-size:13.5px;}
+.callbox{
+  background:var(--amber-soft);
+  border-left:4px solid var(--amber);
+  border-radius:6px;
+  padding:10px 14px;
+  margin:14px 0;
+  font-size:14.5px;
+  font-family:"Segoe UI",system-ui,sans-serif;
+}
+.callbox b{color:var(--amber);}
+.term{color:var(--accent);font-weight:700;}
+.svg-label{font-family:"Segoe UI",system-ui,sans-serif;}
+footer{
+  border-top:1px solid var(--line);
+  padding:24px 48px;
+  font-family:"Segoe UI",system-ui,sans-serif;
+  font-size:12.5px;color:var(--sub);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="tag">OS · Unit 1</div>
+  <h1>Introduction to Operating Systems</h1>
+  <a href="#overview"><span>1</span>Overview of OS</a>
+  <a href="#types"><span>2</span>Types of OS</a>
+  <a href="#structures"><span>3</span>OS Structures</a>
+  <a href="#services"><span>4</span>OS Services</a>
+  <a href="#syscalls"><span>5</span>System Calls</a>
+  <a href="#vm"><span>6</span>Virtual Machines</a>
+  <a href="#design"><span>7</span>Design &amp; Implementation</a>
+</nav>
+<main>
+
+<header class="top">
+  <div class="eyebrow">Quick-revision notes</div>
+  <h1>Introduction to Operating Systems</h1>
+  <p>Covers the overview, classification, structuring approaches, services, system calls, virtual machines, and design/implementation of operating systems — with diagrams for the concepts that are easiest to lose in prose.</p>
+</header>
+
+<!-- 1. OVERVIEW -->
+<section id="overview">
+  <h2><span class="num">01</span> Overview of Operating Systems</h2>
+
+  <p>An <span class="term">Operating System (OS)</span> is system software that sits between the user/application programs and computer hardware. It manages hardware resources and provides a convenient, efficient environment for executing programs.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 640 240" width="100%" style="max-width:520px">
+      <rect x="40" y="190" width="560" height="34" fill="#1b222c" rx="4"/>
+      <text x="320" y="211" text-anchor="middle" fill="#f7f8fa" class="svg-label" font-size="13" font-weight="700">HARDWARE (CPU, Memory, I/O devices)</text>
+
+      <rect x="40" y="120" width="560" height="55" fill="#0f6e6e" rx="4"/>
+      <text x="320" y="152" text-anchor="middle" fill="#ffffff" class="svg-label" font-size="14" font-weight="700">OPERATING SYSTEM</text>
+      <text x="320" y="169" text-anchor="middle" fill="#e3f1f1" class="svg-label" font-size="11">Resource allocation · Abstraction · Protection</text>
+
+      <rect x="40" y="55" width="170" height="50" fill="#faf1e0" stroke="#b5760a" rx="4"/>
+      <text x="125" y="84" text-anchor="middle" fill="#1b222c" class="svg-label" font-size="12">Application Programs</text>
+
+      <rect x="235" y="55" width="170" height="50" fill="#faf1e0" stroke="#b5760a" rx="4"/>
+      <text x="320" y="84" text-anchor="middle" fill="#1b222c" class="svg-label" font-size="12">System Utilities</text>
+
+      <rect x="430" y="55" width="170" height="50" fill="#faf1e0" stroke="#b5760a" rx="4"/>
+      <text x="515" y="84" text-anchor="middle" fill="#1b222c" class="svg-label" font-size="12">Users</text>
+
+      <line x1="125" y1="105" x2="125" y2="120" stroke="#1b222c" stroke-width="2"/>
+      <line x1="320" y1="105" x2="320" y2="120" stroke="#1b222c" stroke-width="2"/>
+      <line x1="515" y1="105" x2="515" y2="120" stroke="#1b222c" stroke-width="2"/>
+      <line x1="320" y1="175" x2="320" y2="190" stroke="#1b222c" stroke-width="2"/>
+    </svg>
+    <figcaption>Position of the OS: an intermediary layer between users/applications and hardware.</figcaption>
+  </div>
+
+  <h3><span class="dot">•</span> Goals of an OS</h3>
+  <ul>
+    <li><b>Convenience</b> — makes the computer easier to use.</li>
+    <li><b>Efficiency</b> — permits efficient use of hardware resources.</li>
+    <li><b>Ability to evolve</b> — allows effective development, testing, and introduction of new functions without disturbing existing service.</li>
+  </ul>
+
+  <h3><span class="dot">•</span> Core functions</h3>
+  <table>
+    <tr><th>Function</th><th>What it does</th></tr>
+    <tr><td>Process management</td><td>Creation, scheduling, termination, and synchronization of processes</td></tr>
+    <tr><td>Memory management</td><td>Allocation/deallocation of main memory, address translation</td></tr>
+    <tr><td>File management</td><td>Creation, deletion, organization, and access control of files</td></tr>
+    <tr><td>I/O / device management</td><td>Uniform interface to diverse hardware via device drivers</td></tr>
+    <tr><td>Security &amp; protection</td><td>Controls access to resources; isolates processes from each other</td></tr>
+  </table>
+
+  <div class="callbox"><b>Exam tip:</b> if asked "define OS," lead with <i>"a resource manager and an extended machine / virtual machine that hides hardware complexity."</i> Both views (resource manager vs. abstract machine) are commonly asked to contrast.</div>
+</section>
+
+<!-- 2. TYPES -->
+<section id="types">
+  <h2><span class="num">02</span> Types of Operating Systems</h2>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Batch OS</h3>
+      <p>Jobs with similar needs are grouped and run as a batch, without user interaction during execution. Reduces idle CPU time between jobs but no interactivity.</p>
+    </div>
+    <div class="card">
+      <h3>Multiprogramming OS</h3>
+      <p>Several jobs reside in memory simultaneously; CPU switches to another job whenever the current one waits on I/O — maximizes CPU utilization.</p>
+    </div>
+    <div class="card">
+      <h3>Multitasking / Time-Sharing OS</h3>
+      <p>Extension of multiprogramming — CPU time is divided into small slices (<span class="mono">time quantum</span>) so multiple users get the illusion of simultaneous, interactive access.</p>
+    </div>
+    <div class="card">
+      <h3>Multiprocessing OS</h3>
+      <p>Two or more CPUs share the same memory and bus, running tasks in parallel — increases throughput and provides fault tolerance.</p>
+    </div>
+    <div class="card">
+      <h3>Distributed OS</h3>
+      <p>Manages a group of physically separate, networked computers as a single system, sharing resources transparently to the user.</p>
+    </div>
+    <div class="card">
+      <h3>Real-Time OS (RTOS)</h3>
+      <p>Guarantees response within a fixed deadline. <b>Hard RTOS</b> — missing a deadline is a system failure (e.g. airbag control). <b>Soft RTOS</b> — deadlines are desirable but not fatal (e.g. video streaming).</p>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 640 200" width="100%" style="max-width:560px">
+      <line x1="60" y1="170" x2="600" y2="170" stroke="#525b68" stroke-width="1.5"/>
+      <text x="60" y="188" class="svg-label" font-size="11" fill="#525b68">time →</text>
+
+      <text x="30" y="60" class="svg-label" font-size="11" fill="#1b222c">Batch</text>
+      <rect x="70" y="45" width="120" height="20" fill="#faf1e0" stroke="#b5760a"/>
+      <text x="130" y="59" text-anchor="middle" class="svg-label" font-size="10">Job A runs to completion</text>
+      <rect x="190" y="45" width="120" height="20" fill="#faf1e0" stroke="#b5760a"/>
+      <text x="250" y="59" text-anchor="middle" class="svg-label" font-size="10">CPU idle (I/O wait)</text>
+      <rect x="310" y="45" width="120" height="20" fill="#faf1e0" stroke="#b5760a"/>
+      <text x="370" y="59" text-anchor="middle" class="svg-label" font-size="10">Job B runs</text>
+
+      <text x="30" y="120" class="svg-label" font-size="11" fill="#1b222c">Multiprog.</text>
+      <rect x="70" y="105" width="80" height="20" fill="#e3f1f1" stroke="#0f6e6e"/>
+      <text x="110" y="119" text-anchor="middle" class="svg-label" font-size="10">Job A</text>
+      <rect x="150" y="105" width="80" height="20" fill="#faf1e0" stroke="#b5760a"/>
+      <text x="190" y="119" text-anchor="middle" class="svg-label" font-size="10">Job B</text>
+      <rect x="230" y="105" width="80" height="20" fill="#e3f1f1" stroke="#0f6e6e"/>
+      <text x="270" y="119" text-anchor="middle" class="svg-label" font-size="10">Job A</text>
+      <rect x="310" y="105" width="80" height="20" fill="#faf1e0" stroke="#b5760a"/>
+      <text x="350" y="119" text-anchor="middle" class="svg-label" font-size="10">Job B</text>
+      <text x="420" y="119" class="svg-label" font-size="10" fill="#0f6e6e">CPU switches on I/O wait — no idle time</text>
+    </svg>
+    <figcaption>Batch execution leaves the CPU idle during I/O; multiprogramming fills those gaps with another job.</figcaption>
+  </div>
+</section>
+
+<!-- 3. STRUCTURES -->
+<section id="structures">
+  <h2><span class="num">03</span> Operating System Structures</h2>
+  <p>Structuring is about how OS components are organised internally — it affects reliability, performance, and ease of extension.</p>
+
+  <h3><span class="dot">•</span> Simple / Monolithic structure</h3>
+  <p>All OS functionality (scheduler, file system, drivers, memory manager) runs as one large program in kernel mode. Fast (no inter-module call overhead) but hard to maintain — a bug in one part can crash the whole system. <i>Example: original MS-DOS, early UNIX.</i></p>
+
+  <h3><span class="dot">•</span> Layered approach</h3>
+  <p>OS is divided into layers, each built on the one below; each layer only uses functions of the layer directly beneath it.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 500 260" width="100%" style="max-width:340px">
+      <g class="svg-label" font-size="12">
+        <rect x="90" y="20" width="320" height="34" fill="#faf1e0" stroke="#b5760a"/><text x="250" y="41" text-anchor="middle">Layer 5 — User Interface</text>
+        <rect x="90" y="58" width="320" height="34" fill="#f2ece0" stroke="#b5760a"/><text x="250" y="79" text-anchor="middle">Layer 4 — User Programs</text>
+        <rect x="90" y="96" width="320" height="34" fill="#e9f4f4" stroke="#0f6e6e"/><text x="250" y="117" text-anchor="middle">Layer 3 — I/O Management</text>
+        <rect x="90" y="134" width="320" height="34" fill="#dcefee" stroke="#0f6e6e"/><text x="250" y="155" text-anchor="middle">Layer 2 — Memory Management</text>
+        <rect x="90" y="172" width="320" height="34" fill="#c9e6e5" stroke="#0f6e6e"/><text x="250" y="193" text-anchor="middle">Layer 1 — CPU Scheduling</text>
+        <rect x="90" y="210" width="320" height="34" fill="#1b222c"/><text x="250" y="231" fill="#fff" text-anchor="middle">Layer 0 — Hardware</text>
+      </g>
+    </svg>
+    <figcaption>Layered structure: each layer uses only services of the layer below it.</figcaption>
+  </div>
+
+  <h3><span class="dot">•</span> Microkernel</h3>
+  <p>Only essential functions (IPC, basic scheduling, minimal memory management) stay in the kernel; file systems, device drivers, and other services run as user-mode processes. More reliable and secure (a failing service doesn't crash the kernel) but slower due to frequent user–kernel message passing. <i>Example: QNX, Minix.</i></p>
+
+  <h3><span class="dot">•</span> Modules (loadable kernel modules)</h3>
+  <p>Kernel has a core set of components and dynamically links in additional services (modules) at runtime — combines monolithic performance with microkernel-like extensibility. <i>Example: modern Linux, Solaris.</i></p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 640 210" width="100%" style="max-width:600px">
+      <text x="130" y="24" text-anchor="middle" class="svg-label" font-size="13" font-weight="700">Monolithic</text>
+      <rect x="30" y="40" width="200" height="130" fill="#faf1e0" stroke="#b5760a" rx="4"/>
+      <text x="130" y="65" text-anchor="middle" class="svg-label" font-size="11">File System</text>
+      <text x="130" y="90" text-anchor="middle" class="svg-label" font-size="11">Device Drivers</text>
+      <text x="130" y="115" text-anchor="middle" class="svg-label" font-size="11">Scheduler</text>
+      <text x="130" y="140" text-anchor="middle" class="svg-label" font-size="11">Memory Mgmt</text>
+      <text x="130" y="160" text-anchor="middle" class="svg-label" font-size="10" fill="#b5760a">all in kernel mode</text>
+
+      <text x="500" y="24" text-anchor="middle" class="svg-label" font-size="13" font-weight="700">Microkernel</text>
+      <rect x="400" y="40" width="200" height="40" fill="#0f6e6e" rx="4"/>
+      <text x="500" y="64" text-anchor="middle" class="svg-label" font-size="11" fill="#fff">Minimal Kernel (IPC)</text>
+      <rect x="400" y="95" width="90" height="35" fill="#e3f1f1" stroke="#0f6e6e" rx="4"/>
+      <text x="445" y="116" text-anchor="middle" class="svg-label" font-size="10">File Server</text>
+      <rect x="510" y="95" width="90" height="35" fill="#e3f1f1" stroke="#0f6e6e" rx="4"/>
+      <text x="555" y="116" text-anchor="middle" class="svg-label" font-size="10">Driver</text>
+      <rect x="400" y="140" width="200" height="30" fill="#e3f1f1" stroke="#0f6e6e" rx="4"/>
+      <text x="500" y="160" text-anchor="middle" class="svg-label" font-size="10">user-mode services</text>
+    </svg>
+    <figcaption>Monolithic keeps everything in one kernel block; microkernel pushes services out to user mode.</figcaption>
+  </div>
+
+  <h3><span class="dot">•</span> Hybrid systems</h3>
+  <p>Combine elements of monolithic, microkernel, and modular approaches for a practical balance of performance and modularity. <i>Example: macOS/XNU, Windows NT kernel.</i></p>
+</section>
+
+<!-- 4. SERVICES -->
+<section id="services">
+  <h2><span class="num">04</span> Operating System Services</h2>
+  <p>Services an OS provides fall into two groups: those that help the <b>user</b>, and those that ensure <b>efficient system operation</b>.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>User-facing services</h3>
+      <ul>
+        <li><b>User interface</b> — CLI, GUI, or batch interface</li>
+        <li><b>Program execution</b> — load, run, and end programs; handle errors</li>
+        <li><b>I/O operations</b> — since users can't control I/O devices directly</li>
+        <li><b>File-system manipulation</b> — read, write, create, delete files/directories</li>
+        <li><b>Communications</b> — data exchange between processes, same or different systems (via shared memory or message passing)</li>
+        <li><b>Error detection</b> — detect and (where possible) correct errors in CPU/memory, I/O, or user programs</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>System-facing services</h3>
+      <ul>
+        <li><b>Resource allocation</b> — allocate CPU, memory, storage among multiple users/jobs</li>
+        <li><b>Accounting</b> — track which users use how much and what kind of resources</li>
+        <li><b>Protection &amp; security</b> — control access to resources; guard against unauthorised access</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 600 300" width="100%" style="max-width:480px">
+      <circle cx="300" cy="150" r="60" fill="#0f6e6e"/>
+      <text x="300" y="146" text-anchor="middle" fill="#fff" class="svg-label" font-size="13" font-weight="700">Operating</text>
+      <text x="300" y="164" text-anchor="middle" fill="#fff" class="svg-label" font-size="13" font-weight="700">System</text>
+
+      <g class="svg-label" font-size="10.5">
+        <line x1="300" y1="150" x2="120" y2="60" stroke="#b5760a"/><text x="30" y="55" fill="#1b222c">UI (CLI/GUI)</text>
+        <line x1="300" y1="150" x2="500" y2="60" stroke="#b5760a"/><text x="420" y="55" fill="#1b222c">Program execution</text>
+        <line x1="300" y1="150" x2="80" y2="150" stroke="#b5760a"/><text x="10" y="150" fill="#1b222c">I/O ops</text>
+        <line x1="300" y1="150" x2="520" y2="150" stroke="#b5760a"/><text x="460" y="150" fill="#1b222c">Communication</text>
+        <line x1="300" y1="150" x2="120" y2="240" stroke="#0f6e6e"/><text x="20" y="255" fill="#1b222c">File manipulation</text>
+        <line x1="300" y1="150" x2="500" y2="240" stroke="#0f6e6e"/><text x="410" y="255" fill="#1b222c">Resource allocation</text>
+        <line x1="300" y1="150" x2="300" y2="290" stroke="#0f6e6e"/><text x="230" y="300" fill="#1b222c">Protection &amp; accounting</text>
+      </g>
+    </svg>
+    <figcaption>OS services radiating from the kernel — user-facing (amber) vs. system-facing (teal).</figcaption>
+  </div>
+</section>
+
+<!-- 5. SYSTEM CALLS -->
+<section id="syscalls">
+  <h2><span class="num">05</span> System Calls</h2>
+  <p>A <span class="term">system call</span> is the programming interface through which a process requests a service from the OS kernel — it is the only legitimate entry point into kernel mode.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 640 260" width="100%" style="max-width:560px">
+      <rect x="40" y="30" width="560" height="80" fill="#e3f1f1" stroke="#0f6e6e" rx="4"/>
+      <text x="60" y="55" class="svg-label" font-size="12" font-weight="700" fill="#0f6e6e">USER MODE</text>
+      <rect x="70" y="65" width="180" height="34" fill="#fff" stroke="#0f6e6e" rx="3"/>
+      <text x="160" y="87" text-anchor="middle" class="svg-label" font-size="11">User process: read(fd, buf, n)</text>
+
+      <rect x="40" y="150" width="560" height="80" fill="#1b222c" rx="4"/>
+      <text x="60" y="175" class="svg-label" font-size="12" font-weight="700" fill="#fff">KERNEL MODE</text>
+      <rect x="70" y="185" width="220" height="34" fill="#0f6e6e" rx="3"/>
+      <text x="180" y="207" text-anchor="middle" class="svg-label" font-size="11" fill="#fff">Trap handler → system call table</text>
+      <rect x="330" y="185" width="220" height="34" fill="#0f6e6e" rx="3"/>
+      <text x="440" y="207" text-anchor="middle" class="svg-label" font-size="11" fill="#fff">Executes read() service routine</text>
+
+      <line x1="160" y1="99" x2="160" y2="150" stroke="#b5760a" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="175" y="130" class="svg-label" font-size="10" fill="#b5760a">TRAP (mode switch)</text>
+      <line x1="440" y1="150" x2="440" y2="99" stroke="#b5760a" stroke-width="2" marker-end="url(#arrow2)"/>
+      <text x="450" y="130" class="svg-label" font-size="10" fill="#b5760a">RETURN + result</text>
+
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#b5760a"/></marker>
+        <marker id="arrow2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,8 L8,4 L0,0 Z" fill="#b5760a"/></marker>
+      </defs>
+    </svg>
+    <figcaption>A system call traps from user mode into kernel mode, executes the requested service, then returns.</figcaption>
+  </div>
+
+  <h3><span class="dot">•</span> Categories of system calls</h3>
+  <table>
+    <tr><th>Category</th><th>Purpose</th><th>Examples</th></tr>
+    <tr><td>Process control</td><td>Create, terminate, manage processes</td><td class="mono">fork(), exec(), exit(), wait()</td></tr>
+    <tr><td>File management</td><td>Create, read, write, delete files</td><td class="mono">open(), read(), write(), close()</td></tr>
+    <tr><td>Device management</td><td>Request/release devices, read/write</td><td class="mono">ioctl(), read(), write()</td></tr>
+    <tr><td>Information maintenance</td><td>Get/set system data, time, date</td><td class="mono">getpid(), alarm(), sleep()</td></tr>
+    <tr><td>Communication</td><td>Send/receive messages between processes</td><td class="mono">pipe(), shmget(), send(), recv()</td></tr>
+    <tr><td>Protection</td><td>Control access to resources</td><td class="mono">chmod(), umask(), chown()</td></tr>
+  </table>
+
+  <h3><span class="dot">•</span> Passing parameters to the OS</h3>
+  <ul>
+    <li>In <b>registers</b> — fast, but registers are limited in number and size</li>
+    <li>In a <b>block/table in memory</b>, with its address passed in a register — used when parameters exceed register capacity</li>
+    <li>Pushed onto/popped off the <b>stack</b> by the program and the OS</li>
+  </ul>
+
+  <div class="callbox"><b>Distinguish clearly:</b> a <b>system call</b> is a request to the kernel; an <b>API</b> (e.g. Win32 API, POSIX) is a set of library functions programmers actually call, which internally invoke system calls.</div>
+</section>
+
+<!-- 6. VIRTUAL MACHINES -->
+<section id="vm">
+  <h2><span class="num">06</span> Virtual Machines</h2>
+  <p>A <span class="term">Virtual Machine (VM)</span> creates the illusion that a process (or an entire OS) has its own dedicated hardware, by using a layer — the <span class="term">hypervisor / Virtual Machine Monitor (VMM)</span> — to abstract the physical hardware into several isolated virtual ones.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 620 260" width="100%" style="max-width:520px">
+      <rect x="40" y="10" width="170" height="60" fill="#faf1e0" stroke="#b5760a" rx="4"/>
+      <text x="125" y="35" text-anchor="middle" class="svg-label" font-size="11">Guest OS 1</text>
+      <text x="125" y="52" text-anchor="middle" class="svg-label" font-size="10">+ Apps</text>
+
+      <rect x="225" y="10" width="170" height="60" fill="#faf1e0" stroke="#b5760a" rx="4"/>
+      <text x="310" y="35" text-anchor="middle" class="svg-label" font-size="11">Guest OS 2</text>
+      <text x="310" y="52" text-anchor="middle" class="svg-label" font-size="10">+ Apps</text>
+
+      <rect x="410" y="10" width="170" height="60" fill="#faf1e0" stroke="#b5760a" rx="4"/>
+      <text x="495" y="35" text-anchor="middle" class="svg-label" font-size="11">Guest OS 3</text>
+      <text x="495" y="52" text-anchor="middle" class="svg-label" font-size="10">+ Apps</text>
+
+      <rect x="40" y="95" width="540" height="55" fill="#0f6e6e" rx="4"/>
+      <text x="310" y="127" text-anchor="middle" fill="#fff" class="svg-label" font-size="13" font-weight="700">Hypervisor / VMM</text>
+
+      <rect x="40" y="175" width="540" height="55" fill="#1b222c" rx="4"/>
+      <text x="310" y="207" text-anchor="middle" fill="#fff" class="svg-label" font-size="13" font-weight="700">Physical Hardware</text>
+
+      <line x1="125" y1="70" x2="125" y2="95" stroke="#1b222c"/>
+      <line x1="310" y1="70" x2="310" y2="95" stroke="#1b222c"/>
+      <line x1="495" y1="70" x2="495" y2="95" stroke="#1b222c"/>
+      <line x1="310" y1="150" x2="310" y2="175" stroke="#1b222c"/>
+    </svg>
+    <figcaption>Type-1 (bare-metal) hypervisor: multiple guest OSes share hardware directly through the VMM.</figcaption>
+  </div>
+
+  <h3><span class="dot">•</span> Types of virtualization</h3>
+  <table>
+    <tr><th>Type</th><th>Description</th><th>Example</th></tr>
+    <tr><td>Type 1 (bare-metal)</td><td>Hypervisor runs directly on hardware; guest OSes run above it</td><td>VMware ESXi, Xen</td></tr>
+    <tr><td>Type 2 (hosted)</td><td>Hypervisor runs as an application atop a host OS</td><td>VMware Workstation, VirtualBox</td></tr>
+    <tr><td>Para-virtualization</td><td>Guest OS is modified to be aware it's virtualized, for better performance</td><td>Xen (paravirt mode)</td></tr>
+    <tr><td>OS-level (containers)</td><td>Single kernel, isolated user-space instances — lighter than full VMs</td><td>Docker, LXC</td></tr>
+  </table>
+
+  <h3><span class="dot">•</span> Why use VMs?</h3>
+  <ul>
+    <li>Isolation — a crash in one VM does not affect others</li>
+    <li>Run multiple OSes on one physical machine — efficient hardware utilisation</li>
+    <li>Easy to test, snapshot, migrate, and back up entire systems</li>
+    <li>Useful for server consolidation, cloud computing, and OS development/testing</li>
+  </ul>
+</section>
+
+<!-- 7. DESIGN & IMPLEMENTATION -->
+<section id="design">
+  <h2><span class="num">07</span> Operating System Design and Implementation</h2>
+
+  <h3><span class="dot">•</span> Design goals</h3>
+  <table>
+    <tr><th>User goals</th><th>System goals</th></tr>
+    <tr><td>Convenient to use</td><td>Easy to design, implement, and maintain</td></tr>
+    <tr><td>Easy to learn</td><td>Flexible, reliable, error-free</td></tr>
+    <tr><td>Reliable, safe, fast</td><td>Efficient use of resources</td></tr>
+  </table>
+  <p>These two goal sets sometimes conflict — e.g. maximum convenience for the user can mean lower system efficiency — and design is a balancing act between them.</p>
+
+  <h3><span class="dot">•</span> Mechanisms vs. policies</h3>
+  <div class="callbox">
+    <p><b>Mechanism</b> — <i>how</i> to do something (the implementation). <b>Policy</b> — <i>what</i> is to be done (the decision).</p>
+    <p>Example: a timer is the <b>mechanism</b> ensuring CPU protection; the length of the time quantum it enforces is a <b>policy</b> decision. Separating the two lets policy change without touching the mechanism.</p>
+  </div>
+
+  <h3><span class="dot">•</span> Implementation considerations</h3>
+  <ul>
+    <li>Early OSes were written entirely in <b>assembly language</b> for speed and hardware control.</li>
+    <li>Modern OSes are written mostly in <b>higher-level languages</b> (C, C++), with small time/hardware-critical portions in assembly — trades a little performance for portability, readability, and easier debugging.</li>
+    <li>Implementation approach usually follows the chosen structure: monolithic, layered, microkernel, or modular (see Section 3) — the structuring decision and the implementation strategy go hand in hand.</li>
+  </ul>
+</section>
+
+</main>
+</div>
+</body>
+</html>
