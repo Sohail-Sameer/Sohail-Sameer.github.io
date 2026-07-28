@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>రైడ్ సహాయకుడు</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@500;700;900&family=Inter:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#FAF6EE;
+    --night:#152238;
+    --night-deep:#0D1729;
+    --panel:#1D2E4C;
+    --marigold:#F4A73C;
+    --marigold-deep:#D98A1F;
+    --leaf:#4FAE7E;
+    --rose:#E2645B;
+    --muted:#9FB0CC;
+    --ring: rgba(244,167,60,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background: radial-gradient(circle at 50% -10%, #22335A 0%, var(--night) 45%, var(--night-deep) 100%);
+    font-family:'Noto Sans Telugu','Inter',sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .card{
+    width:100%;
+    max-width:480px;
+    background:var(--panel);
+    border-radius:28px;
+    padding:28px 24px 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    border:1px solid rgba(255,255,255,0.06);
+    position:relative;
+    overflow:hidden;
+  }
+  .dots{display:flex;gap:8px;justify-content:center;margin-bottom:22px;}
+  .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.15);transition:all .3s;}
+  .dot.done{background:var(--leaf);}
+  .dot.active{background:var(--marigold);width:22px;border-radius:6px;}
+
+  .eyebrow{font-family:'Inter',sans-serif;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:6px;font-weight:700;}
+  h1{font-size:26px;line-height:1.4;text-align:center;margin:0 0 22px;font-weight:700;}
+
+  .mic-wrap{display:flex;flex-direction:column;align-items:center;margin:8px 0 22px;}
+  .mic{
+    width:104px;height:104px;border-radius:50%;
+    background:linear-gradient(145deg,var(--marigold),var(--marigold-deep));
+    border:none; color:var(--night-deep);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer; box-shadow:0 10px 30px rgba(244,167,60,0.35);
+    transition:transform .15s;
+  }
+  .mic:active{transform:scale(0.94);}
+  .mic.listening{ animation:pulse 1.1s infinite; background:linear-gradient(145deg,var(--rose),#B93B33); box-shadow:0 10px 30px rgba(226,101,91,0.4);}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 var(--ring);}
+    70%{box-shadow:0 0 0 22px rgba(244,167,60,0);}
+    100%{box-shadow:0 0 0 0 rgba(244,167,60,0);}
+  }
+  .mic-label{margin-top:10px;font-size:14px;color:var(--muted);font-family:'Inter',sans-serif;font-weight:500;}
+
+  .heard{
+    background:rgba(255,255,255,0.05);
+    border:1.5px dashed rgba(255,255,255,0.15);
+    border-radius:16px; padding:14px 16px; margin:0 0 16px;
+    font-size:18px; min-height:26px; text-align:center;
+  }
+  .heard.empty{color:var(--muted); font-size:15px; font-family:'Inter',sans-serif;}
+
+  input[type=text]{
+    width:100%; font-family:'Noto Sans Telugu','Inter',sans-serif;
+    font-size:18px; padding:14px 16px; border-radius:14px; border:1.5px solid rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.06); color:var(--ink); margin-bottom:14px;
+  }
+  input[type=text]:focus{outline:none; border-color:var(--marigold);}
+
+  .grid{display:grid; gap:12px;}
+  .grid.cols2{grid-template-columns:1fr 1fr;}
+  .grid.cols3{grid-template-columns:1fr 1fr 1fr;}
+
+  button.opt{
+    font-family:'Noto Sans Telugu','Inter',sans-serif;
+    font-size:17px; font-weight:700; padding:16px 10px; border-radius:16px; border:1.5px solid rgba(255,255,255,0.12);
+    background:rgba(255,255,255,0.04); color:var(--ink); cursor:pointer; transition:all .15s;
+  }
+  button.opt:active{transform:scale(0.96);}
+  button.opt.selected{background:rgba(244,167,60,0.16); border-color:var(--marigold); color:var(--marigold);}
+
+  .primary{
+    width:100%; padding:17px; border-radius:16px; border:none; margin-top:6px;
+    background:linear-gradient(145deg,var(--leaf),#3B8E64); color:#08251A;
+    font-size:18px; font-weight:700; font-family:'Noto Sans Telugu','Inter',sans-serif; cursor:pointer;
+  }
+  .primary:active{transform:scale(0.98);}
+  .secondary{
+    width:100%; padding:14px; border-radius:16px; margin-top:10px; cursor:pointer;
+    background:transparent; border:1.5px solid rgba(255,255,255,0.15); color:var(--muted);
+    font-size:15px; font-family:'Noto Sans Telugu','Inter',sans-serif; font-weight:500;
+  }
+
+  .summary-row{display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.08); font-size:16px;}
+  .summary-row:last-child{border-bottom:none;}
+  .summary-label{color:var(--muted); font-family:'Inter',sans-serif; font-size:13px; text-transform:uppercase; letter-spacing:.08em; align-self:center;}
+  .summary-value{font-weight:700; text-align:right; max-width:65%;}
+
+  .note{font-size:13px; color:var(--muted); font-family:'Inter',sans-serif; text-align:center; margin-top:14px; line-height:1.5;}
+  .copied-flag{
+    display:none; background:rgba(79,174,126,0.15); border:1px solid var(--leaf); color:var(--leaf);
+    border-radius:12px; padding:10px 14px; font-size:14px; text-align:center; margin-top:12px; font-weight:700;
+  }
+  .warn{
+    background:rgba(226,101,91,0.12); border:1px solid var(--rose); color:#F2A19B;
+    border-radius:12px; padding:10px 14px; font-size:14px; text-align:center; margin-bottom:14px;
+  }
+  .app-badge{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;margin-bottom:8px;}
+</style>
+</head>
+<body>
+<div class="card" id="card"></div>
+
+<script>
+const APPS = {
+  ola:    { name:"Ola",    telugu:"ఓలా",    pkg:"com.olacabs.customer", scheme:"olacabs://", play:"https://play.google.com/store/apps/details?id=com.olacabs.customer", color:"#F4CD00" },
+  rapido: { name:"Rapido", telugu:"రాపిడో", pkg:"com.rapido.passenger", scheme:"rapido://",  play:"https://play.google.com/store/apps/details?id=com.rapido.passenger", color:"#FDD017" },
+  uber:   { name:"Uber",   telugu:"ఉబర్",   pkg:"com.ubercab",          scheme:"uber://",     play:"https://play.google.com/store/apps/details?id=com.ubercab", color:"#FFFFFF" }
+};
+
+let state = {
+  step: "intro",
+  app: null,
+  destText: "", destPlace: null,
+  pickupText: "", pickupPlace: null,
+  currentCoords: null
+};
+
+const card = document.getElementById('card');
+const hasSpeechRecog = ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
+let recognition = null;
+if (hasSpeechRecog) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'te-IN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+}
+
+function speak(text){
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'te-IN';
+    u.rate = 0.92;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function listenOnce(onResult, onDone){
+  if(!recognition){ onDone && onDone(); return; }
+  const micBtn = document.getElementById('micBtn');
+  try{
+    recognition.start();
+    micBtn && micBtn.classList.add('listening');
+  }catch(e){ onDone && onDone(); return; }
+  recognition.onresult = (event)=>{
+    const text = event.results[0][0].transcript;
+    onResult(text);
+  };
+  recognition.onerror = ()=>{ micBtn && micBtn.classList.remove('listening'); onDone && onDone(); };
+  recognition.onend = ()=>{ micBtn && micBtn.classList.remove('listening'); onDone && onDone(); };
+}
+
+async function geocode(query){
+  if(!query) return null;
+  try{
+    const bias = state.currentCoords ? `&viewbox=${state.currentCoords.lon-0.3},${state.currentCoords.lat+0.3},${state.currentCoords.lon+0.3},${state.currentCoords.lat-0.3}` : '';
+    const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=in&limit=1${bias}&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url, { headers: { 'Accept-Language':'te,en' } });
+    const data = await res.json();
+    if(data && data.length){
+      return { label: data[0].display_name, lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+    }
+  }catch(e){}
+  return null;
+}
+
+function getCurrentLocation(){
+  return new Promise((resolve)=>{
+    if(!navigator.geolocation){ resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos)=> resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      ()=> resolve(null),
+      { timeout: 6000 }
+    );
+  });
+}
+
+function distKm(a,b){
+  const R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLon=(b.lon-a.lon)*Math.PI/180;
+  const x = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function progressDots(activeIdx){
+  const steps = ['app','destination','pickup','summary'];
+  return `<div class="dots">${steps.map((s,i)=>{
+    const cls = i<activeIdx?'done':(i===activeIdx?'active':'');
+    return `<div class="dot ${cls}"></div>`;
+  }).join('')}</div>`;
+}
+
+function openApp(appKey, addressToCopy){
+  const app = APPS[appKey];
+  if(addressToCopy){
+    try{ navigator.clipboard.writeText(addressToCopy); }catch(e){}
+  }
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  if(isAndroid){
+    const intentUrl = `intent://open#Intent;package=${app.pkg};S.browser_fallback_url=${encodeURIComponent(app.play)};end`;
+    window.location.href = intentUrl;
+  } else {
+    window.location.href = app.scheme;
+    setTimeout(()=>{ window.location.href = app.play; }, 1200);
+  }
+}
+
+function render(){
+  window.speechSynthesis && window.speechSynthesis.cancel();
+  if(recognition){ recognition.onresult=null; recognition.onerror=null; recognition.onend=null; }
+
+  if(state.step === 'intro'){
+    card.innerHTML = `
+      <div class="eyebrow">వాయిస్ రైడ్ సహాయకుడు</div>
+      <h1>నమస్కారం 🙏<br>రైడ్ బుక్ చేయడంలో సహాయం చేస్తాను</h1>
+      <p class="note" style="margin-bottom:18px;">తెలుగులో మాట్లాడండి, నేను వింటాను. ప్రతి దశలో మీరు స్క్రీన్ మీద తాకి కూడా ఎంచుకోవచ్చు.</p>
+      <button class="primary" onclick="startFlow()">ప్రారంభించండి</button>
+      ${!hasSpeechRecog ? '<div class="warn" style="margin-top:14px;">ఈ బ్రౌజర్‌లో వాయిస్ వినికిడి లేదు — టైప్ చేసి కొనసాగించవచ్చు.</div>' : ''}
+    `;
+    return;
+  }
+
+  if(state.step === 'app'){
+    card.innerHTML = `
+      ${progressDots(0)}
+      <div class="mic-wrap">
+        <button class="mic" id="micBtn" onclick="askApp()">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" fill="#0D1729"/><path d="M19 11a7 7 0 01-14 0M12 18v3" stroke="#0D1729" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="mic-label">మైక్ నొక్కి మాట్లాడండి</div>
+      </div>
+      <h1 style="font-size:22px;">ఏ యాప్‌లో బుక్ చేయాలి?</h1>
+      <div class="grid cols3">
+        <button class="opt" onclick="chooseApp('ola')">ఓలా</button>
+        <button class="opt" onclick="chooseApp('rapido')">రాపిడో</button>
+        <button class="opt" onclick="chooseApp('uber')">ఉబర్</button>
+      </div>
+    `;
+    speak("ఏ యాప్‌లో బుక్ చేయాలి? ఓలా, రాపిడో లేదా ఉబర్?");
+    return;
+  }
+
+  if(state.step === 'destination'){
+    card.innerHTML = `
+      ${progressDots(1)}
+      <div class="mic-wrap">
+        <button class="mic" id="micBtn" onclick="askDestination()">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" fill="#0D1729"/><path d="M19 11a7 7 0 01-14 0M12 18v3" stroke="#0D1729" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="mic-label">మైక్ నొక్కి చెప్పండి</div>
+      </div>
+      <h1 style="font-size:22px;">ఎక్కడికి వెళ్లాలి?</h1>
+      <div class="heard empty" id="heardBox">ఇక్కడ మీరు చెప్పింది కనిపిస్తుంది</div>
+      <input type="text" id="destInput" placeholder="లేదా ఇక్కడ టైప్ చేయండి" value="">
+      <button class="primary" onclick="confirmDestSearch()">వెతకండి</button>
+    `;
+    speak("ఎక్కడికి వెళ్లాలి?");
+    return;
+  }
+
+  if(state.step === 'confirmDestination'){
+    card.innerHTML = `
+      ${progressDots(1)}
+      <h1 style="font-size:21px;">ఇదేనా మీ గమ్యస్థానం?</h1>
+      <div class="heard">${state.destPlace.label}</div>
+      <button class="primary" onclick="acceptDestination()">✓ అవును, సరైనదే</button>
+      <button class="secondary" onclick="state.step='destination'; render();">✗ కాదు, మళ్ళీ చెప్పాలి</button>
+    `;
+    speak(`మీరు చెప్పిన స్థలం: ${state.destPlace.label}. ఇది సరైనదేనా?`);
+    return;
+  }
+
+  if(state.step === 'pickup'){
+    card.innerHTML = `
+      ${progressDots(2)}
+      <h1 style="font-size:22px;">ఎక్కడ నుండి బయలుదేరాలి?</h1>
+      <div class="grid cols2" style="margin-bottom:14px;">
+        <button class="opt" onclick="useCurrentLocation()">📍 ప్రస్తుత ప్రదేశం</button>
+        <button class="opt" id="micBtn" onclick="askPickup()">🎤 మాట్లాడండి</button>
+      </div>
+      <div class="heard empty" id="heardBox">ఇక్కడ మీరు చెప్పింది కనిపిస్తుంది</div>
+      <input type="text" id="pickupInput" placeholder="లేదా ఇక్కడ టైప్ చేయండి">
+      <button class="primary" onclick="confirmPickupSearch()">వెతకండి</button>
+    `;
+    speak("ఎక్కడ నుండి బయలుదేరాలి? ప్రస్తుత ప్రదేశం అయితే ఆ బటన్ నొక్కండి.");
+    return;
+  }
+
+  if(state.step === 'confirmPickup'){
+    const far = state.currentCoords && state.pickupPlace && distKm(state.currentCoords, state.pickupPlace) > 3;
+    card.innerHTML = `
+      ${progressDots(2)}
+      <h1 style="font-size:21px;">ఇదేనా బయలుదేరే స్థలం?</h1>
+      <div class="heard">${state.pickupPlace.label}</div>
+      ${far ? '<div class="warn">ఇది మీ ప్రస్తుత ప్రదేశం నుండి కొంచెం దూరంగా ఉంది.</div>' : ''}
+      <button class="primary" onclick="acceptPickup()">✓ అవును, సరైనదే</button>
+      <button class="secondary" onclick="state.step='pickup'; render();">✗ కాదు, మళ్ళీ చెప్పాలి</button>
+    `;
+    speak(`బయలుదేరే స్థలం: ${state.pickupPlace.label}. ఇది సరైనదేనా?`);
+    return;
+  }
+
+  if(state.step === 'summary'){
+    const app = APPS[state.app];
+    card.innerHTML = `
+      ${progressDots(3)}
+      <h1 style="font-size:22px;">సిద్ధంగా ఉంది ✓</h1>
+      <div class="summary-row"><span class="summary-label">యాప్</span><span class="summary-value">${app.telugu} (${app.name})</span></div>
+      <div class="summary-row"><span class="summary-label">ఎక్కడి నుండి</span><span class="summary-value">${state.pickupPlace.label}</span></div>
+      <div class="summary-row"><span class="summary-label">ఎక్కడికి</span><span class="summary-value">${state.destPlace.label}</span></div>
+      <button class="primary" onclick="launchApp()">${app.name} తెరవండి</button>
+      <div class="copied-flag" id="copiedFlag">అడ్రస్ కాపీ చేయబడింది — యాప్ తెరిచాక వెతుకు బాక్స్‌లో అతికించండి (paste)</div>
+      <button class="secondary" onclick="resetFlow()">కొత్తగా మొదలుపెట్టండి</button>
+      <div class="note">${app.name} స్వయంగా అడ్రస్ నింపకపోతే, కాపీ చేసిన అడ్రస్‌ను వెతుకు బాక్స్‌లో అతికించి (paste/long-press) ఎంచుకోండి.</div>
+    `;
+    speak(`సిద్ధం. ${app.telugu} తెరవడానికి పచ్చ బటన్ నొక్కండి.`);
+    return;
+  }
+}
+
+async function startFlow(){
+  state.currentCoords = await getCurrentLocation();
+  state.step = 'app';
+  render();
+}
+
+function chooseApp(key){
+  state.app = key;
+  state.step = 'destination';
+  render();
+}
+
+function askApp(){
+  listenOnce((text)=>{
+    const t = text.toLowerCase();
+    if(t.includes('ఓలా')||t.includes('ola')) chooseApp('ola');
+    else if(t.includes('రాపిడో')||t.includes('rapido')) chooseApp('rapido');
+    else if(t.includes('ఉబర్')||t.includes('uber')) chooseApp('uber');
+    else { speak("అర్థం కాలేదు, దయచేసి బటన్ నొక్కండి."); }
+  });
+}
+
+function askDestination(){
+  listenOnce((text)=>{
+    state.destText = text;
+    document.getElementById('heardBox').textContent = text;
+    document.getElementById('heardBox').classList.remove('empty');
+    document.getElementById('destInput').value = text;
+  });
+}
+
+async function confirmDestSearch(){
+  const val = document.getElementById('destInput').value.trim();
+  if(!val){ speak("దయచేసి గమ్యస్థానం చెప్పండి లేదా టైప్ చేయండి."); return; }
+  state.destText = val;
+  const place = await geocode(val);
+  if(place){
+    state.destPlace = place;
+    state.step = 'confirmDestination';
+    render();
+  } else {
+    speak("ఈ స్థలం కనుగొనబడలేదు, దయచేసి మళ్ళీ ప్రయత్నించండి.");
+  }
+}
+
+function acceptDestination(){
+  state.step = 'pickup';
+  render();
+}
+
+async function useCurrentLocation(){
+  if(!state.currentCoords){ state.currentCoords = await getCurrentLocation(); }
+  if(!state.currentCoords){ speak("ప్రస్తుత ప్రదేశం తెలియడం లేదు, దయచేసి లొకేషన్ అనుమతి ఇవ్వండి."); return; }
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${state.currentCoords.lat}&lon=${state.currentCoords.lon}`, { headers:{'Accept-Language':'te,en'} });
+    const data = await res.json();
+    state.pickupPlace = { label: data.display_name || "ప్రస్తుత ప్రదేశం", lat: state.currentCoords.lat, lon: state.currentCoords.lon };
+  }catch(e){
+    state.pickupPlace = { label: "ప్రస్తుత ప్రదేశం", lat: state.currentCoords.lat, lon: state.currentCoords.lon };
+  }
+  state.step = 'confirmPickup';
+  render();
+}
+
+function askPickup(){
+  listenOnce((text)=>{
+    state.pickupText = text;
+    document.getElementById('heardBox').textContent = text;
+    document.getElementById('heardBox').classList.remove('empty');
+    document.getElementById('pickupInput').value = text;
+  });
+}
+
+async function confirmPickupSearch(){
+  const val = document.getElementById('pickupInput').value.trim();
+  if(!val){ speak("దయచేసి బయలుదేరే స్థలం చెప్పండి లేదా టైప్ చేయండి."); return; }
+  state.pickupText = val;
+  const place = await geocode(val);
+  if(place){
+    state.pickupPlace = place;
+    state.step = 'confirmPickup';
+    render();
+  } else {
+    speak("ఈ స్థలం కనుగొనబడలేదు, దయచేసి మళ్ళీ ప్రయత్నించండి.");
+  }
+}
+
+function acceptPickup(){
+  state.step = 'summary';
+  render();
+}
+
+function launchApp(){
+  document.getElementById('copiedFlag').style.display = 'block';
+  openApp(state.app, state.destPlace.label);
+}
+
+function resetFlow(){
+  state = { step:'intro', app:null, destText:'', destPlace:null, pickupText:'', pickupPlace:null, currentCoords: state.currentCoords };
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
