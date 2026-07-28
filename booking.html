@@ -134,11 +134,14 @@ const APPS = {
   uber:   { name:"Uber",   telugu:"ఉబర్",   pkg:"com.ubercab",          scheme:"uber://",     play:"https://play.google.com/store/apps/details?id=com.ubercab", color:"#FFFFFF" }
 };
 
+// Visakhapatnam (Vizag) city bounding box — all searches are restricted to this area
+const VIZAG = { minLat: 17.55, maxLat: 17.95, minLon: 83.00, maxLon: 83.40 };
+
 let state = {
   step: "intro",
   app: null,
-  destText: "", destPlace: null,
-  pickupText: "", pickupPlace: null,
+  destText: "", destPlace: null, destCandidates: [],
+  pickupText: "", pickupPlace: null, pickupCandidates: [],
   currentCoords: null
 };
 
@@ -150,7 +153,7 @@ if (hasSpeechRecog) {
   recognition = new SR();
   recognition.lang = 'te-IN';
   recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+  recognition.maxAlternatives = 5;
 }
 
 function speak(text){
@@ -171,25 +174,36 @@ function listenOnce(onResult, onDone){
     micBtn && micBtn.classList.add('listening');
   }catch(e){ onDone && onDone(); return; }
   recognition.onresult = (event)=>{
-    const text = event.results[0][0].transcript;
-    onResult(text);
+    const alts = [];
+    const result = event.results[0];
+    for(let i=0; i<result.length; i++){
+      const t = result[i].transcript.trim();
+      if(t && !alts.includes(t)) alts.push(t);
+    }
+    onResult(alts[0], alts);
   };
   recognition.onerror = ()=>{ micBtn && micBtn.classList.remove('listening'); onDone && onDone(); };
   recognition.onend = ()=>{ micBtn && micBtn.classList.remove('listening'); onDone && onDone(); };
 }
 
-async function geocode(query){
-  if(!query) return null;
+function withinVizag(lat, lon){
+  return lat >= VIZAG.minLat && lat <= VIZAG.maxLat && lon >= VIZAG.minLon && lon <= VIZAG.maxLon;
+}
+
+// Returns an array of candidate matches, restricted to Vizag city, closest to farthest from center.
+async function geocodeMulti(query){
+  if(!query) return [];
+  const viewbox = `${VIZAG.minLon},${VIZAG.maxLat},${VIZAG.maxLon},${VIZAG.minLat}`;
+  const biasedQuery = /vizag|visakhapatnam|విశాఖ/i.test(query) ? query : `${query}, Visakhapatnam`;
   try{
-    const bias = state.currentCoords ? `&viewbox=${state.currentCoords.lon-0.3},${state.currentCoords.lat+0.3},${state.currentCoords.lon+0.3},${state.currentCoords.lat-0.3}` : '';
-    const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=in&limit=1${bias}&q=${encodeURIComponent(query)}`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=in&limit=6&bounded=1&viewbox=${viewbox}&q=${encodeURIComponent(biasedQuery)}`;
     const res = await fetch(url, { headers: { 'Accept-Language':'te,en' } });
     const data = await res.json();
-    if(data && data.length){
-      return { label: data[0].display_name, lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-    }
-  }catch(e){}
-  return null;
+    if(!data) return [];
+    return data
+      .map(d => ({ label: d.display_name, lat: parseFloat(d.lat), lon: parseFloat(d.lon) }))
+      .filter(d => withinVizag(d.lat, d.lon));
+  }catch(e){ return []; }
 }
 
 function getCurrentLocation(){
@@ -278,10 +292,38 @@ function render(){
       </div>
       <h1 style="font-size:22px;">ఎక్కడికి వెళ్లాలి?</h1>
       <div class="heard empty" id="heardBox">ఇక్కడ మీరు చెప్పింది కనిపిస్తుంది</div>
+      <div class="grid cols2" id="altChips" style="margin-bottom:14px;"></div>
       <input type="text" id="destInput" placeholder="లేదా ఇక్కడ టైప్ చేయండి" value="">
       <button class="primary" onclick="confirmDestSearch()">వెతకండి</button>
+      <div class="note">అన్వేషణ విశాఖపట్నం నగరానికి మాత్రమే పరిమితం చేయబడింది</div>
     `;
     speak("ఎక్కడికి వెళ్లాలి?");
+    return;
+  }
+
+  if(state.step === 'selectDest'){
+    card.innerHTML = `
+      ${progressDots(1)}
+      <h1 style="font-size:21px;">విశాఖపట్నంలో ఇలాంటి పేర్లు కనబడ్డాయి — ఏది?</h1>
+      <div class="grid" style="gap:10px;">
+        ${state.destCandidates.map((c,i)=>`<button class="opt" style="text-align:left;" onclick="selectDestCandidate(${i})">${c.label}</button>`).join('')}
+      </div>
+      <button class="secondary" onclick="state.step='destination'; render();">వెనక్కి, మళ్ళీ చెప్పాలి</button>
+    `;
+    speak("విశాఖపట్నంలో ఇలాంటి పేర్లు గల చోట్లు కనిపించాయి, సరైనది ఏదో ఎంచుకోండి.");
+    return;
+  }
+
+  if(state.step === 'selectPickup'){
+    card.innerHTML = `
+      ${progressDots(2)}
+      <h1 style="font-size:21px;">విశాఖపట్నంలో ఇలాంటి పేర్లు కనబడ్డాయి — ఏది?</h1>
+      <div class="grid" style="gap:10px;">
+        ${state.pickupCandidates.map((c,i)=>`<button class="opt" style="text-align:left;" onclick="selectPickupCandidate(${i})">${c.label}</button>`).join('')}
+      </div>
+      <button class="secondary" onclick="state.step='pickup'; render();">వెనక్కి, మళ్ళీ చెప్పాలి</button>
+    `;
+    speak("విశాఖపట్నంలో ఇలాంటి పేర్లు గల చోట్లు కనిపించాయి, సరైనది ఏదో ఎంచుకోండి.");
     return;
   }
 
@@ -306,8 +348,10 @@ function render(){
         <button class="opt" id="micBtn" onclick="askPickup()">🎤 మాట్లాడండి</button>
       </div>
       <div class="heard empty" id="heardBox">ఇక్కడ మీరు చెప్పింది కనిపిస్తుంది</div>
+      <div class="grid cols2" id="altChips" style="margin-bottom:14px;"></div>
       <input type="text" id="pickupInput" placeholder="లేదా ఇక్కడ టైప్ చేయండి">
       <button class="primary" onclick="confirmPickupSearch()">వెతకండి</button>
+      <div class="note">అన్వేషణ విశాఖపట్నం నగరానికి మాత్రమే పరిమితం చేయబడింది</div>
     `;
     speak("ఎక్కడ నుండి బయలుదేరాలి? ప్రస్తుత ప్రదేశం అయితే ఆ బటన్ నొక్కండి.");
     return;
@@ -367,12 +411,21 @@ function askApp(){
   });
 }
 
+function renderAltChips(alts, targetInputId){
+  const box = document.getElementById('altChips');
+  if(!box || !alts || alts.length < 2){ if(box) box.innerHTML=''; return; }
+  box.innerHTML = alts.slice(0,4).map(a =>
+    `<button class="opt" onclick="document.getElementById('${targetInputId}').value=${JSON.stringify(a)}; document.getElementById('heardBox').textContent=${JSON.stringify(a)};">${a}</button>`
+  ).join('');
+}
+
 function askDestination(){
-  listenOnce((text)=>{
+  listenOnce((text, alts)=>{
     state.destText = text;
     document.getElementById('heardBox').textContent = text;
     document.getElementById('heardBox').classList.remove('empty');
     document.getElementById('destInput').value = text;
+    renderAltChips(alts, 'destInput');
   });
 }
 
@@ -380,14 +433,24 @@ async function confirmDestSearch(){
   const val = document.getElementById('destInput').value.trim();
   if(!val){ speak("దయచేసి గమ్యస్థానం చెప్పండి లేదా టైప్ చేయండి."); return; }
   state.destText = val;
-  const place = await geocode(val);
-  if(place){
-    state.destPlace = place;
+  const candidates = await geocodeMulti(val);
+  if(candidates.length === 0){
+    speak("విశాఖపట్నంలో ఈ పేరుతో స్థలం కనబడలేదు, దయచేసి వేరే విధంగా చెప్పండి లేదా టైప్ చేయండి.");
+  } else if(candidates.length === 1){
+    state.destPlace = candidates[0];
     state.step = 'confirmDestination';
     render();
   } else {
-    speak("ఈ స్థలం కనుగొనబడలేదు, దయచేసి మళ్ళీ ప్రయత్నించండి.");
+    state.destCandidates = candidates;
+    state.step = 'selectDest';
+    render();
   }
+}
+
+function selectDestCandidate(i){
+  state.destPlace = state.destCandidates[i];
+  state.step = 'confirmDestination';
+  render();
 }
 
 function acceptDestination(){
@@ -410,11 +473,12 @@ async function useCurrentLocation(){
 }
 
 function askPickup(){
-  listenOnce((text)=>{
+  listenOnce((text, alts)=>{
     state.pickupText = text;
     document.getElementById('heardBox').textContent = text;
     document.getElementById('heardBox').classList.remove('empty');
     document.getElementById('pickupInput').value = text;
+    renderAltChips(alts, 'pickupInput');
   });
 }
 
@@ -422,14 +486,24 @@ async function confirmPickupSearch(){
   const val = document.getElementById('pickupInput').value.trim();
   if(!val){ speak("దయచేసి బయలుదేరే స్థలం చెప్పండి లేదా టైప్ చేయండి."); return; }
   state.pickupText = val;
-  const place = await geocode(val);
-  if(place){
-    state.pickupPlace = place;
+  const candidates = await geocodeMulti(val);
+  if(candidates.length === 0){
+    speak("విశాఖపట్నంలో ఈ పేరుతో స్థలం కనబడలేదు, దయచేసి వేరే విధంగా చెప్పండి లేదా టైప్ చేయండి.");
+  } else if(candidates.length === 1){
+    state.pickupPlace = candidates[0];
     state.step = 'confirmPickup';
     render();
   } else {
-    speak("ఈ స్థలం కనుగొనబడలేదు, దయచేసి మళ్ళీ ప్రయత్నించండి.");
+    state.pickupCandidates = candidates;
+    state.step = 'selectPickup';
+    render();
   }
+}
+
+function selectPickupCandidate(i){
+  state.pickupPlace = state.pickupCandidates[i];
+  state.step = 'confirmPickup';
+  render();
 }
 
 function acceptPickup(){
@@ -443,7 +517,7 @@ function launchApp(){
 }
 
 function resetFlow(){
-  state = { step:'intro', app:null, destText:'', destPlace:null, pickupText:'', pickupPlace:null, currentCoords: state.currentCoords };
+  state = { step:'intro', app:null, destText:'', destPlace:null, destCandidates:[], pickupText:'', pickupPlace:null, pickupCandidates:[], currentCoords: state.currentCoords };
   render();
 }
 
