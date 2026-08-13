@@ -547,7 +547,7 @@ async function fetchSlots(){
   slots=data||[];
 }
 async function fetchStudents(){
-  const{data}=await sb.from('profiles').select('id,username,role').order('username');
+  const{data}=await sb.from('profiles').select('id,username,role,reg_number').order('username');
   students=data||[];
   renderStudentSelector();
 }
@@ -567,11 +567,12 @@ function renderStudentSelector(){
   sel.innerHTML='<option value="">— Select a student —</option>';
   // Add "Myself" as the first option for admin/master
   const myDn=(me.user_metadata?.username||me.email.split('@')[0]).replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
-  const myOpt=document.createElement('option');myOpt.value=me.id;myOpt.textContent='👤 Myself ('+myDn+')';sel.appendChild(myOpt);
+  const myOpt=document.createElement('option');myOpt.value=me.id;const myRn=(students.find(s=>s.id===me.id)||{}).reg_number||'';
+  myOpt.textContent='👤 Myself ('+myDn+(myRn?' · '+myRn:'')+')'; sel.appendChild(myOpt);
   // Then all other users
   students.filter(s=>s.id!==me.id).forEach(s=>{
     const dn=s.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
-    const o=document.createElement('option');o.value=s.id;o.textContent=dn+' ['+s.role+']';sel.appendChild(o);
+    const o=document.createElement('option');o.value=s.id;o.textContent=dn+(s.reg_number?' ('+s.reg_number+')':'')+' ['+s.role+']';sel.appendChild(o);
   });
   if(cur)sel.value=cur;
 }
@@ -1058,6 +1059,7 @@ window.renderBulkList=()=>{
       <div class="bulk-avatar">${esc(initials)}</div>
       <div style="flex:1;min-width:0">
         <div class="bulk-name">${esc(dn)}${pct!==null?`<span class="bulk-pct-pill ${pctCss}">${pct}%</span>`:''}</div>
+        ${s.reg_number?`<div style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--accent);opacity:.85;margin-bottom:.12rem">${esc(s.reg_number)}</div>`:''}
         <div class="bulk-counts">✅ ${pres} P &nbsp;❌ ${abs} A &nbsp;Total: ${tot}</div>
       </div>
       <div class="bulk-btns">
@@ -1180,7 +1182,7 @@ function renderBatchMgmt(){
     const assignedIds=new Set(members.map(m=>m.student_id));
     students.filter(s=>!assignedIds.has(s.id)).forEach(s=>{
       const dn=s.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
-      const o=document.createElement('option');o.value=s.id;o.textContent=dn+' ['+s.role+']';sel.appendChild(o);
+      const o=document.createElement('option');o.value=s.id;o.textContent=dn+(s.reg_number?' ('+s.reg_number+')':'')+' ['+s.role+']';sel.appendChild(o);
     });
     const assignBtn=document.createElement('button');assignBtn.className='batch-assign-btn';assignBtn.textContent='+ Assign';
     assignBtn.addEventListener('click',()=>{if(sel.value)assignToBatch(b.id,sel.value);});
@@ -1191,7 +1193,7 @@ function renderBatchMgmt(){
     members.forEach(m=>{
       const student=students.find(s=>s.id===m.student_id);
       if(!student)return;
-      const dn=student.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+      const dn=student.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())+(student.reg_number?' ('+student.reg_number+')':'');
       const chip=document.createElement('div');chip.className='batch-member-chip';
       chip.innerHTML='<span>'+esc(dn)+'</span>';
       const rm=document.createElement('button');rm.className='batch-member-rm';rm.textContent='✕';rm.title='Remove from batch';
