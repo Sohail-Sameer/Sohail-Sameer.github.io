@@ -142,6 +142,10 @@
     .user-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem 1.1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
     .u-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff;flex-shrink:0;}
     .u-name{font-weight:700;font-size:.92rem;}
+    .u-reg{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--accent);margin-top:.15rem;letter-spacing:.04em;}
+    .u-reg-empty{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);font-style:italic;}
+    .u-edit-reg{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:.18rem .52rem;font-family:'Space Mono',monospace;font-size:.58rem;cursor:none;transition:all .18s;margin-left:.4rem;}
+    .u-edit-reg:hover{border-color:var(--accent);color:var(--accent);}
     .u-email{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);}
     .u-actions{margin-left:auto;display:flex;gap:.45rem;flex-wrap:wrap;}
     .u-btn{padding:.28rem .75rem;border-radius:6px;font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;cursor:none;border:none;transition:all .2s;letter-spacing:.04em;}
@@ -437,6 +441,18 @@ window.liveUN=v=>{
   sh(h,i,'ld','⏳ Checking…');clearTimeout(unT);
   unT=setTimeout(async()=>{try{const{data}=await sb.from('usernames').select('username').eq('username',norm).maybeSingle();if(data)sh(h,i,'no',`✗ Already taken.`);else sh(h,i,'ok',`✓ Available! Saved as: ${norm}`);}catch(e){sh(h,i,'ok',`✓ Looks available!`);}},500);
 };
+let regT=null;
+window.liveReg=v=>{
+  const h=$('regHint'),i=$('uRegNum');i.classList.remove('good','bad');h.className='fhint';h.textContent='';
+  if(!v)return;
+  if(v.trim().length<4){sh(h,i,'no','At least 4 characters.');return;}
+  sh(h,i,'ld','Checking...');clearTimeout(regT);
+  regT=setTimeout(async()=>{
+    const{data}=await sb.from('profiles').select('reg_number').eq('reg_number',v.trim()).maybeSingle();
+    if(data)sh(h,i,'no','Registration number already taken.');
+    else sh(h,i,'ok','Registration number available!');
+  },500);
+};
 window.liveEM=v=>{const h=$('emHint'),i=$('uEmail');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))sh(h,i,'no','✗ Invalid email.');else sh(h,i,'ok','✓ Looks good!');};
 window.livePW=v=>{const h=$('pwHint'),i=$('uPass');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;if(v.length<6)sh(h,i,'no','✗ Min 6 chars.');else sh(h,i,'ok','✓ Strong!');if($('uPass2').value)livePW2($('uPass2').value);};
 window.livePW2=v=>{const h=$('pw2Hint'),i=$('uPass2');i.classList.remove('good','bad');h.className='fhint';h.textContent='';if(!v)return;const m=$('uPass').value===v;sh(h,i,m?'ok':'no',m?'✓ Match!':'✗ No match.');};
@@ -452,7 +468,7 @@ window.signup=async()=>{
   $('uBtn').disabled=true;$('uBtn').textContent='CREATING...';
   const{error:ue}=await sb.from('usernames').insert([{username:un}]);
   if(ue){$('uBtn').disabled=false;$('uBtn').textContent='CREATE ACCOUNT →';return sMsg('uErr','Username already taken.');}
-  const{error}=await sb.auth.signUp({email:em,password:pw,options:{data:{username:un},emailRedirectTo:window.location.href.split('#')[0]}});
+  const{error}=await sb.auth.signUp({email:em,password:pw,options:{data:{username:un,reg_number:regNum},emailRedirectTo:window.location.href.split('#')[0]}});
   $('uBtn').disabled=false;$('uBtn').textContent='CREATE ACCOUNT →';
   if(error)return sMsg('uErr',sbE(error.message));
   $('uErr').style.display='none';sMsg('uOk','✓ Check your email to confirm your account.','ok');
@@ -487,7 +503,8 @@ async function loadApp(user){
   userRole=profile?.role||'student';
   if(!profile){
     // Brand new user — create profile with default student role
-    await sb.from('profiles').insert({id:user.id,username:un,role:'student'});
+    const rn=user.user_metadata?.reg_number||null;
+    await sb.from('profiles').insert({id:user.id,username:un,role:'student',reg_number:rn});
   } else {
     // Existing user — only update username, NEVER touch role
     await sb.from('profiles').update({username:un}).eq('id',user.id);
@@ -529,7 +546,7 @@ function applyRoleUI(){
 
 async function fetchExtraData(){
   if(userRole==='master'||userRole==='admin'){
-    const{data}=await sb.from('profiles').select('id,username,role').order('username');
+    const{data}=await sb.from('profiles').select('id,username,role,reg_number').order('username');
     students=data||[];
     const studs=students.filter(s=>s.role==='student'||s.role==='admin');
     $('cStudents').textContent=studs.length;
@@ -677,6 +694,8 @@ async function adminDeleteTodo(id){
 // ── USER MANAGEMENT (MASTER) ──
 function renderUserGrid(){
   const grid=$('userGrid');grid.innerHTML='';
+  const isAdmin=userRole==='admin'||userRole==='master';
+  const isMaster=userRole==='master';
   const countTag=$('userCountTag');if(countTag)countTag.textContent=(students||[]).length+' user'+((students||[]).length!==1?'s':'');
   (students||[]).forEach(u=>{
     const dn=u.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
@@ -765,6 +784,23 @@ window.deleteUser=async(userId,rawUsername)=>{
   students=students.filter(s=>s.id!==userId);
   renderUserGrid();
   toast('"'+dn+'" fully deleted.','ok');
+};
+
+window.editRegNumber=async(userId,currentReg,dn)=>{
+  const newReg=window.prompt('Edit registration number for "'+dn+'":\n(Leave blank to clear it)',currentReg||'');
+  if(newReg===null)return;
+  const trimmed=newReg.trim();
+  if(trimmed===currentReg)return;
+  if(trimmed){
+    const{data}=await sb.from('profiles').select('id').eq('reg_number',trimmed).maybeSingle();
+    if(data&&data.id!==userId){toast('That registration number is already assigned to another student.','err');return;}
+  }
+  const{error}=await sb.from('profiles').update({reg_number:trimmed||null}).eq('id',userId);
+  if(error){toast('Error: '+error.message,'err');return;}
+  const s=students.find(s=>s.id===userId);
+  if(s)s.reg_number=trimmed||null;
+  renderUserGrid();
+  toast(trimmed?'Registration number updated to '+trimmed+'.':'Registration number cleared.','ok');
 };
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
