@@ -251,6 +251,11 @@
         <input type="text" id="uName" placeholder="e.g. Sohail Sameer" autocomplete="off" oninput="liveUN(this.value)"/>
         <div class="fhint" id="unHint"></div>
       </div>
+      <div class="fg">
+        <label>REGISTRATION NUMBER <span style="font-size:.57rem;opacity:.6">(your college ID)</span></label>
+        <input type="text" id="uRegNum" placeholder="e.g. 325506402451" maxlength="30" autocomplete="off" oninput="liveReg(this.value)"/>
+        <div class="fhint" id="regHint"></div>
+      </div>
       <div class="fg"><label>EMAIL</label><input type="email" id="uEmail" placeholder="your@email.com" autocomplete="email" oninput="liveEM(this.value)"/><div class="fhint" id="emHint"></div></div>
       <div class="fg"><label>PASSWORD <span style="font-size:.57rem;opacity:.6">(min 6)</span></label><input type="password" id="uPass" placeholder="choose a password" autocomplete="new-password" oninput="livePW(this.value)"/><div class="fhint" id="pwHint"></div></div>
       <div class="fg"><label>CONFIRM PASSWORD</label><input type="password" id="uPass2" placeholder="repeat password" autocomplete="new-password" oninput="livePW2(this.value)"/><div class="fhint" id="pw2Hint"></div></div>
@@ -463,7 +468,7 @@ function sbE(m){const mp={'Invalid login credentials':'Incorrect email or passwo
 window.signup=async()=>{
   const raw=$('uName').value.trim(), un=raw.replace(/\s+/g,'_').toLowerCase();
   const em=$('uEmail').value.trim(),pw=$('uPass').value,pw2=$('uPass2').value;
-  if(!raw||!em||!pw||!pw2)return sMsg('uErr','Fill in all fields.');
+  if(!raw||!regNum||!em||!pw||!pw2)return sMsg('uErr','All fields required, including Registration Number.');
   if($('unHint').classList.contains('no'))return sMsg('uErr','Fix username first.');
   $('uBtn').disabled=true;$('uBtn').textContent='CREATING...';
   const{error:ue}=await sb.from('usernames').insert([{username:un}]);
