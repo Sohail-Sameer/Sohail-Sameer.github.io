@@ -467,8 +467,10 @@ function sbE(m){const mp={'Invalid login credentials':'Incorrect email or passwo
 
 window.signup=async()=>{
   const raw=$('uName').value.trim(), un=raw.replace(/\s+/g,'_').toLowerCase();
+  const regNum=($('uRegNum')?.value||'').trim();
   const em=$('uEmail').value.trim(),pw=$('uPass').value,pw2=$('uPass2').value;
   if(!raw||!regNum||!em||!pw||!pw2)return sMsg('uErr','All fields required, including Registration Number.');
+  if($('regHint')&&$('regHint').classList.contains('no'))return sMsg('uErr','Fix the registration number first.');
   if($('unHint').classList.contains('no'))return sMsg('uErr','Fix username first.');
   $('uBtn').disabled=true;$('uBtn').textContent='CREATING...';
   const{error:ue}=await sb.from('usernames').insert([{username:un}]);
