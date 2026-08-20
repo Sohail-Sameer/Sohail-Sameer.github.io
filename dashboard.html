@@ -142,6 +142,19 @@
     .user-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.85rem 1.1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
     .u-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff;flex-shrink:0;}
     .u-name{font-weight:700;font-size:.92rem;}
+    .u-class-tag{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);margin-top:.1rem;}
+    .u-class-tag span{color:var(--accent);}
+    .batch-b1{background:rgba(0,229,255,.12);color:var(--accent);border:1px solid rgba(0,229,255,.3);border-radius:4px;font-family:'Space Mono',monospace;font-size:.54rem;padding:.1rem .42rem;font-weight:700;}
+    .batch-b2{background:rgba(109,40,217,.15);color:#a78bfa;border:1px solid rgba(109,40,217,.35);border-radius:4px;font-family:'Space Mono',monospace;font-size:.54rem;padding:.1rem .42rem;font-weight:700;}
+    .u-assign-row{display:flex;gap:.35rem;margin-top:.45rem;flex-wrap:wrap;align-items:center;}
+    .u-sel{padding:.22rem .5rem;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'Space Mono',monospace;font-size:.58rem;cursor:none;outline:none;max-width:130px;}
+    .u-sel:focus{border-color:var(--accent);}
+    /* Class management */
+    .cls-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.8rem 1rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.45rem;}
+    .cls-name{font-weight:700;font-size:.9rem;flex:1;}
+    .cls-meta{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);}
+    .cls-del{background:transparent;border:1px solid rgba(239,68,68,.22);color:#fca5a5;border-radius:5px;padding:.2rem .55rem;font-family:'Space Mono',monospace;font-size:.6rem;cursor:none;transition:all .18s;}
+    .cls-del:hover{background:rgba(239,68,68,.12);}
     .u-reg{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--accent);margin-top:.15rem;letter-spacing:.04em;}
     .u-reg-empty{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);font-style:italic;}
     .u-edit-reg{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:.18rem .52rem;font-family:'Space Mono',monospace;font-size:.58rem;cursor:none;transition:all .18s;margin-left:.4rem;}
@@ -298,6 +311,8 @@
         <div class="chip">Role: <span id="roleChip">—</span></div>
         <div class="chip" id="chipTasks">✅ Done: <span id="cDone">—</span></div>
         <div class="chip" id="chipStudents" style="display:none">👥 Students: <span id="cStudents">—</span></div>
+        <div class="chip" id="chipReg">📋 Reg: <span id="gReg">—</span></div>
+        <div class="chip" id="chipClass">🏫 <span id="gClass">No class</span></div>
       </div>
     </div>
 
@@ -334,6 +349,19 @@
           <div class="sc"><div class="sc-val" id="sPct">—</div><div class="sc-lbl">Completion Rate</div></div>
         </div>
 
+        <!-- MASTER: Class Management -->
+        <div id="classMgmtSection" style="display:none;margin-top:2rem">
+          <div class="sec-lbl rev">CLASS MANAGEMENT</div>
+          <div class="tbox rev" style="margin-bottom:1rem">
+            <div class="tin-row" style="margin-bottom:.5rem">
+              <input class="tin" id="classNameIn" placeholder="Class name (e.g. B.Tech SS-VII)" maxlength="60" onkeydown="if(event.key==='Enter')createClass()"/>
+              <input class="tin" id="classSectionIn" placeholder="Section (e.g. A8)" maxlength="20" style="max-width:120px"/>
+              <button class="tadd" onclick="createClass()">+ CREATE</button>
+            </div>
+            <div class="msg-box" id="classMsg"></div>
+          </div>
+          <div id="classList"></div>
+        </div>
         <!-- MASTER: User Management -->
         <div id="userMgmtSection" style="display:none;margin-top:2rem">
           <div class="user-mgmt-header rev">
@@ -382,7 +410,7 @@ const SB_URL='https://zqtqvnvylwzshwqwnkhz.supabase.co',
       SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxdHF2bnZ5bHd6c2h3cXdua2h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjAyNjgsImV4cCI6MjA4NzQzNjI2OH0.Ix3MH12xSgBnNtE_Vaa25gP2LGyO0KYctNmLfQIq8cc';
 const {createClient}=supabase, sb=createClient(SB_URL,SB_ANON), $=id=>document.getElementById(id);
 
-let me=null, userRole='student', todos=[], completions={}, myCompletions={}, students=[], tf='all';
+let me=null, userRole='student', todos=[], completions={}, myCompletions={}, students=[], allClasses=[], myProfile=null, tf='all';
 
 // ── CURSOR ──
 const cur=$('cur'),curR=$('curR');
@@ -507,6 +535,7 @@ async function loadApp(user){
 
   // Fetch profile + role — never overwrite role in upsert
   const{data:profile}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+  myProfile=profile;
   userRole=profile?.role||'student';
   if(!profile){
     // Brand new user — create profile with default student role
@@ -529,6 +558,7 @@ async function loadApp(user){
   $('gDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
   // Apply role-based UI
+  if($('gReg'))$('gReg').textContent=profile?.reg_number||'Not set';
   applyRoleUI();
 
   injectChangePwLink();
@@ -544,7 +574,10 @@ function applyRoleUI(){
   $('tilesSection').style.display=isAdmin?'none':'';
   $('adminCreateSection').style.display=isAdmin?'':'none';
   $('userMgmtSection').style.display=isMaster?'':'none';
+  $('classMgmtSection').style.display=isMaster?'':'none';
   $('chipStudents').style.display=isAdmin?'':'none';
+  $('chipReg').style.display=isAdmin?'none':'';
+  $('chipClass').style.display=isAdmin?'none':'';
   if(isAdmin){
     $('sDoneLbl').textContent='My Completed';
     $('sStudentsLbl').textContent='Total Students';
@@ -553,13 +586,19 @@ function applyRoleUI(){
 
 async function fetchExtraData(){
   if(userRole==='master'||userRole==='admin'){
-    const{data}=await sb.from('profiles').select('id,username,role,reg_number').order('username');
+    const{data:clsData}=await sb.from('classes').select('*').order('name');
+    allClasses=clsData||[];
+    const{data}=await sb.from('profiles').select('id,username,role,reg_number,class_id,batch_number').order('username');
     students=data||[];
     const studs=students.filter(s=>s.role==='student'||s.role==='admin');
     $('cStudents').textContent=studs.length;
     $('sStudents').textContent=studs.length;
-    if(userRole==='master')renderUserGrid();
+    if(userRole==='master'){renderUserGrid();renderClassList();}
   } else {
+    const{data:clsData2}=await sb.from('classes').select('*').order('name');
+    allClasses=clsData2||[];
+    const myClass=allClasses.find(cl=>cl.id===myProfile?.class_id);
+    if($('gClass'))$('gClass').textContent=myClass?myClass.name+(myClass.section?' · '+myClass.section:''):'No class';
     const{count:subjCount}=await sb.from('class_subjects').select('*',{count:'exact',head:true});
     $('tSubj').textContent=(subjCount||0)+' subjects';
     const{count}=await sb.from('class_library').select('id',{count:'exact',head:true});
@@ -703,29 +742,102 @@ function renderUserGrid(){
   const grid=$('userGrid');grid.innerHTML='';
   const isAdmin=userRole==='admin'||userRole==='master';
   const isMaster=userRole==='master';
-  const countTag=$('userCountTag');if(countTag)countTag.textContent=(students||[]).length+' user'+((students||[]).length!==1?'s':'');
+  // Use module-level myProfile (master's/admin's own profile)
+  const profile=myProfile;
+  const countTag=$('userCountTag');
+  if(countTag)countTag.textContent=(students||[]).length+' user'+((students||[]).length!==1?'s':'');
+
+  if(!students.length){grid.innerHTML='<div class="tempty">No users yet.</div>';return;}
+
   (students||[]).forEach(u=>{
     const dn=u.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
     const initials=dn.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const isSelf=u.id===me.id;
+    const uClass=allClasses.find(cl=>cl.id===u.class_id);
+    const className=uClass?(uClass.name+(uClass.section?' · '+uClass.section:'')):'No class';
+
     const d=document.createElement('div');d.className='user-card';
-    d.innerHTML=`
-      <div class="u-avatar">${initials}</div>
-      <div>
-        <div class="u-name">${esc(dn)}</div>
-        <div class="u-email"><span class="role-badge role-${u.role}" style="font-size:.55rem">${u.role.toUpperCase()}</span></div>
-      </div>
-      <div class="u-actions">
-        ${u.role==='student'&&!isSelf?`<button class="u-btn make-admin" onclick="changeRole('${u.id}','admin')">Make Admin</button>`:''}
-        ${u.role==='admin'&&!isSelf?`<button class="u-btn make-student" onclick="changeRole('${u.id}','student')">Make Student</button>`:''}
-        ${u.role!=='master'&&!isSelf?`<button class="u-btn make-master" onclick="changeRole('${u.id}','master')">Make Master</button>`:''}
-        ${!isSelf&&u.role!=='master'?`<button class="u-btn" style="background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.25);" onclick="deleteUser('${u.id}','${u.username}')">🗑️ Delete</button>`:''}
-        ${isSelf?`<span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted)">You</span>`:''}
-      </div>`;
-    grid.appendChild(d);d.querySelectorAll('button').forEach(ch);
+
+    // ── Avatar ──
+    let html='<div class="u-avatar">'+esc(initials)+'</div>';
+
+    // ── Info column ──
+    html+='<div style="flex:1;min-width:0">';
+
+    // Name + batch badge
+    const bBadge=u.batch_number===1?'<span class="batch-b1">B1</span>':u.batch_number===2?'<span class="batch-b2">B2</span>':'';
+    html+='<div class="u-name">'+esc(dn)+' '+bBadge+'</div>';
+
+    // Reg number + edit button
+    const regSpan=u.reg_number
+      ?'<span class="u-reg">'+esc(u.reg_number)+'</span>'
+      :'<span class="u-reg-empty">no reg #</span>';
+    html+='<div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;margin-top:.1rem">'+regSpan;
+    if(!isSelf)html+='<button class="u-edit-reg" data-uid="'+u.id+'" data-reg="'+esc(u.reg_number||'')+'" data-dn="'+esc(dn)+'">&#9998;</button>';
+    html+='</div>';
+
+    // Class name
+    html+='<div class="u-class-tag">&#127979; <span>'+esc(className)+'</span></div>';
+
+    // Role badge
+    html+='<div style="margin-top:.25rem"><span class="role-badge role-'+u.role+'" style="font-size:.54rem">'+u.role.toUpperCase()+'</span></div>';
+
+    // Class + batch assignment dropdowns
+    // Master can assign any student; admin can only assign students already in their class
+    const showAssign=!isSelf&&(isMaster||(isAdmin&&u.role==='student'&&(u.class_id===myProfile?.class_id||!u.class_id)));
+    if(showAssign){
+      let sel='<div class="u-assign-row"><select class="u-sel" data-uid="'+u.id+'" data-action="class">';
+      sel+='<option value="">No class</option>';
+      allClasses.forEach(cl=>{
+        sel+='<option value="'+cl.id+'"'+(u.class_id===cl.id?' selected':'')+'>'+esc(cl.name+(cl.section?' · '+cl.section:''))+'</option>';
+      });
+      sel+='</select>';
+      sel+='<select class="u-sel" data-uid="'+u.id+'" data-action="batch"'+(u.class_id?'':' disabled')+'>';
+      sel+='<option value="">No batch</option>';
+      sel+='<option value="1"'+(u.batch_number===1?' selected':'')+'>Batch 1</option>';
+      sel+='<option value="2"'+(u.batch_number===2?' selected':'')+'>Batch 2</option>';
+      sel+='</select></div>';
+      html+=sel;
+    }
+    html+='</div>'; // end info column
+
+    // ── Actions column ──
+    html+='<div class="u-actions" style="flex-direction:column;align-items:flex-end;gap:.35rem">';
+    if(u.role==='student'&&!isSelf)
+      html+='<button class="u-btn make-admin" data-uid="'+u.id+'" data-role="admin">Make Admin</button>';
+    if(u.role==='admin'&&!isSelf)
+      html+='<button class="u-btn make-student" data-uid="'+u.id+'" data-role="student">Make Student</button>';
+    if(u.role!=='master'&&!isSelf&&isMaster)
+      html+='<button class="u-btn make-master" data-uid="'+u.id+'" data-role="master">Make Master</button>';
+    if(!isSelf&&u.role!=='master')
+      html+='<button class="u-btn" style="background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.25);" data-uid="'+u.id+'" data-action="delete" data-uname="'+esc(u.username)+'">&#128465; Del</button>';
+    if(isSelf)
+      html+='<span style="font-family:Space Mono,monospace;font-size:.6rem;color:var(--muted)">You</span>';
+    html+='</div>';
+
+    d.innerHTML=html;
+
+    // ── Wire up events via data attributes (no onclick in HTML strings) ──
+    const editBtn=d.querySelector('[data-action=""].u-edit-reg,[class="u-edit-reg"]');
+    d.querySelectorAll('.u-edit-reg').forEach(btn=>{
+      btn.addEventListener('click',()=>editRegNumber(btn.dataset.uid,btn.dataset.reg,btn.dataset.dn));
+    });
+    d.querySelectorAll('.u-btn').forEach(btn=>{
+      if(btn.dataset.role)btn.addEventListener('click',()=>changeRole(btn.dataset.uid,btn.dataset.role));
+      if(btn.dataset.action==='delete')btn.addEventListener('click',()=>deleteUser(btn.dataset.uid,btn.dataset.uname));
+    });
+    d.querySelectorAll('.u-sel').forEach(sel=>{
+      sel.addEventListener('change',()=>{
+        if(sel.dataset.action==='class')assignClass(sel.dataset.uid,sel.value);
+        if(sel.dataset.action==='batch')assignBatch(sel.dataset.uid,sel.value);
+      });
+    });
+
+    grid.appendChild(d);
+    d.querySelectorAll('button,select').forEach(ch);
   });
-  if(!students.length)grid.innerHTML='<div class="tempty">No users yet.</div>';
 }
+
 
 window.changeRole=async(userId,newRole)=>{
   const target=students.find(s=>s.id===userId);
@@ -809,6 +921,77 @@ window.editRegNumber=async(userId,currentReg,dn)=>{
   renderUserGrid();
   toast(trimmed?'Registration number updated to '+trimmed+'.':'Registration number cleared.','ok');
 };
+
+// ── CLASS MANAGEMENT ──────────────────────────────────────────
+
+window.createClass=async()=>{
+  const name=$('classNameIn').value.trim();
+  const section=$('classSectionIn').value.trim();
+  if(!name){showMsgBox('classMsg','Enter a class name.','err');return;}
+  if(allClasses.find(cl=>cl.name.toLowerCase()===name.toLowerCase()&&cl.section===section)){
+    showMsgBox('classMsg','Class already exists.','err');return;}
+  const{data,error}=await sb.from('classes').insert([{name,section:section||null,created_by:me.id}]).select().single();
+  if(error){showMsgBox('classMsg','Error: '+error.message,'err');return;}
+  allClasses.push(data);
+  $('classNameIn').value='';$('classSectionIn').value='';
+  renderClassList();renderUserGrid();
+  showMsgBox('classMsg','"'+name+'" created!','ok');
+  toast('Class "'+name+'" created.','ok');
+};
+
+window.deleteClass=async(classId,name)=>{
+  if(!confirm('Delete class "'+name+'"?\nStudents will have their class assignment cleared.'))return;
+  await sb.from('classes').delete().eq('id',classId);
+  allClasses=allClasses.filter(cl=>cl.id!==classId);
+  students.forEach(s=>{if(s.class_id===classId){s.class_id=null;s.batch_number=null;}});
+  renderClassList();renderUserGrid();
+  toast('Class deleted.','info');
+};
+
+function renderClassList(){
+  const list=$('classList');if(!list)return;
+  list.innerHTML='';
+  if(!allClasses.length){
+    list.innerHTML='<div class="tempty" style="padding:1rem">No classes yet. Create one above.</div>';return;}
+  allClasses.forEach(cl=>{
+    const studentCount=students.filter(s=>s.class_id===cl.id).length;
+    const admin=students.find(s=>s.class_id===cl.id&&s.role==='admin');
+    const adminDn=admin?admin.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase()):'No admin';
+    const div=document.createElement('div');div.className='cls-card rev';
+    div.innerHTML='<div><div class="cls-name">'+esc(cl.name)+(cl.section?' <span style="color:var(--muted);font-size:.8rem">· '+esc(cl.section)+'</span>':'')+'</div>'
+      +'<div class="cls-meta">👤 '+esc(adminDn)+' &nbsp;|&nbsp; 👥 '+studentCount+' student'+(studentCount!==1?'s':'')+'</div></div>'
+      +'<button class="cls-del" onclick="deleteClass('+cl.id+',''+esc(cl.name)+'')">✕ Delete</button>';
+    list.appendChild(div);div.querySelectorAll('button').forEach(ch);
+  });
+}
+
+// ── ASSIGN CLASS + BATCH ───────────────────────────────────────
+
+window.assignClass=async(userId,classId)=>{
+  const val=classId?+classId:null;
+  const{error}=await sb.from('profiles').update({class_id:val,batch_number:null}).eq('id',userId);
+  if(error){toast('Error: '+error.message,'err');return;}
+  const s=students.find(s=>s.id===userId);
+  if(s){s.class_id=val;s.batch_number=null;}
+  renderUserGrid();renderClassList();
+  toast(val?'Class assigned.':'Class removed.','ok');
+};
+
+window.assignBatch=async(userId,batchVal)=>{
+  const val=batchVal?+batchVal:null;
+  const{error}=await sb.from('profiles').update({batch_number:val}).eq('id',userId);
+  if(error){toast('Error: '+error.message,'err');return;}
+  const s=students.find(s=>s.id===userId);
+  if(s)s.batch_number=val;
+  renderUserGrid();
+  toast(val?'Batch '+val+' assigned.':'Batch removed.','ok');
+};
+
+function showMsgBox(id,msg,t){
+  const el=$(id);if(!el)return;
+  el.textContent=msg;el.className='msg-box '+t;el.style.display='block';
+  setTimeout(()=>el.style.display='none',3000);
+}
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(m,t='ok'){const el=$('toast');el.textContent=m;el.className='toast '+t+' show';setTimeout(()=>el.className='toast '+t,3200);}
