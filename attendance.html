@@ -182,6 +182,15 @@
     .bulk-empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-family:'Space Mono',monospace;font-size:.7rem;}
     .sc-name.clickable{cursor:none;transition:color .18s;}
     .sc-name.clickable:hover{color:var(--accent);}
+    /* REG# JUMP INPUT */
+    .bulk-reg-row{padding:.5rem 1.5rem .1rem;flex-shrink:0;}
+    .bulk-reg-input{width:100%;padding:.4rem .8rem;background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'Space Mono',monospace;font-size:.78rem;outline:none;cursor:none;}
+    .bulk-reg-input:focus{border-color:var(--accent);}
+    .bulk-reg-input::placeholder{color:var(--muted);}
+    .bulk-row.reg-highlight{border-color:var(--accent);background:rgba(0,229,255,.06);}
+    .no-class-msg{text-align:center;padding:3rem 1.5rem;color:var(--muted);}
+    .no-class-msg .ico{font-size:2.5rem;margin-bottom:.8rem;}
+    .no-class-msg p{font-family:'Space Mono',monospace;font-size:.72rem;line-height:1.8;}
     /* BULK BATCH SELECTION SCREEN */
     .bulk-batch-card{display:flex;align-items:center;gap:.9rem;padding:.9rem 1.1rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:none;transition:all .22s;user-select:none;}
     .bulk-batch-card:hover{border-color:rgba(0,229,255,.35);transform:translateX(4px);background:rgba(0,229,255,.04);}
@@ -409,6 +418,7 @@
     <button class="bulk-close" onclick="closeBulk()">✕</button>
   </div>
   <div class="bulk-batch-row" id="bulkBatchRow"></div>
+  <div class="bulk-reg-row" id="bulkRegRow" style="display:none"><input class="bulk-reg-input" id="bulkRegInput" placeholder="Type reg # to jump to student…" oninput="jumpToReg(this.value)"/></div>
   <div class="bulk-toolbar" id="bulkToolbar">
     <button class="bulk-tb-btn all-p" onclick="markAllBulk('present')">✅ All Present</button>
     <button class="bulk-tb-btn all-a" onclick="markAllBulk('absent')">❌ All Absent</button>
@@ -427,6 +437,7 @@ const {createClient}=supabase, sb=createClient(SB_URL,SB_ANON), $=id=>document.g
 
 let me=null, userRole='student', subjects=[], slots=[], minPct=75;
 let students=[], selectedStudentId=null, attRecords=[];
+let allClasses=[], myClassId=null; // class system
 let batches=[], batchMembers={}, activeBatchFilter=null, bulkScreen='batches'; // batch state
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
@@ -486,6 +497,9 @@ async function loadApp(user){
   $('subjGridLabel').textContent=isAdmin?'CLASS ATTENDANCE':'MY ATTENDANCE';
   $('minRow').style.display=isAdmin?'flex':'none'; // students cannot change min %
 
+  const{data:clsData}=await sb.from('classes').select('*').order('name');
+  allClasses=clsData||[];
+  myClassId=profile?.class_id||null;
   await Promise.all([fetchSettings(), fetchSubjects(), fetchSlots(), fetchBatches()]);
   updateSubjSelect();updateBatchSelects(); // populate dropdown
 
@@ -498,9 +512,14 @@ async function loadApp(user){
     renderSubjects(me.id);
     renderOverall();
   } else {
-    await fetchMyAttendance();
-    renderSubjects(me.id);
-    renderOverall();
+    if(!myClassId){
+      $('subjGrid').innerHTML='<div class="no-class-msg"><div class="ico">🏫</div><p>You have not been assigned to a class yet.<br>Please contact your admin or the master.</p></div>';
+      $('ovTotal').textContent='—';$('ovPresent').textContent='—';$('ovAbsent').textContent='—';$('ovPct').textContent='—';
+    } else {
+      await fetchMyAttendance();
+      renderSubjects(me.id);
+      renderOverall();
+    }
   }
   renderTimetable();
 }
@@ -572,7 +591,8 @@ function renderStudentSelector(){
   // Then all other users
   students.filter(s=>s.id!==me.id).forEach(s=>{
     const dn=s.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
-    const o=document.createElement('option');o.value=s.id;o.textContent=dn+(s.reg_number?' ('+s.reg_number+')':'')+' ['+s.role+']';sel.appendChild(o);
+    const bLabel=s.batch_number?' B'+s.batch_number:'';
+    const o=document.createElement('option');o.value=s.id;o.textContent=dn+(s.reg_number?' · '+s.reg_number:'')+(bLabel?' '+bLabel:'')+' ['+s.role+']';sel.appendChild(o);
   });
   if(cur)sel.value=cur;
 }
@@ -700,7 +720,7 @@ window.submitSubject=async()=>{
   const name=$('subjNameIn').value.trim();
   if(!name){showMsg('subjMsg','Enter a subject name.','err');return;}
   if(subjects.find(s=>s.name.toLowerCase()===name.toLowerCase())){showMsg('subjMsg','Already exists.','err');return;}
-  const{data,error}=await sb.from('class_subjects').insert([{name,created_by:me.id}]).select().single();
+  const{data,error}=await sb.from('class_subjects').insert([{name,created_by:me.id,class_id:myClassId||null}]).select().single();
   if(error){showMsg('subjMsg','Error: '+error.message,'err');return;}
   subjects.push(data);$('subjNameIn').value='';
   updateSubjSelect();renderSubjects(selectedStudentId);
@@ -907,6 +927,11 @@ window.clearTimetable=async()=>{
   slots=[];renderTimetable();toast('Timetable cleared.','info');
 };
 
+window.jumpToReg=v=>{
+  // Just re-render — the renderBulkList highlight + scroll handles it
+  renderBulkList();
+};
+
 function showMsg(id,msg,t){const el=$(id);el.textContent=msg;el.className='msg-box '+t;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(m,t='ok'){const el=$('toast');el.textContent=m;el.className='toast '+t+' show';setTimeout(()=>el.className='toast '+t,3200);}
@@ -951,6 +976,7 @@ function showBulkBatchScreen(){
   $('bulkTitle').textContent=bulkSubjName;
   $('bulkSub').textContent='Select a batch to mark attendance';
   $('bulkToolbar').style.display='none';
+  $('bulkRegRow').style.display='none';
   $('bulkBatchRow').innerHTML=''; // clear back button
   renderBulkBatches();
 }
@@ -976,7 +1002,9 @@ function showBulkStudentScreen(batchId){
   }
 
   $('bulkToolbar').style.display='';
+  $('bulkRegRow').style.display='';
   $('bulkSearch').value='';
+  if($('bulkRegInput'))$('bulkRegInput').value='';
 
   // Update student count for this batch
   let pool=allStudentsCache;
@@ -1042,7 +1070,15 @@ window.renderBulkList=()=>{
   }
   const filtered=pool.filter(s=>
     s.username.replace(/_/g,' ').toLowerCase().includes(q)
-  );
+  ).sort((a,b)=>{
+    // Sort by reg# numerically; no-reg goes to end
+    const ra=a.reg_number,rb=b.reg_number;
+    if(!ra&&!rb)return 0;if(!ra)return 1;if(!rb)return -1;
+    const na=parseInt(ra),nb=parseInt(rb);
+    if(!isNaN(na)&&!isNaN(nb))return na-nb;
+    return ra.localeCompare(rb);
+  });
+  const jumpReg=($('bulkRegInput')?.value||'').trim().toLowerCase();
   const list=$('bulkList');list.innerHTML='';
   if(!filtered.length){list.innerHTML='<div class="bulk-empty">No students match.</div>';return;}
   filtered.forEach(s=>{
@@ -1054,7 +1090,10 @@ window.renderBulkList=()=>{
     const tot=pres+abs;
     const pct=tot?Math.round(pres/tot*100):null;
     const pctCss=pct===null?'':(pct>=minPct?'c-safe':pct>=minPct-15?'c-warn':'c-danger');
-    const row=document.createElement('div');row.className='bulk-row';
+    const row=document.createElement('div');
+    const regMatch=jumpReg&&s.reg_number&&s.reg_number.toLowerCase().startsWith(jumpReg);
+    row.className='bulk-row'+(regMatch?' reg-highlight':'');
+    if(regMatch)setTimeout(()=>row.scrollIntoView({block:'center',behavior:'smooth'}),50);
     row.innerHTML=`
       <div class="bulk-avatar">${esc(initials)}</div>
       <div style="flex:1;min-width:0">
@@ -1142,7 +1181,9 @@ window.undoAllBulk=async()=>{
 // ── BATCH SYSTEM ──────────────────────────────────────────────
 
 async function fetchBatches(){
-  const{data:bd}=await sb.from('batches').select('*').order('created_at',{ascending:true});
+  let bq=sb.from('batches').select('*').order('created_at',{ascending:true});
+  if(userRole==='admin'&&myClassId)bq=bq.eq('class_id',myClassId);
+  const{data:bd}=await bq;
   batches=bd||[];
   const{data:bmd}=await sb.from('batch_members').select('*');
   batchMembers={};
@@ -1182,7 +1223,8 @@ function renderBatchMgmt(){
     const assignedIds=new Set(members.map(m=>m.student_id));
     students.filter(s=>!assignedIds.has(s.id)).forEach(s=>{
       const dn=s.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
-      const o=document.createElement('option');o.value=s.id;o.textContent=dn+(s.reg_number?' ('+s.reg_number+')':'')+' ['+s.role+']';sel.appendChild(o);
+      const bLabel=s.batch_number?' B'+s.batch_number:'';
+    const o=document.createElement('option');o.value=s.id;o.textContent=dn+(s.reg_number?' · '+s.reg_number:'')+(bLabel?' '+bLabel:'')+' ['+s.role+']';sel.appendChild(o);
     });
     const assignBtn=document.createElement('button');assignBtn.className='batch-assign-btn';assignBtn.textContent='+ Assign';
     assignBtn.addEventListener('click',()=>{if(sel.value)assignToBatch(b.id,sel.value);});
@@ -1213,7 +1255,7 @@ window.createBatch=async()=>{
   const name=$('batchNameIn').value.trim();
   if(!name){showMsg('batchMsg','Enter a batch name.','err');return;}
   if(batches.find(b=>b.name.toLowerCase()===name.toLowerCase())){showMsg('batchMsg','Batch already exists.','err');return;}
-  const{data,error}=await sb.from('batches').insert([{name,created_by:me.id}]).select().single();
+  const{data,error}=await sb.from('batches').insert([{name,created_by:me.id,class_id:myClassId||null}]).select().single();
   if(error){showMsg('batchMsg','Error: '+error.message,'err');return;}
   batches.push(data);batchMembers[data.id]=[];
   $('batchNameIn').value='';
