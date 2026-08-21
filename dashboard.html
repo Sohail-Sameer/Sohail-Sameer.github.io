@@ -952,16 +952,28 @@ function renderClassList(){
   const list=$('classList');if(!list)return;
   list.innerHTML='';
   if(!allClasses.length){
-    list.innerHTML='<div class="tempty" style="padding:1rem">No classes yet. Create one above.</div>';return;}
+    list.innerHTML='<div class="tempty" style="padding:1rem">No classes yet. Create one above.</div>';
+    return;
+  }
   allClasses.forEach(cl=>{
     const studentCount=students.filter(s=>s.class_id===cl.id).length;
     const admin=students.find(s=>s.class_id===cl.id&&s.role==='admin');
     const adminDn=admin?admin.username.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase()):'No admin';
-    const div=document.createElement('div');div.className='cls-card rev';
-    div.innerHTML='<div><div class="cls-name">'+esc(cl.name)+(cl.section?' <span style="color:var(--muted);font-size:.8rem">· '+esc(cl.section)+'</span>':'')+'</div>'
-      +'<div class="cls-meta">👤 '+esc(adminDn)+' &nbsp;|&nbsp; 👥 '+studentCount+' student'+(studentCount!==1?'s':'')+'</div></div>'
-      +'<button class="cls-del" onclick="deleteClass('+cl.id+',''+esc(cl.name)+'')">✕ Delete</button>';
-    list.appendChild(div);div.querySelectorAll('button').forEach(ch);
+    const div=document.createElement('div');
+    div.className='cls-card rev';
+    let h='<div>';
+    h+='<div class="cls-name">'+esc(cl.name);
+    if(cl.section) h+=' <span style="color:var(--muted);font-size:.8rem">'+esc(cl.section)+'</span>';
+    h+='</div>';
+    h+='<div class="cls-meta">'+esc(adminDn)+' | '+studentCount+' student'+(studentCount!==1?'s':'')+'</div>';
+    h+='</div>';
+    h+='<button class="cls-del" data-id="'+cl.id+'" data-name="'+esc(cl.name)+'">&#x2715; Delete</button>';
+    div.innerHTML=h;
+    div.querySelector('[data-id]').addEventListener('click',function(){
+      deleteClass(+this.dataset.id, this.dataset.name);
+    });
+    list.appendChild(div);
+    div.querySelectorAll('button').forEach(ch);
   });
 }
 
