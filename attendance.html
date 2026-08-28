@@ -295,7 +295,21 @@
 
   <div class="wrap">
     <!-- MIN PCT + VIEW TABS -->
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.4rem;" id="topBar">
+    <!-- User info banner (always visible) -->
+  <div id="userInfoBanner" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.7rem 1.2rem;margin-bottom:.9rem;display:none;flex-wrap:wrap;gap:.5rem;align-items:center">
+    <span id="uibClass" style="font-family:'Space Mono',monospace;font-size:.68rem;color:var(--accent)"></span>
+    <span style="color:var(--border)">|</span>
+    <span id="uibReg" style="font-family:'Space Mono',monospace;font-size:.68rem;color:var(--muted)"></span>
+    <span id="uibBatch" style="font-family:'Space Mono',monospace;font-size:.68rem;color:var(--muted)"></span>
+  </div>
+  <!-- Master: class filter dropdown -->
+  <div id="masterClassFilterWrap" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.7rem 1.2rem;margin-bottom:.9rem">
+    <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.4rem;letter-spacing:.08em">FILTER BY CLASS</div>
+    <select id="masterClassSel" style="width:100%;padding:.52rem .9rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Syne',sans-serif;font-size:.88rem;outline:none;cursor:none" onchange="onMasterClassChange(this.value)">
+      <option value="">All Classes</option>
+    </select>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.4rem;" id="topBar">
       <div class="min-row" id="minRow">
         <span style="font-family:'Space Mono',monospace;font-size:.66rem;color:var(--muted)">MIN %</span>
         <input type="number" id="minPct" value="75" min="1" max="100" onchange="saveMin()" onkeydown="if(event.key==='Enter')saveMin()"/>
@@ -437,7 +451,7 @@ const {createClient}=supabase, sb=createClient(SB_URL,SB_ANON), $=id=>document.g
 
 let me=null, userRole='student', subjects=[], slots=[], minPct=75;
 let students=[], selectedStudentId=null, attRecords=[];
-let allClasses=[], myClassId=null; // class system
+let allClasses=[], myClassId=null, myProfileData=null; // class system
 let batches=[], batchMembers={}, activeBatchFilter=null, bulkScreen='batches'; // batch state
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
@@ -486,6 +500,7 @@ async function loadApp(user){
   const un=user.user_metadata?.username||user.email.split('@')[0];
   const displayName=un.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
   const{data:profile}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+  myProfileData=profile;
   userRole=profile?.role||'student';
   $('authWrap').style.display='none';$('app').style.display='block';
   $('navWho').textContent=displayName;$('footWho').textContent=displayName;
@@ -501,6 +516,8 @@ async function loadApp(user){
   allClasses=clsData||[];
   myClassId=profile?.class_id||null;
   await Promise.all([fetchSettings(), fetchSubjects(), fetchSlots(), fetchBatches()]);
+  populateInfoBanner();
+  populateMasterClassFilter();
   updateSubjSelect();updateBatchSelects(); // populate dropdown
 
   if(isAdmin){
@@ -566,8 +583,22 @@ async function fetchSlots(){
   slots=data||[];
 }
 async function fetchStudents(){
-  const{data}=await sb.from('profiles').select('id,username,role,reg_number').order('username');
-  students=data||[];
+  let q=sb.from('profiles').select('id,username,role,reg_number,class_id,batch_number');
+  if(userRole==='admin'){
+    // Admin sees only their class's students
+    if(myClassId) q=q.eq('class_id',myClassId);
+    else q=q.eq('id','00000000-0000-0000-0000-000000000000'); // no class assigned yet
+  }
+  // Master: no server filter — loads all, then filtered client-side via masterClassSel
+  const{data}=await q.order('username');
+  // Sort by reg_number numerically; no-reg goes to end
+  students=(data||[]).sort((a,b)=>{
+    const ra=a.reg_number,rb=b.reg_number;
+    if(!ra&&!rb)return 0;if(!ra)return 1;if(!rb)return -1;
+    const na=parseInt(ra),nb=parseInt(rb);
+    if(!isNaN(na)&&!isNaN(nb))return na-nb;
+    return ra.localeCompare(rb);
+  });
   renderStudentSelector();
 }
 async function fetchMyAttendance(){
@@ -840,7 +871,14 @@ function renderTimetable(){
   const times=[...new Set(relevantSlots.map(s=>s.time))].sort((a,b)=>toMin(a)-toMin(b));
 
   if(!times.length){
-    grid.innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:.72rem">No timetable slots yet'+((!isAdmin&&myBatchIds.size===0&&slots.some(sl=>sl.batch_id!==null))?' — you are not assigned to a batch.':'.')+'</div>';
+    let msg='No timetable slots yet';
+    if(!isAdmin){
+      if(!myClassId) msg='You are not assigned to a class yet. Contact your admin or master.';
+      else if(myBatchIds.size===0&&slots.some(sl=>sl.batch_id!==null))
+        msg='You are not assigned to a batch. Contact your Class Representative (CR) or admin.';
+      else msg='No timetable available yet. Contact your Class Representative (CR) or admin to set it up.';
+    }
+    grid.innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted);font-family:Space Mono,monospace;font-size:.72rem;line-height:1.8">&#128197; '+msg+'</div>';
     grid.style.display='block';return;
   }
   grid.style.display='grid';grid.style.gridTemplateColumns='80px repeat(7,1fr)';
@@ -930,6 +968,59 @@ window.clearTimetable=async()=>{
 window.jumpToReg=v=>{
   // Just re-render — the renderBulkList highlight + scroll handles it
   renderBulkList();
+};
+
+
+// ── CLASS INFO BANNER ──────────────────────────────────────────
+function populateInfoBanner(){
+  const banner=$('userInfoBanner');if(!banner)return;
+  const isAdmin=userRole==='admin'||userRole==='master';
+  if(isAdmin){banner.style.display='none';return;}
+  // Show student's class, reg#, batch
+  const myClass=allClasses.find(cl=>cl.id===myClassId);
+  const regNum=myProfileData?.reg_number;
+  const batchNum=myProfileData?.batch_number;
+  $('uibClass').textContent=myClass?'🏫 '+myClass.name+(myClass.section?' · '+myClass.section:''):'🏫 No class assigned';
+  $('uibReg').textContent=regNum?'📋 '+regNum:'No reg #';
+  $('uibBatch').textContent=batchNum?'· Batch '+batchNum:'';
+  banner.style.display='flex';
+}
+
+// ── MASTER CLASS FILTER ────────────────────────────────────────
+function populateMasterClassFilter(){
+  const wrap=$('masterClassFilterWrap');if(!wrap)return;
+  if(userRole!=='master'){wrap.style.display='none';return;}
+  const sel=$('masterClassSel');
+  sel.innerHTML='<option value="">All Classes</option>';
+  allClasses.forEach(cl=>{
+    const o=document.createElement('option');
+    o.value=cl.id;
+    o.textContent=cl.name+(cl.section?' · '+cl.section:'');
+    sel.appendChild(o);
+  });
+  wrap.style.display='';
+}
+
+window.onMasterClassChange=function(classId){
+  // Filter the rendered student selector to chosen class
+  const sel=$('studentSel');if(!sel)return;
+  const options=Array.from(sel.options);
+  options.forEach(opt=>{
+    if(!opt.value){opt.style.display='';return;}
+    const s=students.find(st=>st.id===opt.value);
+    if(!s){return;}
+    if(!classId){opt.style.display='';}
+    else{opt.style.display=s.class_id==classId?'':'none';}
+  });
+  // Auto-select first visible option
+  const firstVisible=options.find(o=>o.value&&o.style.display!=='none');
+  if(firstVisible){
+    sel.value=firstVisible.value;
+    onStudentChange(firstVisible.value);
+  } else {
+    sel.value='';
+    attRecords=[];renderSubjects(null);renderOverall();
+  }
 };
 
 function showMsg(id,msg,t){const el=$(id);el.textContent=msg;el.className='msg-box '+t;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
