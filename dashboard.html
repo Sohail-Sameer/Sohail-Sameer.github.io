@@ -559,6 +559,7 @@ async function loadApp(user){
 
   // Apply role-based UI
   if($('gReg'))$('gReg').textContent=profile?.reg_number||'Not set';
+  // gClass chip is set later in fetchExtraData once allClasses is loaded
   applyRoleUI();
 
   injectChangePwLink();
@@ -578,6 +579,7 @@ function applyRoleUI(){
   $('chipStudents').style.display=isAdmin?'':'none';
   $('chipReg').style.display=isAdmin?'none':'';
   $('chipClass').style.display=isAdmin?'none':'';
+  if($('masterTodoClassRow'))$('masterTodoClassRow').style.display=isMaster?'':'none';
   if(isAdmin){
     $('sDoneLbl').textContent='My Completed';
     $('sStudentsLbl').textContent='Total Students';
@@ -593,7 +595,7 @@ async function fetchExtraData(){
     const studs=students.filter(s=>s.role==='student'||s.role==='admin');
     $('cStudents').textContent=studs.length;
     $('sStudents').textContent=studs.length;
-    if(userRole==='master'){renderUserGrid();renderClassList();}
+    if(userRole==='master'){renderUserGrid();renderClassList();updateTodoClassSel();}
   } else {
     const{data:clsData2}=await sb.from('classes').select('*').order('name');
     allClasses=clsData2||[];
@@ -609,7 +611,14 @@ async function fetchExtraData(){
 
 // ── TODOS ──
 async function fetchTodos(){
-  const{data:tdData}=await sb.from('class_todos').select('*').order('created_at',{ascending:true});
+  // Students/admins see their class todos + global (null class_id) todos
+  let tdQuery=sb.from('class_todos').select('*').order('created_at',{ascending:true});
+  if(userRole!=='master'){
+    const cid=myProfile?.class_id;
+    if(cid) tdQuery=tdQuery.or('class_id.is.null,class_id.eq.'+cid);
+    else    tdQuery=tdQuery.is('class_id',null);
+  }
+  const{data:tdData}=await tdQuery;
   todos=tdData||[];
   $('sTodos').textContent=todos.length;
   if(todos.length===0){renderTodos();updStats();return;}
@@ -682,12 +691,17 @@ function renderTodos(){
   filtered.forEach(t=>{
     const myDone=myCompletions[t.id]?.done||false;
     const isAdmin=userRole==='admin'||userRole==='master';
+    const todoClsName=t.class_id?allClasses.find(cl=>cl.id===t.class_id)?.name:'';
+    const todoClassTag=userRole==='master'
+      ?(t.class_id?'<span style="font-family:Space Mono,monospace;font-size:.54rem;color:var(--accent2);border:1px solid rgba(109,40,217,.3);border-radius:3px;padding:.08rem .35rem;margin-right:.3rem">'+esc(todoClsName||'?')+'</span>'
+                 :'<span style="font-family:Space Mono,monospace;font-size:.54rem;color:var(--muted);border:1px solid var(--border);border-radius:3px;padding:.08rem .35rem;margin-right:.3rem">ALL</span>')
+      :'';
     const d=document.createElement('div');
     d.className='ti'+(myDone?' done':'');
 
     if(!isAdmin){
       // Student: simple checkbox row
-      d.innerHTML=`<button class="tchk">${myDone?'✓':''}</button><span class="ttxt">${esc(t.text)}</span>`;
+      d.innerHTML=`<button class="tchk">${myDone?'✓':''}</button><span class="ttxt">${todoClassTag}${esc(t.text)}</span>`;
       d.addEventListener('click',()=>toggleCompletion(t.id));
     } else {
       // Admin/Master: own checkbox + class completion stats
@@ -697,7 +711,7 @@ function renderTodos(){
       d.innerHTML=`
         <button class="tchk" title="Mark my own completion">${myDone?'✓':''}</button>
         <div class="t-bar-wrap" style="flex:1;min-width:0">
-          <span class="ttxt">${esc(t.text)}</span>
+          <span class="ttxt">${todoClassTag}${esc(t.text)}</span>
           <div class="t-bar-bg" style="margin-top:.35rem"><div class="t-bar-fill" style="width:${pct}%"></div></div>
           <div class="t-comp">${doneCount}/${studs} users done (${pct}%)</div>
         </div>
@@ -727,7 +741,12 @@ async function toggleCompletion(todoId){
 window.adminAddTodo=async()=>{
   const text=$('adminTin').value.trim();if(!text)return;
   $('adminTin').value='';
-  const{data,error}=await sb.from('class_todos').insert([{text,created_by:me.id}]).select().single();
+  // Admin always scopes to their class; master uses dropdown selection
+  const sel=$('todoClassSel');
+  const todoClassId=userRole==='master'
+    ?(sel?.value?+sel.value:null)
+    :(myProfile?.class_id||null);
+  const{data,error}=await sb.from('class_todos').insert([{text,created_by:me.id,class_id:todoClassId}]).select().single();
   if(error){toast('Error adding task.','err');return;}
   todos.push(data);completions[data.id]=[];myCompletions[data.id]=null;renderTodos();updStats();toast('✅ Task added for all students!','ok');
 };
@@ -783,8 +802,8 @@ function renderUserGrid(){
     html+='<div style="margin-top:.25rem"><span class="role-badge role-'+u.role+'" style="font-size:.54rem">'+u.role.toUpperCase()+'</span></div>';
 
     // Class + batch assignment dropdowns
-    // Master can assign any student; admin can only assign students already in their class
-    const showAssign=!isSelf&&(isMaster||(isAdmin&&u.role==='student'&&(u.class_id===myProfile?.class_id||!u.class_id)));
+    // Master can assign anyone including themselves; admin can assign students in their class
+    const showAssign=isMaster?true:(!isSelf&&isAdmin&&u.role==='student'&&(u.class_id===myProfile?.class_id||!u.class_id));
     if(showAssign){
       let sel='<div class="u-assign-row"><select class="u-sel" data-uid="'+u.id+'" data-action="class">';
       sel+='<option value="">No class</option>';
@@ -923,6 +942,17 @@ window.editRegNumber=async(userId,currentReg,dn)=>{
 };
 
 // ── CLASS MANAGEMENT ──────────────────────────────────────────
+
+function updateTodoClassSel(){
+  const sel=$('todoClassSel');if(!sel)return;
+  sel.innerHTML='<option value="">All Classes (broadcast to everyone)</option>';
+  allClasses.forEach(cl=>{
+    const o=document.createElement('option');
+    o.value=cl.id;
+    o.textContent=cl.name+(cl.section?' · '+cl.section:'');
+    sel.appendChild(o);
+  });
+}
 
 window.createClass=async()=>{
   const name=$('classNameIn').value.trim();
