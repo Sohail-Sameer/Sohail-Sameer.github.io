@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantry Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Pantry Planner</h1>
+  <p class="tagline">Tell it what's in your kitchen. It tells you what to cook.</p>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button class="tab-btn active" data-tab="plan" role="tab" aria-selected="true">Find a dish</button>
+  <button class="tab-btn" data-tab="add" role="tab" aria-selected="false">Add a recipe</button>
+  <button class="tab-btn" data-tab="library" role="tab" aria-selected="false">Recipe box</button>
+</nav>
+
+<main>
+
+  <!-- PLANNER -->
+  <section id="plan" class="tab-panel active">
+    <div class="panel-intro">
+      <h2>What's in the kitchen?</h2>
+      <p>Add what you've got, one item at a time. We'll surface the recipes you're closest to making.</p>
+    </div>
+
+    <form id="pantry-form" class="pantry-form">
+      <input type="text" id="pantry-input" placeholder="e.g. paneer, onion, curd..." autocomplete="off">
+      <button type="submit">Add</button>
+    </form>
+
+    <div id="pantry-chips" class="chip-row" aria-live="polite"></div>
+
+    <div id="plan-results" class="results"></div>
+  </section>
+
+  <!-- ADD RECIPE -->
+  <section id="add" class="tab-panel">
+    <div class="panel-intro">
+      <h2>Paste a caption</h2>
+      <p>Copy a post's description from <strong>@ral.livezy</strong> — first line as the title, a "Recipe By:" credit, and the ingredient list — and drop the whole thing in below.</p>
+    </div>
+
+    <label for="caption-input" class="field-label">Instagram caption</label>
+    <textarea id="caption-input" rows="10" placeholder="Paste the full post description here..."></textarea>
+    <button id="parse-btn" type="button" class="primary-btn">Parse caption</button>
+
+    <form id="review-form" class="review-form hidden">
+      <h3>Check it over</h3>
+      <p class="hint">Auto-parsing is a best guess — fix anything that landed in the wrong place before saving.</p>
+
+      <label for="f-name">Recipe name</label>
+      <input type="text" id="f-name" required>
+
+      <label for="f-credit">Recipe by</label>
+      <input type="text" id="f-credit">
+
+      <label for="f-ingredients">Ingredients <span class="hint">(one per line)</span></label>
+      <textarea id="f-ingredients" rows="8"></textarea>
+
+      <label for="f-instructions">Method <span class="hint">(optional)</span></label>
+      <textarea id="f-instructions" rows="6"></textarea>
+
+      <label for="f-link">Post link <span class="hint">(optional)</span></label>
+      <input type="url" id="f-link" placeholder="https://www.instagram.com/p/...">
+
+      <div class="form-actions">
+        <button type="submit" class="primary-btn">Save recipe</button>
+        <button type="button" id="discard-btn" class="ghost-btn">Discard</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- LIBRARY -->
+  <section id="library" class="tab-panel">
+    <div class="panel-intro">
+      <h2>Recipe box</h2>
+      <p><span id="recipe-count">0</span> recipes saved on this device.</p>
+    </div>
+
+    <div class="library-actions">
+      <input type="search" id="library-search" placeholder="Search saved recipes...">
+      <div class="io-actions">
+        <button id="export-btn" class="ghost-btn">Export backup</button>
+        <label class="ghost-btn file-label">Import backup
+          <input type="file" id="import-input" accept="application/json" hidden>
+        </label>
+      </div>
+    </div>
+
+    <div id="library-list" class="library-list"></div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
