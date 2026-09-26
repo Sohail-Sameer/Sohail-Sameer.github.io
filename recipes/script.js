@@ -17,12 +17,46 @@ const UNIT_WORDS = [
   'pieces?','pkt','packet','cans?','handful(s)?','sprigs?','stalks?'
 ];
 const UNIT_RE = new RegExp('\\b(' + UNIT_WORDS.join('|') + ')\\b', 'gi');
-const HEADING_RE = /(method|instructions?|directions?|steps?|procedure|preparation)\s*:?/i;
-const INGREDIENTS_HEADING_RE = /ingredients\s*:?/i;
-const RECIPE_BY_RE = /recipe\s*by/i;
 
-function parseCaption(raw) {
-  const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+const FRACTION_CHARS = '½¼¾⅓⅔⅛⅜⅝⅞';
+const QUANTITY_START_RE = new RegExp(`^[\\d${FRACTION_CHARS}]`);
+const INGREDIENTS_HEADING_RE = /^ingredients\s*:?/i;
+const METHOD_HEADING_RE = /^(method|instructions?|directions?|steps?|procedure|preparation)\b/i;
+const NUTRITION_HEADING_RE = /^(nutrition(al)?(\s*(info|facts))?)\b/i;
+const RECIPE_BY_RE = /recipe\s*by/i;
+const DECORATIVE_RE = /^[-=_*]{3,}$/;
+const ADD_TAIL_RE = /\badd:?\s+(.+)$/i;
+const INSTRUCTION_STARTERS = [
+  'to','then','now','once','mix','fry','remove','transfer','garnish','cover',
+  'bring','let','cook','blend','heat','pour','whisk','simmer','reduce','season','serve','set','add'
+];
+const STARTER_RE = new RegExp('^(' + INSTRUCTION_STARTERS.join('|') + ')\\b', 'i');
+
+// Real captions mix short ingredient-style lines ("200g Greek yogurt") with
+// full instruction sentences, sometimes in the same line ("To a bowl add
+// 500g chicken thighs"). This classifies one line at a time rather than
+// assuming a clean, separately-headed ingredients block.
+function classifyLine(line) {
+  const addMatch = line.match(ADD_TAIL_RE);
+  if (addMatch && addMatch[1].trim()) {
+    // "To a pan add 500g X" -> keep just "500g X"
+    return { type: 'ingredient', text: addMatch[1].trim() };
+  }
+  if (/:$/.test(line)) return { type: 'instruction', text: line }; // header lines like "Then add:"
+  if (QUANTITY_START_RE.test(line)) return { type: 'ingredient', text: line };
+
+  const endsWithTerminal = /[.!?]$/.test(line);
+  const wordCount = line.split(/\s+/).length;
+  if (!endsWithTerminal && wordCount <= 8 && !STARTER_RE.test(line)) {
+    return { type: 'ingredient', text: line };
+  }
+  return { type: 'instruction', text: line };
+}
+
+function parseCaption(rawInput) {
+  // markdown links like [@user](https://instagram.com/user) -> @user
+  const raw = rawInput.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
+  const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !DECORATIVE_RE.test(l));
   if (lines.length === 0) return { name: '', credit: '', ingredients: '', instructions: '' };
 
   const name = lines[0];
@@ -44,26 +78,39 @@ function parseCaption(raw) {
     }
   }
 
-  // find an explicit "Ingredients" heading after the credit line, else start right after credit
+  // explicit "Ingredients" heading, if the caption has one
   let ingStart = searchFrom;
   const headingIdx = lines.findIndex((l, i) => i >= searchFrom && INGREDIENTS_HEADING_RE.test(l));
   if (headingIdx !== -1) ingStart = headingIdx + 1;
 
-  // find where the method/instructions block begins
-  let ingEnd = lines.findIndex((l, i) => i >= ingStart && HEADING_RE.test(l));
-  if (ingEnd === -1) ingEnd = lines.length;
+  // stop scanning for ingredients at a Method/Instructions heading or a
+  // Nutrition section, whichever comes first
+  const methodIdx = lines.findIndex((l, i) => i >= ingStart && METHOD_HEADING_RE.test(l));
+  const nutritionIdx = lines.findIndex((l, i) => i >= ingStart && NUTRITION_HEADING_RE.test(l));
+  const stops = [methodIdx, nutritionIdx].filter(i => i !== -1);
+  const blockEnd = stops.length ? Math.min(...stops) : lines.length;
 
-  const ingredientLines = lines.slice(ingStart, ingEnd)
-    .map(l => l.replace(/^[-•*\u2022]\s*/, '').replace(/^\d+[.)]\s*/, '').trim())
-    .filter(l => l.length > 0 && !INGREDIENTS_HEADING_RE.test(l));
+  const ingredients = [];
+  const instructions = [];
 
-  const instructionLines = ingEnd < lines.length ? lines.slice(ingEnd + 1) : [];
+  lines.slice(ingStart, blockEnd).forEach(line => {
+    if (INGREDIENTS_HEADING_RE.test(line)) return;
+    const { type, text } = classifyLine(line);
+    if (text) (type === 'ingredient' ? ingredients : instructions).push(text);
+  });
+
+  // a caption with an explicit Method/Instructions heading: trust that
+  // section as-is rather than re-classifying it
+  if (methodIdx !== -1 && (nutritionIdx === -1 || methodIdx < nutritionIdx)) {
+    const methodEnd = nutritionIdx !== -1 ? nutritionIdx : lines.length;
+    lines.slice(methodIdx + 1, methodEnd).forEach(l => instructions.push(l));
+  }
 
   return {
     name,
     credit,
-    ingredients: ingredientLines.join('\n'),
-    instructions: instructionLines.join('\n')
+    ingredients: ingredients.join('\n'),
+    instructions: instructions.join('\n')
   };
 }
 
